@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Send, Sparkles, ArrowLeft, GraduationCap, Heart,
-  MapPin, User, BookOpen, Briefcase, Loader2, Bot
+  Send, Sparkles, ArrowLeft,
+  MapPin, User, Loader2, Bot, ChevronLeft,
+  Stethoscope, School, Volume2, VolumeX, Mic, MicOff
 } from "lucide-react";
+import heroImg from "@assets/image_1771089019689.png";
 
 interface ChatMsg {
   id: number;
@@ -17,14 +18,45 @@ interface ChatMsg {
   content: string;
 }
 
-const quickPrompts = [
-  { icon: Heart, label: "Healthcare careers", prompt: "What healthcare career pathways are available in the North State?" },
-  { icon: GraduationCap, label: "Education careers", prompt: "Tell me about education career pathways in the North State region." },
-  { icon: MapPin, label: "Programs near me", prompt: "What education programs are available in my county?" },
-  { icon: BookOpen, label: "Financial aid", prompt: "What scholarships and financial aid are available for students in the North State?" },
-  { icon: Briefcase, label: "Nursing programs", prompt: "What nursing programs are offered at community colleges in the North State?" },
-  { icon: User, label: "I'm a high school student", prompt: "I'm a high school student interested in healthcare. What are my options?" },
+const counties = [
+  "Butte", "Glenn", "Lassen", "Modoc", "Plumas",
+  "Shasta", "Sierra", "Siskiyou", "Tehama", "Trinity"
 ];
+
+const studentTypes = [
+  {
+    id: "high-school",
+    label: "High School Student",
+    description: "Currently attending high school"
+  },
+  {
+    id: "hs-grad-no-college",
+    label: "High School Graduate",
+    description: "Graduated high school and have never attended college"
+  },
+  {
+    id: "some-college",
+    label: "Former or Current College Student",
+    description: "Some college classes but no degree"
+  },
+  {
+    id: "associates",
+    label: "Associate's Degree Holder",
+    description: "Have an associate's degree and would like to continue my education"
+  },
+  {
+    id: "bachelors-seeking-masters",
+    label: "College Graduate - Seeking Master's",
+    description: "College graduate and would like to obtain a master's degree"
+  },
+  {
+    id: "seeking-doctorate",
+    label: "College Graduate - Seeking Doctorate",
+    description: "College graduate and would like to obtain a doctorate"
+  }
+];
+
+type OnboardingStep = "pathway" | "county" | "student-type" | "done";
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMsg[]>([]);
@@ -33,6 +65,15 @@ export default function ChatPage() {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>("pathway");
+  const [selectedPathway, setSelectedPathway] = useState<string | null>(null);
+  const [selectedCounty, setSelectedCounty] = useState<string | null>(null);
+  const [selectedStudentType, setSelectedStudentType] = useState<string | null>(null);
+
+  const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
   const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
@@ -43,6 +84,51 @@ export default function ChatPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
+
+  const prevLoadingRef = useRef(false);
+  useEffect(() => {
+    const wasLoading = prevLoadingRef.current;
+    prevLoadingRef.current = isLoading;
+    if (ttsEnabled && wasLoading && !isLoading && messages.length > 0) {
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg.role === "assistant" && lastMsg.content) {
+        const utterance = new SpeechSynthesisUtterance(lastMsg.content);
+        utterance.rate = 0.95;
+        utterance.pitch = 1;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+  }, [messages, isLoading, ttsEnabled]);
+
+  const toggleListening = () => {
+    const w = window as any;
+    const SpeechRecognitionAPI = w.SpeechRecognition || w.webkitSpeechRecognition;
+    if (!SpeechRecognitionAPI) return;
+
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognitionAPI();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInput((prev: string) => prev + transcript);
+    };
+
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+  };
 
   const createSession = async () => {
     const res = await fetch("/api/chat/sessions", {
@@ -144,7 +230,39 @@ export default function ChatPage() {
     }
   };
 
+  const handlePathwaySelect = (pathway: string) => {
+    setSelectedPathway(pathway);
+    setOnboardingStep("county");
+  };
+
+  const handleCountySelect = (county: string) => {
+    setSelectedCounty(county);
+    setOnboardingStep("student-type");
+  };
+
+  const handleStudentTypeSelect = (typeId: string) => {
+    setSelectedStudentType(typeId);
+    const st = studentTypes.find((s) => s.id === typeId);
+    const pathwayLabel = selectedPathway === "healthcare" ? "Healthcare" : "Education";
+    const introMessage = `I'm interested in ${pathwayLabel} career pathways. I live in ${selectedCounty} County. I am a ${st?.label?.toLowerCase()}${st?.description ? ` (${st?.description?.toLowerCase()})` : ""}. What programs and opportunities are available for me?`;
+    setOnboardingStep("done");
+    sendMessage(introMessage);
+  };
+
+  const goBackOnboarding = () => {
+    if (onboardingStep === "county") {
+      setSelectedPathway(null);
+      setOnboardingStep("pathway");
+    } else if (onboardingStep === "student-type") {
+      setSelectedCounty(null);
+      setOnboardingStep("county");
+    }
+  };
+
   const hasMessages = messages.length > 0;
+  const showOnboarding = onboardingStep !== "done" && !hasMessages;
+
+  const stepNumber = onboardingStep === "pathway" ? 1 : onboardingStep === "county" ? 2 : 3;
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -166,6 +284,17 @@ export default function ChatPage() {
           </div>
         </div>
         <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              if (ttsEnabled) window.speechSynthesis.cancel();
+              setTtsEnabled(!ttsEnabled);
+            }}
+            data-testid="button-toggle-tts"
+          >
+            {ttsEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+          </Button>
           {sessionId && (
             <Badge variant="secondary" className="text-xs">
               Session Active
@@ -176,40 +305,158 @@ export default function ChatPage() {
 
       <div className="flex-1 overflow-hidden">
         <div ref={scrollRef} className="h-full overflow-y-auto">
-          {!hasMessages ? (
-            <div className="flex flex-col items-center justify-center min-h-full px-4 py-12">
-              <div className="max-w-2xl w-full text-center">
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mx-auto mb-6">
-                  <Bot className="w-8 h-8 text-primary" />
-                </div>
-                <h2 className="text-2xl md:text-3xl font-bold mb-3" data-testid="text-welcome-heading">
-                  Welcome to North State Pathways
-                </h2>
-                <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-                  I can help you explore education and healthcare career pathways
-                  across Northern California. What would you like to know?
-                </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
-                  {quickPrompts.map((qp, i) => (
-                    <Card
-                      key={i}
-                      className="p-3.5 cursor-pointer hover-elevate active-elevate-2 text-left"
-                      onClick={() => sendMessage(qp.prompt)}
-                      data-testid={`card-quick-prompt-${i}`}
-                    >
-                      <div className="flex items-start gap-2.5">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary/10 shrink-0 mt-0.5">
-                          <qp.icon className="w-4 h-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">{qp.label}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{qp.prompt}</p>
-                        </div>
+          {showOnboarding ? (
+            <div className="flex flex-col items-center justify-center min-h-full px-4 py-8">
+              <div className="max-w-2xl w-full">
+                <div className="flex items-center justify-center gap-3 mb-6">
+                  {[1, 2, 3].map((s) => (
+                    <div key={s} className="flex items-center gap-2">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                          s < stepNumber
+                            ? "bg-primary text-primary-foreground"
+                            : s === stepNumber
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                        data-testid={`step-indicator-${s}`}
+                      >
+                        {s}
                       </div>
-                    </Card>
+                      {s < 3 && (
+                        <div className={`w-12 h-0.5 ${s < stepNumber ? "bg-primary" : "bg-muted"}`} />
+                      )}
+                    </div>
                   ))}
                 </div>
+
+                {onboardingStep !== "pathway" && (
+                  <Button
+                    variant="ghost"
+                    className="mb-4"
+                    onClick={goBackOnboarding}
+                    data-testid="button-onboarding-back"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" /> Back
+                  </Button>
+                )}
+
+                {onboardingStep === "pathway" && (
+                  <div className="text-center animate-in fade-in duration-300">
+                    <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mx-auto mb-5">
+                      <Bot className="w-8 h-8 text-primary" />
+                    </div>
+                    <h2 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-welcome-heading">
+                      Welcome to North State Pathways
+                    </h2>
+                    <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
+                      Let's find the right path for you. Which area interests you most?
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto">
+                      <Card
+                        className="p-6 cursor-pointer hover-elevate active-elevate-2 text-center group"
+                        onClick={() => handlePathwaySelect("healthcare")}
+                        data-testid="card-pathway-healthcare"
+                      >
+                        <div className="flex items-center justify-center w-14 h-14 rounded-full bg-destructive/10 dark:bg-destructive/20 mx-auto mb-4">
+                          <Stethoscope className="w-7 h-7 text-destructive" />
+                        </div>
+                        <h3 className="font-semibold text-lg mb-1">Healthcare</h3>
+                        <p className="text-sm text-muted-foreground">Nursing, EMS, Medical Assisting, and more</p>
+                      </Card>
+                      <Card
+                        className="p-6 cursor-pointer hover-elevate active-elevate-2 text-center group"
+                        onClick={() => handlePathwaySelect("education")}
+                        data-testid="card-pathway-education"
+                      >
+                        <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 dark:bg-primary/20 mx-auto mb-4">
+                          <School className="w-7 h-7 text-primary" />
+                        </div>
+                        <h3 className="font-semibold text-lg mb-1">Education</h3>
+                        <p className="text-sm text-muted-foreground">Teaching, Administration, Counseling, and more</p>
+                      </Card>
+                    </div>
+                  </div>
+                )}
+
+                {onboardingStep === "county" && (
+                  <div className="text-center animate-in fade-in duration-300">
+                    <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mx-auto mb-5">
+                      <MapPin className="w-7 h-7 text-primary" />
+                    </div>
+                    <h2 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-county-heading">
+                      I want to work in{" "}
+                      <span className="text-primary">
+                        {selectedPathway === "healthcare" ? "Healthcare" : "Education"}
+                      </span>{" "}
+                      and I live in...
+                    </h2>
+                    <p className="text-muted-foreground mb-6">
+                      Select your county so we can find programs near you
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 max-w-xl mx-auto">
+                      {counties.map((county) => (
+                        <Card
+                          key={county}
+                          className="p-3 cursor-pointer hover-elevate active-elevate-2 text-center"
+                          onClick={() => handleCountySelect(county)}
+                          data-testid={`card-county-${county.toLowerCase()}`}
+                        >
+                          <MapPin className="w-4 h-4 text-primary mx-auto mb-1.5" />
+                          <p className="text-sm font-medium">{county}</p>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {onboardingStep === "student-type" && (
+                  <div className="text-center animate-in fade-in duration-300">
+                    <div className="mb-6">
+                      <img
+                        src={heroImg}
+                        alt="I AM A... mind map showing student types"
+                        className="max-w-md w-full mx-auto rounded-md border"
+                        data-testid="img-mindmap"
+                      />
+                    </div>
+                    <h2 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-student-type-heading">
+                      I AM A...
+                    </h2>
+                    <p className="text-muted-foreground mb-1">
+                      <Badge variant="secondary">
+                        {selectedPathway === "healthcare" ? "Healthcare" : "Education"}
+                      </Badge>
+                      {" "}
+                      <Badge variant="secondary">
+                        <MapPin className="w-3 h-3 mr-1" />{selectedCounty} County
+                      </Badge>
+                    </p>
+                    <p className="text-sm text-muted-foreground mb-6">
+                      Tell us about your education background
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto">
+                      {studentTypes.map((st) => (
+                        <Card
+                          key={st.id}
+                          className="p-4 cursor-pointer hover-elevate active-elevate-2 text-left"
+                          onClick={() => handleStudentTypeSelect(st.id)}
+                          data-testid={`card-student-type-${st.id}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 shrink-0">
+                              <User className="w-4 h-4 text-primary" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold">{st.label}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{st.description}</p>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -255,38 +502,49 @@ export default function ChatPage() {
         </div>
       </div>
 
-      <div className="border-t bg-background px-4 py-3">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex items-end gap-2">
-            <Textarea
-              ref={textareaRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask about education pathways, healthcare careers, scholarships..."
-              className="min-h-[44px] max-h-[120px] resize-none text-sm"
-              rows={1}
-              disabled={isLoading}
-              data-testid="input-chat-message"
-            />
-            <Button
-              size="icon"
-              onClick={() => sendMessage(input)}
-              disabled={!input.trim() || isLoading}
-              data-testid="button-send-message"
-            >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-            </Button>
+      {(onboardingStep === "done" || hasMessages) && (
+        <div className="border-t bg-background px-4 py-3">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex items-end gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleListening}
+                className={isListening ? "text-red-500" : ""}
+                data-testid="button-voice-input"
+              >
+                {isListening ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+              </Button>
+              <Textarea
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask about education pathways, healthcare careers, scholarships..."
+                className="min-h-[44px] max-h-[120px] resize-none text-sm"
+                rows={1}
+                disabled={isLoading}
+                data-testid="input-chat-message"
+              />
+              <Button
+                size="icon"
+                onClick={() => sendMessage(input)}
+                disabled={!input.trim() || isLoading}
+                data-testid="button-send-message"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              Powered by AI. Information is for guidance only — verify with institutions directly.
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground mt-2 text-center">
-            Powered by AI. Information is for guidance only — verify with institutions directly.
-          </p>
         </div>
-      </div>
+      )}
     </div>
   );
 }

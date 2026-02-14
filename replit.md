@@ -70,6 +70,11 @@ shared/
 3. Automated student profiling (extracts user type, county, interests)
 4. 10 North State counties: Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Sierra, Siskiyou, Tehama, Trinity
 5. Healthcare & Education pathways with 21 programs, 14 institutions, 12 resources seeded
+6. Guided onboarding flow: Pathway (Healthcare/Education) -> County -> Student Type ("I AM A...") -> AI chat
+7. Text-to-speech (TTS) for AI responses using Web Speech API (speaks after response completes)
+8. Speech-to-text voice input using Web Speech API
+9. Zod schema validation on all admin POST/PATCH endpoints
+10. SSE client disconnect handling to prevent server resource leaks
 
 ## Running
 - `npm run dev` starts both frontend (Vite) and backend (Express) on port 5000

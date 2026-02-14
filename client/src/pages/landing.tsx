@@ -82,15 +82,9 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-3">
               <Link href="/chat">
-                <Button size="lg" className="bg-white text-black border-white/80" data-testid="button-start-chat-hero">
+                <Button size="lg" variant="outline" className="text-white border-white/30 backdrop-blur-sm bg-white/10" data-testid="button-start-chat-hero">
                   <MessageCircle className="w-5 h-5 mr-2" />
                   Talk to Our AI Assistant
-                </Button>
-              </Link>
-              <Link href="/chat?pathway=healthcare">
-                <Button size="lg" variant="outline" className="text-white border-white/30 backdrop-blur-sm bg-white/10" data-testid="button-explore-healthcare">
-                  <Heart className="w-5 h-5 mr-2" />
-                  Explore Healthcare
                 </Button>
               </Link>
             </div>
