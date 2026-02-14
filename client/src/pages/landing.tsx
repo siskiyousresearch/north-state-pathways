@@ -48,6 +48,9 @@ export default function LandingPage() {
             </div>
           </div>
           <nav className="flex items-center gap-2">
+            <Link href="/about">
+              <Button variant="ghost" data-testid="button-about-link">About</Button>
+            </Link>
             <Link href="/chat">
               <Button data-testid="button-start-chat-header">Start Exploring</Button>
             </Link>

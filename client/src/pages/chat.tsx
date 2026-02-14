@@ -10,7 +10,6 @@ import {
   MapPin, User, Loader2, Bot, ChevronLeft,
   Stethoscope, School, Volume2, VolumeX
 } from "lucide-react";
-import heroImg from "@assets/image_1771089019689.png";
 
 interface ChatMsg {
   id: number;
@@ -396,8 +395,13 @@ export default function ChatPage() {
 
                 {onboardingStep === "pathway" && (
                   <div className="text-center animate-in fade-in duration-300">
-                    <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mx-auto mb-5">
-                      <Bot className="w-8 h-8 text-primary" />
+                    <div className="w-full max-w-lg mx-auto mb-6 rounded-md overflow-hidden">
+                      <img
+                        src="/images/onboarding-pathway.jpg"
+                        alt="Choose your career pathway"
+                        className="w-full h-40 object-cover"
+                        data-testid="img-onboarding-pathway"
+                      />
                     </div>
                     <h2 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-welcome-heading">
                       Welcome to North State Pathways
@@ -434,8 +438,13 @@ export default function ChatPage() {
 
                 {onboardingStep === "county" && (
                   <div className="text-center animate-in fade-in duration-300">
-                    <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mx-auto mb-5">
-                      <MapPin className="w-7 h-7 text-primary" />
+                    <div className="w-full max-w-xl mx-auto mb-6 rounded-md overflow-hidden">
+                      <img
+                        src="/images/onboarding-county.jpg"
+                        alt="Northern California landscape"
+                        className="w-full h-40 object-cover"
+                        data-testid="img-onboarding-county"
+                      />
                     </div>
                     <h2 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-county-heading">
                       I want to work in{" "}
@@ -465,12 +474,12 @@ export default function ChatPage() {
 
                 {onboardingStep === "student-type" && (
                   <div className="text-center animate-in fade-in duration-300">
-                    <div className="mb-6">
+                    <div className="w-full max-w-xl mx-auto mb-6 rounded-md overflow-hidden">
                       <img
-                        src={heroImg}
-                        alt="I AM A... mind map showing student types"
-                        className="max-w-md w-full mx-auto rounded-md border"
-                        data-testid="img-mindmap"
+                        src="/images/onboarding-student.jpg"
+                        alt="Students in a learning environment"
+                        className="w-full h-40 object-cover"
+                        data-testid="img-onboarding-student"
                       />
                     </div>
                     <h2 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-student-type-heading">

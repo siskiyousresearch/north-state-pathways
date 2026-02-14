@@ -15,6 +15,7 @@ An AI-powered chatbot platform for North State Pathways (northstatepathways.org)
 client/src/
   pages/
     landing.tsx       - Public landing page with hero and features
+    about.tsx         - About Us page with mission, values, pathways info
     chat.tsx          - Student-facing AI chat interface with streaming
     admin/
       layout.tsx      - Admin layout with sidebar
@@ -71,10 +72,12 @@ shared/
 4. 10 North State counties: Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Sierra, Siskiyou, Tehama, Trinity
 5. Healthcare & Education pathways with 21 programs, 14 institutions, 12 resources seeded
 6. Guided onboarding flow: Pathway (Healthcare/Education) -> County -> Student Type ("I AM A...") -> AI chat
-7. Text-to-speech (TTS) for AI responses using Web Speech API (speaks after response completes)
-8. Speech-to-text voice input using Web Speech API
-9. Zod schema validation on all admin POST/PATCH endpoints
-10. SSE client disconnect handling to prevent server resource leaks
+7. AI voice (OpenAI gpt-audio, nova voice) for onboarding narration and chat response TTS
+8. Pre-generated audio files for onboarding steps (public/audio/)
+9. POST /api/tts endpoint for dynamic text-to-speech
+10. Zod schema validation on all admin POST/PATCH endpoints
+11. SSE client disconnect handling to prevent server resource leaks
+12. About Us page with mission, values, pathways, partners info
 
 ## Running
 - `npm run dev` starts both frontend (Vite) and backend (Express) on port 5000
