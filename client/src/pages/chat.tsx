@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Send, Sparkles, ArrowLeft,
   MapPin, User, Loader2, Bot, ChevronLeft,
-  Stethoscope, School, Volume2, VolumeX, Mic, MicOff
+  Stethoscope, School, Volume2, VolumeX
 } from "lucide-react";
 import heroImg from "@assets/image_1771089019689.png";
 
@@ -56,7 +56,37 @@ const studentTypes = [
   }
 ];
 
+const ONBOARDING_AUDIO: Record<string, string> = {
+  pathway: "/audio/welcome.mp3",
+  county: "/audio/county.mp3",
+  "student-type": "/audio/student-type.mp3",
+};
+
 type OnboardingStep = "pathway" | "county" | "student-type" | "done";
+
+function playAudioFile(src: string) {
+  try {
+    const audio = new Audio(src);
+    audio.play().catch(() => {});
+    return audio;
+  } catch { return null; }
+}
+
+async function playTTSForText(text: string): Promise<{ audio: HTMLAudioElement; url: string } | null> {
+  try {
+    const res = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, voice: "nova" }),
+    });
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.play().catch(() => {});
+    return { audio, url };
+  } catch { return null; }
+}
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMsg[]>([]);
@@ -69,11 +99,41 @@ export default function ChatPage() {
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>("pathway");
   const [selectedPathway, setSelectedPathway] = useState<string | null>(null);
   const [selectedCounty, setSelectedCounty] = useState<string | null>(null);
-  const [selectedStudentType, setSelectedStudentType] = useState<string | null>(null);
 
-  const [ttsEnabled, setTtsEnabled] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const recognitionRef = useRef<any>(null);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const currentAudioUrlRef = useRef<string | null>(null);
+
+  const stopCurrentAudio = useCallback(() => {
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current.currentTime = 0;
+      currentAudioRef.current = null;
+    }
+    if (currentAudioUrlRef.current) {
+      URL.revokeObjectURL(currentAudioUrlRef.current);
+      currentAudioUrlRef.current = null;
+    }
+    setIsSpeaking(false);
+  }, []);
+
+  const playOnboardingAudio = useCallback((step: OnboardingStep) => {
+    if (!voiceEnabled) return;
+    stopCurrentAudio();
+    const src = ONBOARDING_AUDIO[step];
+    if (!src) return;
+    const audio = playAudioFile(src);
+    if (audio) {
+      currentAudioRef.current = audio;
+      setIsSpeaking(true);
+      audio.onended = () => { setIsSpeaking(false); currentAudioRef.current = null; };
+    }
+  }, [voiceEnabled, stopCurrentAudio]);
+
+  useEffect(() => {
+    playOnboardingAudio("pathway");
+  }, []);
 
   const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
@@ -89,46 +149,28 @@ export default function ChatPage() {
   useEffect(() => {
     const wasLoading = prevLoadingRef.current;
     prevLoadingRef.current = isLoading;
-    if (ttsEnabled && wasLoading && !isLoading && messages.length > 0) {
+    if (voiceEnabled && wasLoading && !isLoading && messages.length > 0) {
       const lastMsg = messages[messages.length - 1];
       if (lastMsg.role === "assistant" && lastMsg.content) {
-        const utterance = new SpeechSynthesisUtterance(lastMsg.content);
-        utterance.rate = 0.95;
-        utterance.pitch = 1;
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(utterance);
+        stopCurrentAudio();
+        setIsSpeaking(true);
+        playTTSForText(lastMsg.content).then((result) => {
+          if (result) {
+            currentAudioRef.current = result.audio;
+            currentAudioUrlRef.current = result.url;
+            result.audio.onended = () => {
+              setIsSpeaking(false);
+              currentAudioRef.current = null;
+              URL.revokeObjectURL(result.url);
+              currentAudioUrlRef.current = null;
+            };
+          } else {
+            setIsSpeaking(false);
+          }
+        });
       }
     }
-  }, [messages, isLoading, ttsEnabled]);
-
-  const toggleListening = () => {
-    const w = window as any;
-    const SpeechRecognitionAPI = w.SpeechRecognition || w.webkitSpeechRecognition;
-    if (!SpeechRecognitionAPI) return;
-
-    if (isListening && recognitionRef.current) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-      return;
-    }
-
-    const recognition = new SpeechRecognitionAPI();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = "en-US";
-
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setInput((prev: string) => prev + transcript);
-    };
-
-    recognition.onerror = () => setIsListening(false);
-    recognition.onend = () => setIsListening(false);
-
-    recognitionRef.current = recognition;
-    recognition.start();
-    setIsListening(true);
-  };
+  }, [messages, isLoading, voiceEnabled, stopCurrentAudio]);
 
   const createSession = async () => {
     const res = await fetch("/api/chat/sessions", {
@@ -233,35 +275,43 @@ export default function ChatPage() {
   const handlePathwaySelect = (pathway: string) => {
     setSelectedPathway(pathway);
     setOnboardingStep("county");
+    playOnboardingAudio("county");
   };
 
   const handleCountySelect = (county: string) => {
     setSelectedCounty(county);
     setOnboardingStep("student-type");
+    playOnboardingAudio("student-type");
   };
 
-  const handleStudentTypeSelect = (typeId: string) => {
-    setSelectedStudentType(typeId);
+  const handleStudentTypeSelect = async (typeId: string) => {
     const st = studentTypes.find((s) => s.id === typeId);
     const pathwayLabel = selectedPathway === "healthcare" ? "Healthcare" : "Education";
     const introMessage = `I'm interested in ${pathwayLabel} career pathways. I live in ${selectedCounty} County. I am a ${st?.label?.toLowerCase()}${st?.description ? ` (${st?.description?.toLowerCase()})` : ""}. What programs and opportunities are available for me?`;
+    stopCurrentAudio();
     setOnboardingStep("done");
-    sendMessage(introMessage);
+    try {
+      await sendMessage(introMessage);
+    } catch (err) {
+      console.error("Failed to send onboarding message:", err);
+    }
   };
 
   const goBackOnboarding = () => {
+    stopCurrentAudio();
     if (onboardingStep === "county") {
       setSelectedPathway(null);
       setOnboardingStep("pathway");
+      playOnboardingAudio("pathway");
     } else if (onboardingStep === "student-type") {
       setSelectedCounty(null);
       setOnboardingStep("county");
+      playOnboardingAudio("county");
     }
   };
 
   const hasMessages = messages.length > 0;
-  const showOnboarding = onboardingStep !== "done" && !hasMessages;
-
+  const showOnboarding = onboardingStep !== "done";
   const stepNumber = onboardingStep === "pathway" ? 1 : onboardingStep === "county" ? 2 : 3;
 
   return (
@@ -288,14 +338,19 @@ export default function ChatPage() {
             variant="ghost"
             size="icon"
             onClick={() => {
-              if (ttsEnabled) window.speechSynthesis.cancel();
-              setTtsEnabled(!ttsEnabled);
+              if (voiceEnabled) stopCurrentAudio();
+              setVoiceEnabled(!voiceEnabled);
             }}
             data-testid="button-toggle-tts"
           >
-            {ttsEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           </Button>
-          {sessionId && (
+          {isSpeaking && voiceEnabled && (
+            <Badge variant="secondary" className="text-xs" data-testid="badge-speaking">
+              Speaking...
+            </Badge>
+          )}
+          {sessionId && !isSpeaking && (
             <Badge variant="secondary" className="text-xs">
               Session Active
             </Badge>
@@ -313,9 +368,7 @@ export default function ChatPage() {
                     <div key={s} className="flex items-center gap-2">
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                          s < stepNumber
-                            ? "bg-primary text-primary-foreground"
-                            : s === stepNumber
+                          s <= stepNumber
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted text-muted-foreground"
                         }`}
@@ -423,15 +476,14 @@ export default function ChatPage() {
                     <h2 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-student-type-heading">
                       I AM A...
                     </h2>
-                    <p className="text-muted-foreground mb-1">
+                    <div className="flex items-center justify-center gap-2 text-muted-foreground mb-1">
                       <Badge variant="secondary">
                         {selectedPathway === "healthcare" ? "Healthcare" : "Education"}
                       </Badge>
-                      {" "}
                       <Badge variant="secondary">
                         <MapPin className="w-3 h-3 mr-1" />{selectedCounty} County
                       </Badge>
-                    </p>
+                    </div>
                     <p className="text-sm text-muted-foreground mb-6">
                       Tell us about your education background
                     </p>
@@ -506,15 +558,6 @@ export default function ChatPage() {
         <div className="border-t bg-background px-4 py-3">
           <div className="max-w-3xl mx-auto">
             <div className="flex items-end gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleListening}
-                className={isListening ? "text-red-500" : ""}
-                data-testid="button-voice-input"
-              >
-                {isListening ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
-              </Button>
               <Textarea
                 ref={textareaRef}
                 value={input}

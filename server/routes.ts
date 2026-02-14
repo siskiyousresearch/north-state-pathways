@@ -8,38 +8,58 @@ import {
   insertPathwaySchema, insertProgramSchema, insertResourceSchema,
   insertResearchTaskSchema
 } from "@shared/schema";
+import { textToSpeech } from "./replit_integrations/audio/client";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
 
-const SYSTEM_PROMPT = `You are the North State Pathways AI Assistant, a friendly and knowledgeable guide for students, parents, and counselors exploring education and career pathways in Northern California's North State region.
+const SYSTEM_PROMPT = `You are the North State Pathways AI Assistant. Be concise, warm, and direct.
 
-Your role:
-- Help users discover education programs, healthcare careers, and resources across 10 North State counties (Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Sierra, Siskiyou, Tehama, Trinity)
-- Provide accurate, locally relevant guidance based on the pathway knowledge base
-- Be warm, encouraging, and supportive — many users are first-generation students or rural learners
-- Ask clarifying questions to understand what the user needs (their role, county, career interests)
-- Connect users to specific programs, institutions, scholarships, and support services
-- If you don't know something, say so honestly and suggest they contact the relevant institution directly
+CRITICAL RULES:
+- Keep responses SHORT — 2-4 sentences max for most answers, with brief bullet points only when listing specific programs
+- Guide the conversation step-by-step based on what you already know about the student (their pathway, county, and student type will be in the first message)
+- Focus on the NEXT actionable step the student should take, not an overview of everything
+- Use the knowledge base to recommend specific programs at specific institutions in their county
+- Never repeat information the student already provided
+- Do NOT give long introductions, summaries, or overviews
+- When listing programs, list the top 2-3 most relevant, not all of them
 
-Key focus areas:
-- Healthcare pathways: Nursing (CNA, LVN, RN, BSN), Medical Assisting, EMS, Allied Health, Health Information Management
-- Education pathways: Teaching credentials, paraprofessional work, education degrees
-- Financial aid: Federal Pell Grant, local scholarships, FAFSA support
-- Support services: Career navigators, tutoring, basic needs support
+Response style:
+- Lead with the most important recommendation
+- Follow up with a focused question to narrow down further (e.g., "Are you interested in a short-term certificate or a full degree?")
+- Keep it conversational and encouraging, like a helpful advisor
 
-Institutions include: Shasta College, Butte College, College of the Siskiyous, Lassen College, Sierra College, CSU Chico, Simpson University, UC Davis, Southern Oregon University, Western Governors University, REACH University, and various county offices of education.
+Counties: Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Sierra, Siskiyou, Tehama, Trinity
+Healthcare: Nursing (CNA/LVN/RN/BSN), Medical Assisting, EMS, Allied Health
+Education: Teaching credentials, paraprofessional, education degrees
 
-Always be concise but thorough. Use bullet points for lists. When mentioning programs, include the institution name and county when relevant.
-
-IMPORTANT: You are an informational guide only. Always recommend users verify details directly with institutions. Never provide medical, legal, or financial advice.`;
+You are an informational guide. Recommend verifying details with institutions directly.`;
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  // ========== TTS API ==========
+  app.post("/api/tts", async (req, res) => {
+    try {
+      const { text, voice } = req.body;
+      if (!text || typeof text !== "string") {
+        return res.status(400).json({ error: "Text required" });
+      }
+      const validVoices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"] as const;
+      const selectedVoice = validVoices.includes(voice) ? voice : "nova";
+      const audioBuffer = await textToSpeech(text, selectedVoice, "mp3");
+      res.setHeader("Content-Type", "audio/mpeg");
+      res.setHeader("Content-Length", audioBuffer.length.toString());
+      res.send(audioBuffer);
+    } catch (error) {
+      console.error("TTS error:", error);
+      res.status(500).json({ error: "Failed to generate speech" });
+    }
+  });
 
   // ========== CHAT API ==========
   app.post("/api/chat/sessions", async (req, res) => {
@@ -91,7 +111,7 @@ export async function registerRoutes(
         model: "gpt-5-mini",
         messages: chatMessages,
         stream: true,
-        max_completion_tokens: 2048,
+        max_completion_tokens: 512,
       });
 
       let fullResponse = "";
