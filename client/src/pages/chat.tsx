@@ -8,7 +8,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Send, Sparkles, ArrowLeft,
   MapPin, User, Loader2, Bot, ChevronLeft,
-  Stethoscope, School, Volume2, VolumeX
+  Stethoscope, School, Volume2, VolumeX,
+  Home, Plane, HandHeart, DollarSign, Briefcase, Check, ArrowRight
 } from "lucide-react";
 
 interface ChatMsg {
@@ -55,13 +56,35 @@ const studentTypes = [
   }
 ];
 
+const supportOptions = [
+  {
+    id: "wraparound",
+    icon: HandHeart,
+    label: "Help to Be Successful",
+    description: "Tutoring, counseling, mentoring, and other wraparound services"
+  },
+  {
+    id: "financial",
+    icon: DollarSign,
+    label: "Financial Support",
+    description: "Scholarships, grants, financial aid, and tuition assistance"
+  },
+  {
+    id: "work-experience",
+    icon: Briefcase,
+    label: "Work Experience",
+    description: "Internships, clinical placements, apprenticeships, and job shadows"
+  }
+];
+
 const ONBOARDING_AUDIO: Record<string, string> = {
   pathway: "/audio/welcome.mp3",
   county: "/audio/county.mp3",
   "student-type": "/audio/student-type.mp3",
 };
 
-type OnboardingStep = "pathway" | "county" | "student-type" | "done";
+type OnboardingStep = "pathway" | "county" | "student-type" | "study-location" | "support-needs" | "done";
+const TOTAL_STEPS = 5;
 
 function playAudioFile(src: string) {
   try {
@@ -98,6 +121,9 @@ export default function ChatPage() {
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>("pathway");
   const [selectedPathway, setSelectedPathway] = useState<string | null>(null);
   const [selectedCounty, setSelectedCounty] = useState<string | null>(null);
+  const [selectedStudentType, setSelectedStudentType] = useState<string | null>(null);
+  const [studyLocation, setStudyLocation] = useState<string | null>(null);
+  const [selectedSupports, setSelectedSupports] = useState<string[]>([]);
 
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -283,10 +309,36 @@ export default function ChatPage() {
     playOnboardingAudio("student-type");
   };
 
-  const handleStudentTypeSelect = async (typeId: string) => {
-    const st = studentTypes.find((s) => s.id === typeId);
+  const handleStudentTypeSelect = (typeId: string) => {
+    setSelectedStudentType(typeId);
+    stopCurrentAudio();
+    setOnboardingStep("study-location");
+  };
+
+  const handleStudyLocationSelect = (location: string) => {
+    setStudyLocation(location);
+    setOnboardingStep("support-needs");
+  };
+
+  const toggleSupport = (id: string) => {
+    setSelectedSupports((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    );
+  };
+
+  const handleSupportsContinue = async () => {
+    const st = studentTypes.find((s) => s.id === selectedStudentType);
     const pathwayLabel = selectedPathway === "healthcare" ? "Healthcare" : "Education";
-    const introMessage = `I'm interested in ${pathwayLabel} career pathways. I live in ${selectedCounty} County. I am a ${st?.label?.toLowerCase()}${st?.description ? ` (${st?.description?.toLowerCase()})` : ""}. What programs and opportunities are available for me?`;
+    const locationPref = studyLocation === "local"
+      ? "I prefer to study locally near where I live"
+      : "I am open to traveling for my education";
+    const supportNeeds = selectedSupports.length > 0
+      ? `I'm also interested in: ${selectedSupports.map((s) => {
+          const opt = supportOptions.find((o) => o.id === s);
+          return opt?.label?.toLowerCase() || s;
+        }).join(", ")}`
+      : "";
+    const introMessage = `I'm interested in ${pathwayLabel} career pathways. I live in ${selectedCounty} County. I am a ${st?.label?.toLowerCase()}${st?.description ? ` (${st?.description?.toLowerCase()})` : ""}. ${locationPref}. ${supportNeeds} What programs and opportunities are available for me?`;
     stopCurrentAudio();
     setOnboardingStep("done");
     try {
@@ -306,12 +358,22 @@ export default function ChatPage() {
       setSelectedCounty(null);
       setOnboardingStep("county");
       playOnboardingAudio("county");
+    } else if (onboardingStep === "study-location") {
+      setSelectedStudentType(null);
+      setOnboardingStep("student-type");
+      playOnboardingAudio("student-type");
+    } else if (onboardingStep === "support-needs") {
+      setStudyLocation(null);
+      setOnboardingStep("study-location");
     }
   };
 
   const hasMessages = messages.length > 0;
   const showOnboarding = onboardingStep !== "done";
-  const stepNumber = onboardingStep === "pathway" ? 1 : onboardingStep === "county" ? 2 : 3;
+  const stepNumberMap: Record<OnboardingStep, number> = {
+    pathway: 1, county: 2, "student-type": 3, "study-location": 4, "support-needs": 5, done: 5
+  };
+  const stepNumber = stepNumberMap[onboardingStep];
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -362,21 +424,23 @@ export default function ChatPage() {
           {showOnboarding ? (
             <div className="flex flex-col items-center justify-center min-h-full px-4 py-8">
               <div className="max-w-2xl w-full">
-                <div className="flex items-center justify-center gap-3 mb-6">
-                  {[1, 2, 3].map((s) => (
+                <div className="flex items-center justify-center gap-2 mb-6">
+                  {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((s) => (
                     <div key={s} className="flex items-center gap-2">
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                          s <= stepNumber
+                        className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                          s < stepNumber
+                            ? "bg-primary text-primary-foreground"
+                            : s === stepNumber
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted text-muted-foreground"
                         }`}
                         data-testid={`step-indicator-${s}`}
                       >
-                        {s}
+                        {s < stepNumber ? <Check className="w-3.5 h-3.5" /> : s}
                       </div>
-                      {s < 3 && (
-                        <div className={`w-12 h-0.5 ${s < stepNumber ? "bg-primary" : "bg-muted"}`} />
+                      {s < TOTAL_STEPS && (
+                        <div className={`w-8 h-0.5 ${s < stepNumber ? "bg-primary" : "bg-muted"}`} />
                       )}
                     </div>
                   ))}
@@ -516,6 +580,125 @@ export default function ChatPage() {
                         </Card>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {onboardingStep === "study-location" && (
+                  <div className="text-center animate-in fade-in duration-300">
+                    <div className="w-full max-w-lg mx-auto mb-6 rounded-md overflow-hidden">
+                      <img
+                        src="/images/onboarding-county.jpg"
+                        alt="Northern California region"
+                        className="w-full h-40 object-cover"
+                        data-testid="img-onboarding-location"
+                      />
+                    </div>
+                    <h2 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-study-location-heading">
+                      Where do you want to study?
+                    </h2>
+                    <div className="flex items-center justify-center gap-2 text-muted-foreground mb-1">
+                      <Badge variant="secondary">
+                        {selectedPathway === "healthcare" ? "Healthcare" : "Education"}
+                      </Badge>
+                      <Badge variant="secondary">
+                        <MapPin className="w-3 h-3 mr-1" />{selectedCounty} County
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-6">
+                      Would you prefer to stay local or are you open to traveling?
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto">
+                      <Card
+                        className="p-6 cursor-pointer hover-elevate active-elevate-2 text-center"
+                        onClick={() => handleStudyLocationSelect("local")}
+                        data-testid="card-location-local"
+                      >
+                        <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mx-auto mb-4">
+                          <Home className="w-7 h-7 text-primary" />
+                        </div>
+                        <h3 className="font-semibold text-lg mb-1">Study Locally</h3>
+                        <p className="text-sm text-muted-foreground">I want to study where I am</p>
+                      </Card>
+                      <Card
+                        className="p-6 cursor-pointer hover-elevate active-elevate-2 text-center"
+                        onClick={() => handleStudyLocationSelect("travel")}
+                        data-testid="card-location-travel"
+                      >
+                        <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mx-auto mb-4">
+                          <Plane className="w-7 h-7 text-primary" />
+                        </div>
+                        <h3 className="font-semibold text-lg mb-1">Open to Travel</h3>
+                        <p className="text-sm text-muted-foreground">I am OK to travel for my education</p>
+                      </Card>
+                    </div>
+                  </div>
+                )}
+
+                {onboardingStep === "support-needs" && (
+                  <div className="text-center animate-in fade-in duration-300">
+                    <div className="w-full max-w-lg mx-auto mb-6 rounded-md overflow-hidden">
+                      <img
+                        src="/images/onboarding-pathway.jpg"
+                        alt="Education support and resources"
+                        className="w-full h-40 object-cover"
+                        data-testid="img-onboarding-support"
+                      />
+                    </div>
+                    <h2 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-support-needs-heading">
+                      What else can we help with?
+                    </h2>
+                    <div className="flex items-center justify-center gap-2 text-muted-foreground mb-1">
+                      <Badge variant="secondary">
+                        {selectedPathway === "healthcare" ? "Healthcare" : "Education"}
+                      </Badge>
+                      <Badge variant="secondary">
+                        <MapPin className="w-3 h-3 mr-1" />{selectedCounty} County
+                      </Badge>
+                      <Badge variant="secondary">
+                        {studyLocation === "local" ? "Local" : "Open to Travel"}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-6">
+                      Select any that apply, then continue
+                    </p>
+                    <div className="grid grid-cols-1 gap-3 max-w-lg mx-auto mb-6">
+                      {supportOptions.map((opt) => {
+                        const isSelected = selectedSupports.includes(opt.id);
+                        return (
+                          <Card
+                            key={opt.id}
+                            className={`p-4 cursor-pointer hover-elevate active-elevate-2 text-left transition-colors ${
+                              isSelected ? "border-primary bg-primary/5" : ""
+                            }`}
+                            onClick={() => toggleSupport(opt.id)}
+                            data-testid={`card-support-${opt.id}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`flex items-center justify-center w-10 h-10 rounded-full shrink-0 ${
+                                isSelected ? "bg-primary text-primary-foreground" : "bg-primary/10"
+                              }`}>
+                                {isSelected ? (
+                                  <Check className="w-5 h-5" />
+                                ) : (
+                                  <opt.icon className="w-5 h-5 text-primary" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-sm font-semibold">{opt.label}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">{opt.description}</p>
+                              </div>
+                            </div>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      size="lg"
+                      onClick={handleSupportsContinue}
+                      data-testid="button-continue-to-chat"
+                    >
+                      Start Chatting <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
                   </div>
                 )}
               </div>

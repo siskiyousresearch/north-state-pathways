@@ -111,7 +111,7 @@ export async function registerRoutes(
         model: "gpt-5-mini",
         messages: chatMessages,
         stream: true,
-        max_completion_tokens: 512,
+        max_completion_tokens: 4096,
       });
 
       let fullResponse = "";
@@ -124,8 +124,12 @@ export async function registerRoutes(
             res.write(`data: ${JSON.stringify({ content })}\n\n`);
           }
         }
-      } catch (streamError) {
-        console.error("Stream error:", streamError);
+      } catch (streamError: any) {
+        console.error("Stream error:", streamError?.message || streamError);
+        if (!fullResponse) {
+          res.write(`data: ${JSON.stringify({ content: "I'm sorry, I encountered an issue. Please try again." })}\n\n`);
+          fullResponse = "I'm sorry, I encountered an issue. Please try again.";
+        }
       }
 
       if (fullResponse) {

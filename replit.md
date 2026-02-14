@@ -71,7 +71,7 @@ shared/
 3. Automated student profiling (extracts user type, county, interests)
 4. 10 North State counties: Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Sierra, Siskiyou, Tehama, Trinity
 5. Healthcare & Education pathways with 21 programs, 14 institutions, 12 resources seeded
-6. Guided onboarding flow: Pathway (Healthcare/Education) -> County -> Student Type ("I AM A...") -> AI chat
+6. Guided onboarding flow: Pathway (Healthcare/Education) -> County -> Student Type ("I AM A...") -> Study Location (local/travel) -> Support Needs (wraparound/financial/work experience) -> AI chat
 7. AI voice (OpenAI gpt-audio, nova voice) for onboarding narration and chat response TTS
 8. Pre-generated audio files for onboarding steps (public/audio/)
 9. POST /api/tts endpoint for dynamic text-to-speech

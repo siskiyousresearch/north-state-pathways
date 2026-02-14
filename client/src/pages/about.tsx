@@ -39,8 +39,8 @@ export default function AboutPage() {
       <section className="relative pt-16 overflow-hidden">
         <div className="relative h-[360px] md:h-[420px]">
           <img
-            src="/images/about-team.jpg"
-            alt="North State Pathways team"
+            src="/images/about-hero.jpg"
+            alt="Northern California landscape"
             className="absolute inset-0 w-full h-full object-cover"
             data-testid="img-about-hero"
           />
@@ -83,8 +83,8 @@ export default function AboutPage() {
             </div>
             <div className="rounded-md overflow-hidden">
               <img
-                src="/images/onboarding-student.jpg"
-                alt="Students learning together"
+                src="/images/about-mission.jpg"
+                alt="College campus"
                 className="w-full h-64 object-cover"
                 data-testid="img-about-mission"
               />
@@ -207,8 +207,8 @@ export default function AboutPage() {
           </div>
           <div className="rounded-md overflow-hidden">
             <img
-              src="/images/onboarding-county.jpg"
-              alt="Northern California landscape"
+              src="/images/about-region.jpg"
+              alt="Northern California forest"
               className="w-full h-48 object-cover"
               data-testid="img-about-region"
             />
