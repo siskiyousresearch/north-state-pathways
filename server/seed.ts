@@ -1,15 +1,16 @@
 import { db } from "./db";
 import { counties, institutions, pathways, programs, resources } from "@shared/schema";
-import { sql } from "drizzle-orm";
 
-async function seed() {
-  console.log("Seeding database...");
+export async function seedDatabase() {
+  console.log("Checking if database needs seeding...");
 
   const existingPathways = await db.select().from(pathways);
   if (existingPathways.length > 0) {
     console.log("Database already seeded, skipping.");
     return;
   }
+
+  console.log("Seeding database...");
 
   await db.insert(counties).values([
     { name: "Butte", region: "North State" },
@@ -66,7 +67,6 @@ async function seed() {
     { name: "Nursing Programs", pathwayId: healthcarePathway.id, institutionId: instMap["College of the Siskiyous"], county: "Siskiyou", description: "CNA and LVN programs serving students in Siskiyou County.", level: "Certificate", tags: ["nursing", "rural", "Siskiyou"] },
     { name: "BSN Nursing", pathwayId: healthcarePathway.id, institutionId: instMap["Simpson University"], county: "Shasta", description: "Bachelor of Science in Nursing at Simpson University in Redding.", level: "Bachelor's", tags: ["BSN", "nursing", "private"] },
     { name: "Online BSN/MSN Programs", pathwayId: healthcarePathway.id, institutionId: instMap["Western Governors University"], county: null, description: "Competency-based online nursing degree programs for working professionals.", level: "Bachelor's/Master's", tags: ["online", "BSN", "MSN", "flexible"] },
-
     { name: "Elementary Education (Teaching Credential)", pathwayId: educationPathway.id, institutionId: instMap["CSU Chico"], county: "Butte", description: "Teaching credential program for K-8 education with student teaching placements in North State schools.", level: "Credential", tags: ["teaching", "K-8", "credential"] },
     { name: "Secondary Education (Teaching Credential)", pathwayId: educationPathway.id, institutionId: instMap["CSU Chico"], county: "Butte", description: "Teaching credential program for secondary education in various subject areas.", level: "Credential", tags: ["teaching", "secondary", "credential"] },
     { name: "Liberal Studies (Pre-Teaching)", pathwayId: educationPathway.id, institutionId: instMap["CSU Chico"], county: "Butte", description: "Bachelor's degree designed for students planning to earn a multiple subject teaching credential.", level: "Bachelor's", tags: ["pre-teaching", "liberal studies"] },
@@ -95,4 +95,7 @@ async function seed() {
   console.log("Seed data inserted successfully!");
 }
 
-seed().catch(console.error).finally(() => process.exit(0));
+const isDirectRun = process.argv[1]?.endsWith("seed.ts") || process.argv[1]?.endsWith("seed");
+if (isDirectRun) {
+  seedDatabase().catch(console.error).finally(() => process.exit(0));
+}
