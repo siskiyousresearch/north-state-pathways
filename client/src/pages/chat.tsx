@@ -78,9 +78,19 @@ const supportOptions = [
 ];
 
 const ONBOARDING_AUDIO: Record<string, string> = {
-  pathway: "/audio/welcome.mp3",
-  county: "/audio/county.mp3",
-  "student-type": "/audio/student-type.mp3",
+  pathway: "/audio/step1-pathway.mp3",
+  county: "/audio/step2-county.mp3",
+  "student-type": "/audio/step3-student.mp3",
+  "study-location": "/audio/step4-location.mp3",
+  "support-needs": "/audio/step5-support.mp3",
+};
+
+const ONBOARDING_VIDEOS: Record<string, string> = {
+  pathway: "/videos/onboarding-step1-pathway.mp4",
+  county: "/videos/onboarding-step2-county.mp4",
+  "student-type": "/videos/onboarding-step3-student.mp4",
+  "study-location": "/videos/onboarding-step4-location.mp4",
+  "support-needs": "/videos/onboarding-step5-support.mp4",
 };
 
 type OnboardingStep = "pathway" | "county" | "student-type" | "study-location" | "support-needs" | "done";
@@ -313,11 +323,13 @@ export default function ChatPage() {
     setSelectedStudentType(typeId);
     stopCurrentAudio();
     setOnboardingStep("study-location");
+    playOnboardingAudio("study-location");
   };
 
   const handleStudyLocationSelect = (location: string) => {
     setStudyLocation(location);
     setOnboardingStep("support-needs");
+    playOnboardingAudio("support-needs");
   };
 
   const toggleSupport = (id: string) => {
@@ -365,6 +377,7 @@ export default function ChatPage() {
     } else if (onboardingStep === "support-needs") {
       setStudyLocation(null);
       setOnboardingStep("study-location");
+      playOnboardingAudio("study-location");
     }
   };
 
@@ -460,11 +473,14 @@ export default function ChatPage() {
                 {onboardingStep === "pathway" && (
                   <div className="text-center animate-in fade-in duration-300">
                     <div className="w-full max-w-lg mx-auto mb-6 rounded-md overflow-hidden">
-                      <img
-                        src="/images/onboarding-pathway.jpg"
-                        alt="Choose your career pathway"
-                        className="w-full h-40 object-cover"
-                        data-testid="img-onboarding-pathway"
+                      <video
+                        src={ONBOARDING_VIDEOS["pathway"]}
+                        className="w-full h-48 object-cover"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        data-testid="video-onboarding-pathway"
                       />
                     </div>
                     <h2 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-welcome-heading">
@@ -503,11 +519,14 @@ export default function ChatPage() {
                 {onboardingStep === "county" && (
                   <div className="text-center animate-in fade-in duration-300">
                     <div className="w-full max-w-xl mx-auto mb-6 rounded-md overflow-hidden">
-                      <img
-                        src="/images/onboarding-county.jpg"
-                        alt="Northern California landscape"
-                        className="w-full h-40 object-cover"
-                        data-testid="img-onboarding-county"
+                      <video
+                        src={ONBOARDING_VIDEOS["county"]}
+                        className="w-full h-48 object-cover"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        data-testid="video-onboarding-county"
                       />
                     </div>
                     <h2 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-county-heading">
@@ -539,11 +558,14 @@ export default function ChatPage() {
                 {onboardingStep === "student-type" && (
                   <div className="text-center animate-in fade-in duration-300">
                     <div className="w-full max-w-xl mx-auto mb-6 rounded-md overflow-hidden">
-                      <img
-                        src="/images/onboarding-student.jpg"
-                        alt="Students in a learning environment"
-                        className="w-full h-40 object-cover"
-                        data-testid="img-onboarding-student"
+                      <video
+                        src={ONBOARDING_VIDEOS["student-type"]}
+                        className="w-full h-48 object-cover"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        data-testid="video-onboarding-student"
                       />
                     </div>
                     <h2 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-student-type-heading">
@@ -586,11 +608,14 @@ export default function ChatPage() {
                 {onboardingStep === "study-location" && (
                   <div className="text-center animate-in fade-in duration-300">
                     <div className="w-full max-w-lg mx-auto mb-6 rounded-md overflow-hidden">
-                      <img
-                        src="/images/onboarding-county.jpg"
-                        alt="Northern California region"
-                        className="w-full h-40 object-cover"
-                        data-testid="img-onboarding-location"
+                      <video
+                        src={ONBOARDING_VIDEOS["study-location"]}
+                        className="w-full h-48 object-cover"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        data-testid="video-onboarding-location"
                       />
                     </div>
                     <h2 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-study-location-heading">
@@ -637,11 +662,14 @@ export default function ChatPage() {
                 {onboardingStep === "support-needs" && (
                   <div className="text-center animate-in fade-in duration-300">
                     <div className="w-full max-w-lg mx-auto mb-6 rounded-md overflow-hidden">
-                      <img
-                        src="/images/onboarding-pathway.jpg"
-                        alt="Education support and resources"
-                        className="w-full h-40 object-cover"
-                        data-testid="img-onboarding-support"
+                      <video
+                        src={ONBOARDING_VIDEOS["support-needs"]}
+                        className="w-full h-48 object-cover"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        data-testid="video-onboarding-support"
                       />
                     </div>
                     <h2 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-support-needs-heading">
