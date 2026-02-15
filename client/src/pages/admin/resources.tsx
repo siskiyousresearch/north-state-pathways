@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Plus, BookOpen, ExternalLink, Trash2, Search } from "lucide-react";
+import { Plus, BookOpen, ExternalLink, Trash2, Search, Pencil } from "lucide-react";
 import type { Resource, Pathway } from "@shared/schema";
 
 const resourceTypes = [
@@ -24,13 +24,16 @@ const resourceTypes = [
   "Internship", "Program", "Support Service", "Other"
 ];
 
+const emptyForm = {
+  name: "", type: "", description: "", url: "", eligibility: "", pathwayId: "", county: ""
+};
+
 export default function ResourcesPage() {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [showDialog, setShowDialog] = useState(false);
-  const [form, setForm] = useState({
-    name: "", type: "", description: "", url: "", eligibility: "", pathwayId: "", county: ""
-  });
+  const [editingResource, setEditingResource] = useState<Resource | null>(null);
+  const [form, setForm] = useState(emptyForm);
 
   const { data: resources, isLoading } = useQuery<Resource[]>({ queryKey: ["/api/admin/resources"] });
   const { data: pathways } = useQuery<Pathway[]>({ queryKey: ["/api/admin/pathways"] });
@@ -44,8 +47,22 @@ export default function ResourcesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/resources"] });
       setShowDialog(false);
-      setForm({ name: "", type: "", description: "", url: "", eligibility: "", pathwayId: "", county: "" });
+      setForm(emptyForm);
       toast({ title: "Resource added" });
+    },
+  });
+
+  const updateResource = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: typeof form }) =>
+      apiRequest("PATCH", `/api/admin/resources/${id}`, {
+        ...data,
+        pathwayId: data.pathwayId ? parseInt(data.pathwayId) : null,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/resources"] });
+      setEditingResource(null);
+      setForm(emptyForm);
+      toast({ title: "Resource updated" });
     },
   });
 
@@ -57,9 +74,75 @@ export default function ResourcesPage() {
     },
   });
 
+  const openEdit = (resource: Resource) => {
+    setForm({
+      name: resource.name || "",
+      type: resource.type || "",
+      description: resource.description || "",
+      url: resource.url || "",
+      eligibility: resource.eligibility || "",
+      pathwayId: resource.pathwayId ? String(resource.pathwayId) : "",
+      county: resource.county || "",
+    });
+    setEditingResource(resource);
+  };
+
+  const closeEdit = () => {
+    setEditingResource(null);
+    setForm(emptyForm);
+  };
+
+  const closeCreate = (open: boolean) => {
+    setShowDialog(open);
+    if (!open) setForm(emptyForm);
+  };
+
   const filtered = resources?.filter(
     (r) => r.name.toLowerCase().includes(search.toLowerCase()) ||
            (r.type && r.type.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  const resourceForm = (
+    <div className="space-y-3 mt-2">
+      <div>
+        <Label>Name</Label>
+        <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} data-testid="input-resource-name" />
+      </div>
+      <div>
+        <Label>Type</Label>
+        <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
+          <SelectTrigger data-testid="select-resource-type"><SelectValue placeholder="Select type" /></SelectTrigger>
+          <SelectContent>
+            {resourceTypes.map((t) => (
+              <SelectItem key={t} value={t}>{t}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label>Pathway</Label>
+        <Select value={form.pathwayId} onValueChange={(v) => setForm({ ...form, pathwayId: v })}>
+          <SelectTrigger data-testid="select-resource-pathway"><SelectValue placeholder="All pathways" /></SelectTrigger>
+          <SelectContent>
+            {pathways?.map((p) => (
+              <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label>URL</Label>
+        <Input value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://..." data-testid="input-resource-url" />
+      </div>
+      <div>
+        <Label>Description</Label>
+        <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} data-testid="input-resource-description" />
+      </div>
+      <div>
+        <Label>Eligibility</Label>
+        <Input value={form.eligibility} onChange={(e) => setForm({ ...form, eligibility: e.target.value })} data-testid="input-resource-eligibility" />
+      </div>
+    </div>
   );
 
   return (
@@ -82,7 +165,7 @@ export default function ResourcesPage() {
             data-testid="input-search-resources"
           />
         </div>
-        <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <Dialog open={showDialog} onOpenChange={closeCreate}>
           <DialogTrigger asChild>
             <Button data-testid="button-add-resource">
               <Plus className="w-4 h-4 mr-1.5" /> Add Resource
@@ -92,57 +175,35 @@ export default function ResourcesPage() {
             <DialogHeader>
               <DialogTitle>Add Resource</DialogTitle>
             </DialogHeader>
-            <div className="space-y-3 mt-2">
-              <div>
-                <Label>Name</Label>
-                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} data-testid="input-resource-name" />
-              </div>
-              <div>
-                <Label>Type</Label>
-                <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
-                  <SelectTrigger data-testid="select-resource-type"><SelectValue placeholder="Select type" /></SelectTrigger>
-                  <SelectContent>
-                    {resourceTypes.map((t) => (
-                      <SelectItem key={t} value={t}>{t}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Pathway</Label>
-                <Select value={form.pathwayId} onValueChange={(v) => setForm({ ...form, pathwayId: v })}>
-                  <SelectTrigger data-testid="select-resource-pathway"><SelectValue placeholder="All pathways" /></SelectTrigger>
-                  <SelectContent>
-                    {pathways?.map((p) => (
-                      <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>URL</Label>
-                <Input value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://..." data-testid="input-resource-url" />
-              </div>
-              <div>
-                <Label>Description</Label>
-                <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} data-testid="input-resource-description" />
-              </div>
-              <div>
-                <Label>Eligibility</Label>
-                <Input value={form.eligibility} onChange={(e) => setForm({ ...form, eligibility: e.target.value })} data-testid="input-resource-eligibility" />
-              </div>
-              <Button
-                className="w-full"
-                onClick={() => createResource.mutate(form)}
-                disabled={!form.name || !form.type}
-                data-testid="button-save-resource"
-              >
-                Add Resource
-              </Button>
-            </div>
+            {resourceForm}
+            <Button
+              className="w-full"
+              onClick={() => createResource.mutate(form)}
+              disabled={!form.name || !form.type || createResource.isPending}
+              data-testid="button-save-resource"
+            >
+              {createResource.isPending ? "Adding..." : "Add Resource"}
+            </Button>
           </DialogContent>
         </Dialog>
       </div>
+
+      <Dialog open={!!editingResource} onOpenChange={(open) => { if (!open) closeEdit(); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Resource</DialogTitle>
+          </DialogHeader>
+          {resourceForm}
+          <Button
+            className="w-full"
+            onClick={() => editingResource && updateResource.mutate({ id: editingResource.id, data: form })}
+            disabled={!form.name || !form.type || updateResource.isPending}
+            data-testid="button-update-resource"
+          >
+            {updateResource.isPending ? "Saving..." : "Save Changes"}
+          </Button>
+        </DialogContent>
+      </Dialog>
 
       {isLoading ? (
         <div className="space-y-2">
@@ -163,7 +224,10 @@ export default function ResourcesPage() {
                         <p className="text-sm font-medium truncate">{resource.name}</p>
                         <Badge variant="secondary" className="text-xs">{resource.type}</Badge>
                       </div>
-                      {resource.description && (
+                      {resource.url && (
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">{resource.url}</p>
+                      )}
+                      {resource.description && !resource.url && (
                         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{resource.description}</p>
                       )}
                     </div>
@@ -171,11 +235,14 @@ export default function ResourcesPage() {
                   <div className="flex items-center gap-1 shrink-0">
                     {resource.url && (
                       <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                        <Button size="icon" variant="ghost">
+                        <Button size="icon" variant="ghost" data-testid={`button-open-resource-${resource.id}`}>
                           <ExternalLink className="w-3.5 h-3.5" />
                         </Button>
                       </a>
                     )}
+                    <Button size="icon" variant="ghost" onClick={() => openEdit(resource)} data-testid={`button-edit-resource-${resource.id}`}>
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
                     <Button size="icon" variant="ghost" onClick={() => deleteResource.mutate(resource.id)} data-testid={`button-delete-resource-${resource.id}`}>
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>

@@ -30,6 +30,7 @@ export interface IStorage {
 
   getResources(): Promise<Resource[]>;
   createResource(data: InsertResource): Promise<Resource>;
+  updateResource(id: number, data: Partial<InsertResource>): Promise<Resource | undefined>;
   deleteResource(id: number): Promise<void>;
 
   createChatSession(data: InsertChatSession): Promise<ChatSession>;
@@ -114,6 +115,10 @@ export class DatabaseStorage implements IStorage {
   }
   async createResource(data: InsertResource) {
     const [r] = await db.insert(resources).values(data).returning();
+    return r;
+  }
+  async updateResource(id: number, data: Partial<InsertResource>) {
+    const [r] = await db.update(resources).set(data).where(eq(resources.id, id)).returning();
     return r;
   }
   async deleteResource(id: number) {

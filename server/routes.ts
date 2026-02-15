@@ -325,6 +325,18 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/admin/resources/:id", async (req, res) => {
+    try {
+      const parsed = insertResourceSchema.partial().parse(req.body);
+      const resource = await storage.updateResource(parseInt(req.params.id), parsed);
+      if (!resource) return res.status(404).json({ error: "Resource not found" });
+      res.json(resource);
+    } catch (error) {
+      if (error instanceof z.ZodError) return res.status(400).json({ error: error.errors });
+      res.status(500).json({ error: "Failed to update resource" });
+    }
+  });
+
   app.delete("/api/admin/resources/:id", async (req, res) => {
     try {
       await storage.deleteResource(parseInt(req.params.id));
