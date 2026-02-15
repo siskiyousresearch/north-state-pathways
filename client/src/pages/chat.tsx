@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +11,8 @@ import {
   Send, Sparkles, ArrowLeft,
   MapPin, User, Loader2, Bot, ChevronLeft,
   Stethoscope, School, Volume2, VolumeX,
-  Home, Plane, HandHeart, DollarSign, Briefcase, Check, ArrowRight
+  Home, Plane, HandHeart, DollarSign, Briefcase, Check, ArrowRight,
+  ExternalLink, BookOpen, GraduationCap, Heart
 } from "lucide-react";
 
 interface ChatMsg {
@@ -149,6 +152,12 @@ export default function ChatPage() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const currentAudioUrlRef = useRef<string | null>(null);
+
+  const resourcesUrl = `/api/resources?pathway=${encodeURIComponent(selectedPathway || "")}&county=${encodeURIComponent(selectedCounty || "")}`;
+  const { data: resources = [] } = useQuery<{ id: number; name: string; type: string; description: string | null; url: string | null; eligibility: string | null; pathwayId: number | null; county: string | null }[]>({
+    queryKey: [resourcesUrl],
+    enabled: onboardingStep === "done",
+  });
 
   const stopCurrentAudio = useCallback(() => {
     if (currentAudioRef.current) {
@@ -746,82 +755,177 @@ export default function ChatPage() {
               </div>
             </div>
           ) : (
-            <div className="max-w-3xl mx-auto px-4 py-6 space-y-5">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                  data-testid={`message-${msg.role}-${msg.id}`}
-                >
-                  {msg.role === "assistant" && (
-                    <Avatar className="w-8 h-8 shrink-0 mt-1">
-                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                        <Bot className="w-4 h-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  <div
-                    className={`max-w-[80%] rounded-md px-4 py-3 text-sm leading-relaxed ${
-                      msg.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-card border"
-                    }`}
-                  >
-                    {msg.content || (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span className="text-xs">Thinking...</span>
-                      </div>
+            <div className="flex h-full">
+              <div className="hidden lg:flex flex-col w-72 xl:w-80 border-r bg-background/80 backdrop-blur-sm shrink-0" data-testid="sidebar-resources">
+                <div className="p-4 border-b">
+                  <div className="flex items-center gap-2 mb-1">
+                    <BookOpen className="w-4 h-4 text-primary" />
+                    <h2 className="text-sm font-bold" data-testid="text-resources-title">Resources & Support</h2>
+                  </div>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <Badge variant="secondary" className="text-xs">
+                      {selectedPathway === "healthcare" ? "Healthcare" : "Education"}
+                    </Badge>
+                    {selectedCounty && (
+                      <Badge variant="secondary" className="text-xs">
+                        <MapPin className="w-3 h-3 mr-0.5" />{selectedCounty}
+                      </Badge>
                     )}
                   </div>
-                  {msg.role === "user" && (
-                    <Avatar className="w-8 h-8 shrink-0 mt-1">
-                      <AvatarFallback className="bg-muted text-muted-foreground text-xs">
-                        <User className="w-4 h-4" />
-                      </AvatarFallback>
-                    </Avatar>
+                </div>
+                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                  {resources.length === 0 ? (
+                    <p className="text-xs text-muted-foreground p-2">Loading resources...</p>
+                  ) : (
+                    resources.map((resource) => (
+                      <div
+                        key={resource.id}
+                        className="group"
+                        data-testid={`resource-item-${resource.id}`}
+                      >
+                        {resource.url ? (
+                          <a
+                            href={resource.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block p-3 rounded-md border bg-card/50 hover-elevate transition-colors"
+                          >
+                            <div className="flex items-start gap-2">
+                              <div className="shrink-0 mt-0.5">
+                                {resource.type === "Scholarship" || resource.type === "Financial Aid" ? (
+                                  <DollarSign className="w-3.5 h-3.5 text-primary" />
+                                ) : resource.type === "Program" ? (
+                                  <GraduationCap className="w-3.5 h-3.5 text-primary" />
+                                ) : (
+                                  <Heart className="w-3.5 h-3.5 text-primary" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1">
+                                  <p className="text-xs font-semibold truncate">{resource.name}</p>
+                                  <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0 invisible group-hover:visible" />
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-0.5">{resource.type}</p>
+                              </div>
+                            </div>
+                          </a>
+                        ) : (
+                          <div className="p-3 rounded-md border bg-card/50">
+                            <div className="flex items-start gap-2">
+                              <div className="shrink-0 mt-0.5">
+                                {resource.type === "Scholarship" || resource.type === "Financial Aid" ? (
+                                  <DollarSign className="w-3.5 h-3.5 text-primary" />
+                                ) : resource.type === "Program" ? (
+                                  <GraduationCap className="w-3.5 h-3.5 text-primary" />
+                                ) : (
+                                  <Heart className="w-3.5 h-3.5 text-primary" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-semibold truncate">{resource.name}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">{resource.type}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))
                   )}
                 </div>
-              ))}
+                <div className="p-3 border-t">
+                  <p className="text-xs text-muted-foreground text-center">
+                    Visit <a href="https://northstatepathways.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">northstatepathways.org</a>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex-1 flex flex-col min-w-0">
+                <div ref={scrollRef} className="flex-1 overflow-y-auto">
+                  <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
+                    {messages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                        data-testid={`message-${msg.role}-${msg.id}`}
+                      >
+                        {msg.role === "assistant" && (
+                          <Avatar className="w-8 h-8 shrink-0 mt-1">
+                            <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                              <Bot className="w-4 h-4" />
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                        <div
+                          className={`max-w-[85%] rounded-md px-4 py-3 text-sm leading-relaxed ${
+                            msg.role === "user"
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-card/90 backdrop-blur-sm border"
+                          }`}
+                        >
+                          {msg.content ? (
+                            msg.role === "assistant" ? (
+                              <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mb-2 [&>ul]:ml-1 [&>ul>li]:mb-1 [&_strong]:text-foreground" data-testid={`markdown-${msg.id}`}>
+                                <ReactMarkdown>{msg.content}</ReactMarkdown>
+                              </div>
+                            ) : (
+                              msg.content
+                            )
+                          ) : (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span className="text-xs">Thinking...</span>
+                            </div>
+                          )}
+                        </div>
+                        {msg.role === "user" && (
+                          <Avatar className="w-8 h-8 shrink-0 mt-1">
+                            <AvatarFallback className="bg-muted text-muted-foreground text-xs">
+                              <User className="w-4 h-4" />
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border-t bg-background/90 backdrop-blur-sm px-4 py-3">
+                  <div className="max-w-2xl mx-auto">
+                    <div className="flex items-end gap-2">
+                      <Textarea
+                        ref={textareaRef}
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Ask about education pathways, healthcare careers, scholarships..."
+                        className="min-h-[44px] max-h-[120px] resize-none text-sm"
+                        rows={1}
+                        disabled={isLoading}
+                        data-testid="input-chat-message"
+                      />
+                      <Button
+                        size="icon"
+                        onClick={() => sendMessage(input)}
+                        disabled={!input.trim() || isLoading}
+                        data-testid="button-send-message"
+                      >
+                        {isLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2 text-center">
+                      Powered by AI. Information is for guidance only — verify with institutions directly.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
       </div>
-
-      {(onboardingStep === "done" || hasMessages) && (
-        <div className="border-t bg-background px-4 py-3">
-          <div className="max-w-3xl mx-auto">
-            <div className="flex items-end gap-2">
-              <Textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask about education pathways, healthcare careers, scholarships..."
-                className="min-h-[44px] max-h-[120px] resize-none text-sm"
-                rows={1}
-                disabled={isLoading}
-                data-testid="input-chat-message"
-              />
-              <Button
-                size="icon"
-                onClick={() => sendMessage(input)}
-                disabled={!input.trim() || isLoading}
-                data-testid="button-send-message"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2 text-center">
-              Powered by AI. Information is for guidance only — verify with institutions directly.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
