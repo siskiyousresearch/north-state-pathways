@@ -77,13 +77,31 @@ const supportOptions = [
   }
 ];
 
-const ONBOARDING_AUDIO: Record<string, string> = {
-  pathway: "/audio/step1-pathway.mp3",
-  county: "/audio/step2-county.mp3",
-  "student-type": "/audio/step3-student.mp3",
-  "study-location": "/audio/step4-location.mp3",
-  "support-needs": "/audio/step5-support.mp3",
-};
+const PATHWAY_WELCOME_SCRIPT = "Welcome to North State Pathways! I'm here to help you explore exciting career opportunities in Northern California. Let's start by choosing a career path that sparks your interest. Healthcare, or Education? The choice is yours!";
+
+function getCountyScript(pathway: string): string {
+  const field = pathway === "healthcare" ? "Healthcare" : "Education";
+  const extras = pathway === "healthcare"
+    ? "From nursing to medical technology, there are so many ways to make a difference in people's lives."
+    : "From teaching to counseling, you can shape the future of our communities.";
+  return `Excellent choice! ${field} is an incredibly rewarding field with amazing opportunities right here in the North State. ${extras} Now, which county do you call home? This helps me find programs and resources close to you.`;
+}
+
+function getStudentTypeScript(county: string): string {
+  return `${county} County, great! There are wonderful institutions and programs in your area. Now tell me a little about yourself. Where are you in your education journey? Whether you're still in high school or already have a degree, there's a perfect path waiting for you.`;
+}
+
+function getStudyLocationScript(studentType: string): string {
+  const label = studentTypes.find(s => s.id === studentType)?.label || "student";
+  return `Perfect! As a ${label.toLowerCase()}, you have some exciting options ahead. Now here's an important question. Would you prefer to study close to home, or are you open to exploring programs a bit further away? Both are great options!`;
+}
+
+function getSupportNeedsScript(location: string): string {
+  const pref = location === "local"
+    ? "Studying locally is a smart move! You'll save on costs and stay connected to your community."
+    : "Being open to travel really opens up your options! You'll have access to even more programs and opportunities.";
+  return `${pref} One last thing before we chat. Are there any extra ways I can help support your journey? Think about things like tutoring, financial aid, or hands-on work experience. Pick as many as you'd like, or just hit Start Chatting to dive right in!`;
+}
 
 const ONBOARDING_VIDEOS: Record<string, string> = {
   pathway: "/videos/onboarding-step1-pathway.mp4",
@@ -95,14 +113,6 @@ const ONBOARDING_VIDEOS: Record<string, string> = {
 
 type OnboardingStep = "pathway" | "county" | "student-type" | "study-location" | "support-needs" | "done";
 const TOTAL_STEPS = 5;
-
-function playAudioFile(src: string) {
-  try {
-    const audio = new Audio(src);
-    audio.play().catch(() => {});
-    return audio;
-  } catch { return null; }
-}
 
 async function playTTSForText(text: string): Promise<{ audio: HTMLAudioElement; url: string } | null> {
   try {
@@ -153,21 +163,22 @@ export default function ChatPage() {
     setIsSpeaking(false);
   }, []);
 
-  const playOnboardingAudio = useCallback((step: OnboardingStep) => {
+  const playDynamicAudio = useCallback(async (script: string) => {
     if (!voiceEnabled) return;
     stopCurrentAudio();
-    const src = ONBOARDING_AUDIO[step];
-    if (!src) return;
-    const audio = playAudioFile(src);
-    if (audio) {
-      currentAudioRef.current = audio;
-      setIsSpeaking(true);
-      audio.onended = () => { setIsSpeaking(false); currentAudioRef.current = null; };
+    setIsSpeaking(true);
+    const result = await playTTSForText(script);
+    if (result) {
+      currentAudioRef.current = result.audio;
+      currentAudioUrlRef.current = result.url;
+      result.audio.onended = () => { setIsSpeaking(false); currentAudioRef.current = null; };
+    } else {
+      setIsSpeaking(false);
     }
   }, [voiceEnabled, stopCurrentAudio]);
 
   useEffect(() => {
-    playOnboardingAudio("pathway");
+    playDynamicAudio(PATHWAY_WELCOME_SCRIPT);
   }, []);
 
   const scrollToBottom = useCallback(() => {
@@ -310,26 +321,26 @@ export default function ChatPage() {
   const handlePathwaySelect = (pathway: string) => {
     setSelectedPathway(pathway);
     setOnboardingStep("county");
-    playOnboardingAudio("county");
+    playDynamicAudio(getCountyScript(pathway));
   };
 
   const handleCountySelect = (county: string) => {
     setSelectedCounty(county);
     setOnboardingStep("student-type");
-    playOnboardingAudio("student-type");
+    playDynamicAudio(getStudentTypeScript(county));
   };
 
   const handleStudentTypeSelect = (typeId: string) => {
     setSelectedStudentType(typeId);
     stopCurrentAudio();
     setOnboardingStep("study-location");
-    playOnboardingAudio("study-location");
+    playDynamicAudio(getStudyLocationScript(typeId));
   };
 
   const handleStudyLocationSelect = (location: string) => {
     setStudyLocation(location);
     setOnboardingStep("support-needs");
-    playOnboardingAudio("support-needs");
+    playDynamicAudio(getSupportNeedsScript(location));
   };
 
   const toggleSupport = (id: string) => {
@@ -365,19 +376,22 @@ export default function ChatPage() {
     if (onboardingStep === "county") {
       setSelectedPathway(null);
       setOnboardingStep("pathway");
-      playOnboardingAudio("pathway");
+      playDynamicAudio(PATHWAY_WELCOME_SCRIPT);
     } else if (onboardingStep === "student-type") {
+      const pw = selectedPathway;
       setSelectedCounty(null);
       setOnboardingStep("county");
-      playOnboardingAudio("county");
+      if (pw) playDynamicAudio(getCountyScript(pw));
     } else if (onboardingStep === "study-location") {
+      const county = selectedCounty;
       setSelectedStudentType(null);
       setOnboardingStep("student-type");
-      playOnboardingAudio("student-type");
+      if (county) playDynamicAudio(getStudentTypeScript(county));
     } else if (onboardingStep === "support-needs") {
+      const st = selectedStudentType;
       setStudyLocation(null);
       setOnboardingStep("study-location");
-      playOnboardingAudio("study-location");
+      if (st) playDynamicAudio(getStudyLocationScript(st));
     }
   };
 
