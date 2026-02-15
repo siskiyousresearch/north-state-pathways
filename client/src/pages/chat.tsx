@@ -422,8 +422,13 @@ export default function ChatPage() {
   const stepNumber = stepNumberMap[onboardingStep];
 
   return (
-    <div className="h-screen flex flex-col bg-background">
-      <header className="flex items-center justify-between gap-4 px-4 py-2.5 border-b bg-background/95 backdrop-blur-sm sticky top-0 z-50">
+    <div className="h-screen flex flex-col relative">
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/images/forest-bg.png')" }}
+      />
+      <div className="absolute inset-0 bg-background/85 dark:bg-background/90" />
+      <header className="relative flex items-center justify-between gap-4 px-4 py-2.5 border-b bg-background/70 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <Link href="/">
             <Button variant="ghost" size="icon" data-testid="button-back-home">
@@ -465,7 +470,7 @@ export default function ChatPage() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden">
+      <div className="relative flex-1 overflow-hidden">
         <div ref={scrollRef} className="h-full overflow-y-auto">
           {showOnboarding ? (
             <div className="flex flex-col items-center justify-center min-h-full px-4 py-8">
@@ -766,7 +771,7 @@ export default function ChatPage() {
             </div>
           ) : (
             <div className="flex h-full">
-              <div className="hidden lg:flex flex-col w-72 xl:w-80 border-r bg-background/80 backdrop-blur-sm shrink-0" data-testid="sidebar-resources">
+              <div className="hidden lg:flex flex-col w-72 xl:w-80 border-r bg-background/60 backdrop-blur-md shrink-0" data-testid="sidebar-resources">
                 <div className="p-4 border-b">
                   <div className="flex items-center gap-2 mb-1">
                     <BookOpen className="w-4 h-4 text-primary" />
@@ -798,7 +803,7 @@ export default function ChatPage() {
                             href={resource.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block p-3 rounded-md border bg-card/50 hover-elevate transition-colors"
+                            className="block p-3 rounded-md border bg-card/70 backdrop-blur-sm hover-elevate transition-colors"
                           >
                             <div className="flex items-start gap-2">
                               <div className="shrink-0 mt-0.5">
@@ -820,7 +825,7 @@ export default function ChatPage() {
                             </div>
                           </a>
                         ) : (
-                          <div className="p-3 rounded-md border bg-card/50">
+                          <div className="p-3 rounded-md border bg-card/70 backdrop-blur-sm">
                             <div className="flex items-start gap-2">
                               <div className="shrink-0 mt-0.5">
                                 {resource.type === "Scholarship" || resource.type === "Financial Aid" ? (
@@ -869,7 +874,7 @@ export default function ChatPage() {
                           className={`max-w-[85%] rounded-md px-4 py-3 text-sm leading-relaxed ${
                             msg.role === "user"
                               ? "bg-primary text-primary-foreground"
-                              : "bg-card/90 backdrop-blur-sm border"
+                              : "bg-card/80 backdrop-blur-md border"
                           }`}
                         >
                           {msg.content ? (
@@ -899,7 +904,7 @@ export default function ChatPage() {
                   </div>
                 </div>
 
-                <div className="border-t bg-background/90 backdrop-blur-sm px-4 py-3">
+                <div className="border-t bg-background/60 backdrop-blur-md px-4 py-3">
                   <div className="max-w-2xl mx-auto">
                     <div className="flex items-end gap-2">
                       <Textarea
