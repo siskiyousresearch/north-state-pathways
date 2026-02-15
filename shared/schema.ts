@@ -96,6 +96,13 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+export const appSettings = pgTable("app_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 export const insertCountySchema = createInsertSchema(counties).omit({ id: true });
 export const insertInstitutionSchema = createInsertSchema(institutions).omit({ id: true });
 export const insertPathwaySchema = createInsertSchema(pathways).omit({ id: true });
@@ -124,3 +131,4 @@ export type InsertResearchTask = z.infer<typeof insertResearchTaskSchema>;
 
 export type Conversation = typeof conversations.$inferSelect;
 export type Message = typeof messages.$inferSelect;
+export type AppSetting = typeof appSettings.$inferSelect;

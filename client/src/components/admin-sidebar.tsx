@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard, MessageSquare, Route, BookOpen,
-  FlaskConical, Sparkles, ArrowLeft
+  FlaskConical, Sparkles, ArrowLeft, Settings
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -22,6 +22,7 @@ const navItems = [
   { title: "Pathways", url: "/admin/pathways", icon: Route },
   { title: "Resources", url: "/admin/resources", icon: BookOpen },
   { title: "Research Tasks", url: "/admin/research", icon: FlaskConical },
+  { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 
 export function AdminSidebar() {

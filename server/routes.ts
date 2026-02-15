@@ -15,6 +15,27 @@ const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
 
+let knowledgeCache: string | null = null;
+let knowledgeCacheTime = 0;
+const CACHE_TTL = 5 * 60 * 1000;
+
+async function getCachedKnowledge(): Promise<string> {
+  const now = Date.now();
+  if (knowledgeCache && now - knowledgeCacheTime < CACHE_TTL) {
+    return knowledgeCache;
+  }
+  knowledgeCache = await storage.getPathwayKnowledge();
+  knowledgeCacheTime = now;
+  return knowledgeCache;
+}
+
+function invalidateKnowledgeCache() {
+  knowledgeCache = null;
+  knowledgeCacheTime = 0;
+}
+
+const DEFAULT_CHAT_MODEL = "gpt-4o-mini";
+
 const SYSTEM_PROMPT = `You are the North State Pathways AI Assistant — a warm, knowledgeable career advisor for students in Northern California.
 
 FORMAT RULES (STRICT):
@@ -119,7 +140,8 @@ export async function registerRoutes(
       await storage.createChatMessage({ sessionId, role: "user", content });
 
       const history = await storage.getChatMessagesBySession(sessionId);
-      const knowledge = await storage.getPathwayKnowledge();
+      const knowledge = await getCachedKnowledge();
+      const chatModel = (await storage.getSetting("chat_model")) || DEFAULT_CHAT_MODEL;
 
       const chatMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
         {
@@ -140,7 +162,7 @@ export async function registerRoutes(
       req.on("close", () => { clientDisconnected = true; });
 
       const stream = await openai.chat.completions.create({
-        model: "gpt-5-mini",
+        model: chatModel,
         messages: chatMessages,
         stream: true,
         max_completion_tokens: 4096,
@@ -169,33 +191,39 @@ export async function registerRoutes(
       }
 
       if (!clientDisconnected) {
-        const session = await storage.getChatSession(sessionId);
-        if (session && !session.userType && history.length <= 2) {
-          try {
-            const extractRes = await openai.chat.completions.create({
-              model: "gpt-5-nano",
-              messages: [
-                {
-                  role: "system",
-                  content: 'Extract user info from this conversation. Return JSON: {"userType":"high school student|college student|adult learner|parent|counselor|unknown","county":"county name or null","interests":["interest1"]}',
-                },
-                { role: "user", content: history.map((m) => `${m.role}: ${m.content}`).join("\n") },
-              ],
-              response_format: { type: "json_object" },
-            });
-            const extracted = JSON.parse(extractRes.choices[0]?.message?.content || "{}");
-            if (extracted.userType || extracted.county) {
-              await storage.updateChatSession(sessionId, {
-                userType: extracted.userType || null,
-                county: extracted.county || null,
-                interests: extracted.interests || null,
-              });
-            }
-          } catch {}
-        }
-
         res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
         res.end();
+
+        const session = await storage.getChatSession(sessionId);
+        if (session && !session.userType && history.length <= 2) {
+          const fullConversation = [...history.map((m) => `${m.role}: ${m.content}`), `assistant: ${fullResponse}`].join("\n");
+          (async () => {
+            try {
+              const profilingModel = (await storage.getSetting("profiling_model")) || "gpt-4o-mini";
+              const extractRes = await openai.chat.completions.create({
+                model: profilingModel,
+                messages: [
+                  {
+                    role: "system",
+                    content: 'Extract user info from this conversation. Return JSON: {"userType":"high school student|college student|adult learner|parent|counselor|unknown","county":"county name or null","interests":["interest1"]}',
+                  },
+                  { role: "user", content: fullConversation },
+                ],
+                response_format: { type: "json_object" },
+              });
+              const extracted = JSON.parse(extractRes.choices[0]?.message?.content || "{}");
+              if (extracted.userType || extracted.county) {
+                await storage.updateChatSession(sessionId, {
+                  userType: extracted.userType || null,
+                  county: extracted.county || null,
+                  interests: extracted.interests || null,
+                });
+              }
+            } catch (err) {
+              console.error("Background profiling error:", err);
+            }
+          })();
+        }
       }
     } catch (error) {
       console.error("Error in chat:", error);
@@ -249,6 +277,7 @@ export async function registerRoutes(
     try {
       const parsed = insertPathwaySchema.parse(req.body);
       const pathway = await storage.createPathway(parsed);
+      invalidateKnowledgeCache();
       res.status(201).json(pathway);
     } catch (error) {
       if (error instanceof z.ZodError) return res.status(400).json({ error: error.errors });
@@ -260,6 +289,7 @@ export async function registerRoutes(
     try {
       const parsed = insertPathwaySchema.partial().parse(req.body);
       const pathway = await storage.updatePathway(parseInt(req.params.id), parsed);
+      invalidateKnowledgeCache();
       res.json(pathway);
     } catch (error) {
       if (error instanceof z.ZodError) return res.status(400).json({ error: error.errors });
@@ -270,6 +300,7 @@ export async function registerRoutes(
   app.delete("/api/admin/pathways/:id", async (req, res) => {
     try {
       await storage.deletePathway(parseInt(req.params.id));
+      invalidateKnowledgeCache();
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: "Failed to delete pathway" });
@@ -286,6 +317,7 @@ export async function registerRoutes(
     try {
       const parsed = insertProgramSchema.parse(req.body);
       const program = await storage.createProgram(parsed);
+      invalidateKnowledgeCache();
       res.status(201).json(program);
     } catch (error) {
       if (error instanceof z.ZodError) return res.status(400).json({ error: error.errors });
@@ -296,6 +328,7 @@ export async function registerRoutes(
   app.delete("/api/admin/programs/:id", async (req, res) => {
     try {
       await storage.deleteProgram(parseInt(req.params.id));
+      invalidateKnowledgeCache();
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: "Failed to delete program" });
@@ -318,6 +351,7 @@ export async function registerRoutes(
     try {
       const parsed = insertResourceSchema.parse(req.body);
       const resource = await storage.createResource(parsed);
+      invalidateKnowledgeCache();
       res.status(201).json(resource);
     } catch (error) {
       if (error instanceof z.ZodError) return res.status(400).json({ error: error.errors });
@@ -330,6 +364,7 @@ export async function registerRoutes(
       const parsed = insertResourceSchema.partial().parse(req.body);
       const resource = await storage.updateResource(parseInt(req.params.id), parsed);
       if (!resource) return res.status(404).json({ error: "Resource not found" });
+      invalidateKnowledgeCache();
       res.json(resource);
     } catch (error) {
       if (error instanceof z.ZodError) return res.status(400).json({ error: error.errors });
@@ -340,9 +375,38 @@ export async function registerRoutes(
   app.delete("/api/admin/resources/:id", async (req, res) => {
     try {
       await storage.deleteResource(parseInt(req.params.id));
+      invalidateKnowledgeCache();
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: "Failed to delete resource" });
+    }
+  });
+
+  // ========== SETTINGS API ==========
+  app.get("/api/admin/settings", async (_req, res) => {
+    try {
+      const settings = await storage.getAllSettings();
+      const settingsMap: Record<string, string> = {};
+      for (const s of settings) settingsMap[s.key] = s.value;
+      res.json(settingsMap);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch settings" });
+    }
+  });
+
+  const settingSchema = z.object({
+    key: z.enum(["chat_model", "profiling_model"]),
+    value: z.string().min(1),
+  });
+
+  app.post("/api/admin/settings", async (req, res) => {
+    try {
+      const parsed = settingSchema.parse(req.body);
+      const setting = await storage.setSetting(parsed.key, parsed.value);
+      res.json(setting);
+    } catch (error) {
+      if (error instanceof z.ZodError) return res.status(400).json({ error: error.errors });
+      res.status(500).json({ error: "Failed to save setting" });
     }
   });
 

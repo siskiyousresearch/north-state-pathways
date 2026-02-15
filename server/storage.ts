@@ -2,12 +2,13 @@ import { db } from "./db";
 import { eq, desc, sql, and, count } from "drizzle-orm";
 import {
   counties, institutions, pathways, programs, resources,
-  chatSessions, chatMessages, researchTasks, conversations, messages,
+  chatSessions, chatMessages, researchTasks, conversations, messages, appSettings,
   type InsertCounty, type InsertInstitution, type InsertPathway,
   type InsertProgram, type InsertResource, type InsertChatSession,
   type InsertChatMessage, type InsertResearchTask,
   type County, type Institution, type Pathway, type Program,
-  type Resource, type ChatSession, type ChatMessage, type ResearchTask
+  type Resource, type ChatSession, type ChatMessage, type ResearchTask,
+  type AppSetting
 } from "@shared/schema";
 
 export interface IStorage {
@@ -32,6 +33,10 @@ export interface IStorage {
   createResource(data: InsertResource): Promise<Resource>;
   updateResource(id: number, data: Partial<InsertResource>): Promise<Resource | undefined>;
   deleteResource(id: number): Promise<void>;
+
+  getSetting(key: string): Promise<string | null>;
+  setSetting(key: string, value: string): Promise<AppSetting>;
+  getAllSettings(): Promise<AppSetting[]>;
 
   createChatSession(data: InsertChatSession): Promise<ChatSession>;
   getChatSession(id: number): Promise<ChatSession | undefined>;
@@ -196,9 +201,44 @@ export class DatabaseStorage implements IStorage {
       totalPrograms: programCount.count,
       totalResources: resourceCount.count,
       topCounties: topCountiesResult.map((r) => ({ county: r.county!, count: r.count })),
-      topInterests: [],
+      topInterests: await this.getTopInterests(),
       recentSessions: recentSessionsResult,
     };
+  }
+
+  async getSetting(key: string): Promise<string | null> {
+    const [setting] = await db.select().from(appSettings).where(eq(appSettings.key, key));
+    return setting?.value ?? null;
+  }
+  async setSetting(key: string, value: string): Promise<AppSetting> {
+    const existing = await db.select().from(appSettings).where(eq(appSettings.key, key));
+    if (existing.length > 0) {
+      const [updated] = await db.update(appSettings)
+        .set({ value, updatedAt: new Date() })
+        .where(eq(appSettings.key, key))
+        .returning();
+      return updated;
+    }
+    const [created] = await db.insert(appSettings).values({ key, value }).returning();
+    return created;
+  }
+  async getAllSettings(): Promise<AppSetting[]> {
+    return db.select().from(appSettings);
+  }
+
+  private async getTopInterests(): Promise<{ interest: string; count: number }[]> {
+    const result = await db.execute(sql`
+      SELECT interest, COUNT(*) as count
+      FROM chat_sessions, LATERAL unnest(interests) AS interest
+      WHERE interests IS NOT NULL AND array_length(interests, 1) > 0
+      GROUP BY interest
+      ORDER BY count DESC
+      LIMIT 5
+    `);
+    return (result.rows as any[]).map((r) => ({
+      interest: r.interest as string,
+      count: Number(r.count),
+    }));
   }
 
   async getPathwayKnowledge(): Promise<string> {

@@ -54,11 +54,13 @@ shared/
 - `GET/POST /api/admin/research` - Research task management
 - `POST /api/admin/research/:id/run` - Execute AI research
 - `POST /api/admin/research/:id/approve|reject` - Approve/reject findings
+- `GET/POST /api/admin/settings` - App settings (model selection, etc.)
 
 ## Database Tables
 - counties, institutions, pathways, programs, resources (knowledge base)
 - chat_sessions, chat_messages (student interactions)
 - research_tasks (AI research with human approval)
+- app_settings (key-value store for admin-configurable settings like AI model selection)
 
 ## Theme
 - Primary: Forest green (152 45% 32%)
@@ -78,6 +80,9 @@ shared/
 10. Zod schema validation on all admin POST/PATCH endpoints
 11. SSE client disconnect handling to prevent server resource leaks
 12. About Us page with mission, values, pathways, partners info
+13. Admin settings page: configurable AI model selection (chat + profiling models)
+14. In-memory knowledge base cache (5-min TTL) with invalidation on admin CRUD
+15. Background student profiling (non-blocking, runs after response sent)
 
 ## Running
 - `npm run dev` starts both frontend (Vite) and backend (Express) on port 5000

@@ -6,6 +6,7 @@ import ConversationsPage from "./conversations";
 import PathwaysPage from "./pathways";
 import ResourcesPage from "./resources";
 import ResearchPage from "./research";
+import SettingsPage from "./settings";
 
 export default function AdminLayout() {
   const style = {
@@ -28,6 +29,7 @@ export default function AdminLayout() {
               <Route path="/admin/pathways" component={PathwaysPage} />
               <Route path="/admin/resources" component={ResourcesPage} />
               <Route path="/admin/research" component={ResearchPage} />
+              <Route path="/admin/settings" component={SettingsPage} />
             </Switch>
           </main>
         </div>
