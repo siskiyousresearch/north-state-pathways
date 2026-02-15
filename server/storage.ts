@@ -266,6 +266,8 @@ export class DatabaseStorage implements IStorage {
           if (pr.county) knowledge += ` (${pr.county} County)`;
           if (pr.level) knowledge += ` [${pr.level}]`;
           if (pr.description) knowledge += `: ${pr.description}`;
+          if (pr.url) knowledge += ` | Program URL: ${pr.url}`;
+          else if (inst?.website) knowledge += ` | Institution URL: ${inst.website}`;
           knowledge += "\n";
         }
       }
@@ -275,6 +277,7 @@ export class DatabaseStorage implements IStorage {
     for (const inst of allInstitutions) {
       knowledge += `- ${inst.name} (${inst.type})`;
       if (inst.county) knowledge += ` - ${inst.county} County`;
+      if (inst.website) knowledge += ` | Website: ${inst.website}`;
       knowledge += "\n";
     }
 
@@ -283,6 +286,7 @@ export class DatabaseStorage implements IStorage {
       knowledge += `- ${r.name} (${r.type})`;
       if (r.description) knowledge += `: ${r.description}`;
       if (r.eligibility) knowledge += ` | Eligibility: ${r.eligibility}`;
+      if (r.url) knowledge += ` | URL: ${r.url}`;
       knowledge += "\n";
     }
 

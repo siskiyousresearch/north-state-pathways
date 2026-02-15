@@ -117,16 +117,45 @@ const ONBOARDING_VIDEOS: Record<string, string> = {
 type OnboardingStep = "pathway" | "county" | "student-type" | "study-location" | "support-needs" | "done";
 const TOTAL_STEPS = 5;
 
-async function playTTSForText(text: string): Promise<{ audio: HTMLAudioElement; url: string } | null> {
+const ttsCache = new Map<string, string>();
+
+function clearTTSCache() {
+  ttsCache.forEach((url) => {
+    URL.revokeObjectURL(url);
+  });
+  ttsCache.clear();
+}
+
+async function prefetchTTS(text: string): Promise<void> {
+  if (ttsCache.has(text)) return;
   try {
     const res = await fetch("/api/tts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text, voice: "nova" }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) return;
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
+    ttsCache.set(text, url);
+  } catch {}
+}
+
+async function playTTSForText(text: string): Promise<{ audio: HTMLAudioElement; url: string } | null> {
+  try {
+    let url = ttsCache.get(text);
+    if (!url) {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, voice: "nova" }),
+      });
+      if (!res.ok) return null;
+      const blob = await res.blob();
+      url = URL.createObjectURL(blob);
+    } else {
+      ttsCache.delete(text);
+    }
     const audio = new Audio(url);
     audio.play().catch(() => {});
     return { audio, url };
@@ -198,6 +227,14 @@ export default function ChatPage() {
 
   useEffect(() => {
     playDynamicAudio(PATHWAY_WELCOME_SCRIPT);
+    if (voiceEnabled) {
+      prefetchTTS(getCountyScript("healthcare"));
+      prefetchTTS(getCountyScript("education"));
+    }
+    return () => {
+      stopCurrentAudio();
+      clearTTSCache();
+    };
   }, []);
 
   const scrollToBottom = useCallback(() => {
@@ -354,6 +391,10 @@ export default function ChatPage() {
     stopCurrentAudio();
     setOnboardingStep("study-location");
     playDynamicAudio(getStudyLocationScript(typeId));
+    if (voiceEnabled) {
+      prefetchTTS(getSupportNeedsScript("local"));
+      prefetchTTS(getSupportNeedsScript("travel"));
+    }
   };
 
   const handleStudyLocationSelect = (location: string) => {
@@ -879,8 +920,16 @@ export default function ChatPage() {
                         >
                           {msg.content ? (
                             msg.role === "assistant" ? (
-                              <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mb-2 [&>ul]:ml-1 [&>ul>li]:mb-1 [&_strong]:text-foreground" data-testid={`markdown-${msg.id}`}>
-                                <ReactMarkdown>{msg.content}</ReactMarkdown>
+                              <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mb-2 [&>ul]:ml-1 [&>ul>li]:mb-1 [&_strong]:text-foreground [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2" data-testid={`markdown-${msg.id}`}>
+                                <ReactMarkdown
+                                  components={{
+                                    a: ({ href, children }) => (
+                                      <a href={href} target="_blank" rel="noopener noreferrer" data-testid="link-chat-external">
+                                        {children}
+                                      </a>
+                                    ),
+                                  }}
+                                >{msg.content}</ReactMarkdown>
                               </div>
                             ) : (
                               msg.content

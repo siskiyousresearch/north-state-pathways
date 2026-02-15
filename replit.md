@@ -83,6 +83,10 @@ shared/
 13. Admin settings page: configurable AI model selection (chat + profiling models)
 14. In-memory knowledge base cache (5-min TTL) with invalidation on admin CRUD
 15. Background student profiling (non-blocking, runs after response sent)
+16. TTS audio prefetching for faster onboarding narration (caches next step's audio)
+17. AI responses include clickable markdown links to program/institution/resource URLs
+18. All 21 programs have direct URLs to their institution program pages
+19. ReactMarkdown links open in new tabs with target="_blank"
 
 ## Running
 - `npm run dev` starts both frontend (Vite) and backend (Express) on port 5000
