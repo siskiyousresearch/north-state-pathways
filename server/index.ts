@@ -80,14 +80,16 @@ app.use((req, res, next) => {
     return res.status(status).json({ message });
   });
 
+  // Serve static files from root public/ directory (audio, videos, images)
+  const path = await import("path");
+  app.use(express.static(path.resolve(import.meta.dirname, "..", "public")));
+
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
   } else {
-    const path = await import("path");
-    app.use(express.static(path.resolve(import.meta.dirname, "..", "public")));
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   }
