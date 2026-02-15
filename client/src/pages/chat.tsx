@@ -422,13 +422,8 @@ export default function ChatPage() {
   const stepNumber = stepNumberMap[onboardingStep];
 
   return (
-    <div className="h-screen flex flex-col relative">
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/images/forest-bg.png')" }}
-      />
-      <div className="absolute inset-0 bg-background/85 dark:bg-background/90" />
-      <header className="relative flex items-center justify-between gap-4 px-4 py-2.5 border-b bg-background/70 backdrop-blur-md sticky top-0 z-50">
+    <div className="h-screen flex flex-col bg-background">
+      <header className="flex items-center justify-between gap-4 px-4 py-2.5 border-b bg-background/95 backdrop-blur-sm sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <Link href="/">
             <Button variant="ghost" size="icon" data-testid="button-back-home">
@@ -470,7 +465,7 @@ export default function ChatPage() {
         </div>
       </header>
 
-      <div className="relative flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden">
         <div ref={scrollRef} className="h-full overflow-y-auto">
           {showOnboarding ? (
             <div className="flex flex-col items-center justify-center min-h-full px-4 py-8">
@@ -770,8 +765,13 @@ export default function ChatPage() {
               </div>
             </div>
           ) : (
-            <div className="flex h-full">
-              <div className="hidden lg:flex flex-col w-72 xl:w-80 border-r bg-background/60 backdrop-blur-md shrink-0" data-testid="sidebar-resources">
+            <div className="flex h-full relative">
+              <div
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                style={{ backgroundImage: "url('/images/hero-landscape.png')" }}
+              />
+              <div className="absolute inset-0 bg-background/85 dark:bg-background/90" />
+              <div className="relative hidden lg:flex flex-col w-72 xl:w-80 border-r bg-background/60 backdrop-blur-md shrink-0" data-testid="sidebar-resources">
                 <div className="p-4 border-b">
                   <div className="flex items-center gap-2 mb-1">
                     <BookOpen className="w-4 h-4 text-primary" />
@@ -854,7 +854,7 @@ export default function ChatPage() {
                 </div>
               </div>
 
-              <div className="flex-1 flex flex-col min-w-0">
+              <div className="relative flex-1 flex flex-col min-w-0">
                 <div ref={scrollRef} className="flex-1 overflow-y-auto">
                   <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
                     {messages.map((msg) => (
