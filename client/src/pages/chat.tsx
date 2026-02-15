@@ -225,8 +225,23 @@ export default function ChatPage() {
     }
   }, [voiceEnabled, stopCurrentAudio]);
 
+  const playStaticAudio = useCallback((src: string) => {
+    if (!voiceEnabled) return;
+    stopCurrentAudio();
+    const requestId = ++audioRequestIdRef.current;
+    setIsSpeaking(true);
+    const audio = new Audio(src);
+    audio.play().catch(() => {});
+    if (requestId !== audioRequestIdRef.current) {
+      audio.pause();
+      return;
+    }
+    currentAudioRef.current = audio;
+    audio.onended = () => { setIsSpeaking(false); currentAudioRef.current = null; };
+  }, [voiceEnabled, stopCurrentAudio]);
+
   useEffect(() => {
-    playDynamicAudio(PATHWAY_WELCOME_SCRIPT);
+    playStaticAudio("/audio/welcome-pathway.mp3");
     if (voiceEnabled) {
       prefetchTTS(getCountyScript("healthcare"));
       prefetchTTS(getCountyScript("education"));
@@ -436,7 +451,7 @@ export default function ChatPage() {
     if (onboardingStep === "county") {
       setSelectedPathway(null);
       setOnboardingStep("pathway");
-      playDynamicAudio(PATHWAY_WELCOME_SCRIPT);
+      playStaticAudio("/audio/welcome-pathway.mp3");
     } else if (onboardingStep === "student-type") {
       const pw = selectedPathway;
       setSelectedCounty(null);
