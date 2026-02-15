@@ -80,30 +80,20 @@ const supportOptions = [
   }
 ];
 
-const PATHWAY_WELCOME_SCRIPT = "Welcome to North State Pathways! I'm here to help you explore exciting career opportunities in Northern California. Let's start by choosing a career path that sparks your interest. Healthcare, or Education? The choice is yours!";
-
-function getCountyScript(pathway: string): string {
-  const field = pathway === "healthcare" ? "Healthcare" : "Education";
-  const extras = pathway === "healthcare"
-    ? "From nursing to medical technology, there are so many ways to make a difference in people's lives."
-    : "From teaching to counseling, you can shape the future of our communities.";
-  return `Excellent choice! ${field} is an incredibly rewarding field with amazing opportunities right here in the North State. ${extras} Now, which county do you call home? This helps me find programs and resources close to you.`;
+function getCountyAudio(pathway: string): string {
+  return `/audio/onboarding/county-${pathway}.mp3`;
 }
 
-function getStudentTypeScript(county: string): string {
-  return `${county} County, great! There are wonderful institutions and programs in your area. Now tell me a little about yourself. Where are you in your education journey? Whether you're still in high school or already have a degree, there's a perfect path waiting for you.`;
+function getStudentTypeAudio(county: string): string {
+  return `/audio/onboarding/studenttype-${county.toLowerCase()}.mp3`;
 }
 
-function getStudyLocationScript(studentType: string): string {
-  const label = studentTypes.find(s => s.id === studentType)?.label || "student";
-  return `Perfect! As a ${label.toLowerCase()}, you have some exciting options ahead. Now here's an important question. Would you prefer to study close to home, or are you open to exploring programs a bit further away? Both are great options!`;
+function getStudyLocationAudio(studentType: string): string {
+  return `/audio/onboarding/studylocation-${studentType}.mp3`;
 }
 
-function getSupportNeedsScript(location: string): string {
-  const pref = location === "local"
-    ? "Studying locally is a smart move! You'll save on costs and stay connected to your community."
-    : "Being open to travel really opens up your options! You'll have access to even more programs and opportunities.";
-  return `${pref} One last thing before we chat. Are there any extra ways I can help support your journey? Think about things like tutoring, financial aid, or hands-on work experience. Pick as many as you'd like, or just hit Start Chatting to dive right in!`;
+function getSupportNeedsAudio(location: string): string {
+  return `/audio/onboarding/supportneeds-${location}.mp3`;
 }
 
 const ONBOARDING_VIDEOS: Record<string, string> = {
@@ -117,45 +107,29 @@ const ONBOARDING_VIDEOS: Record<string, string> = {
 type OnboardingStep = "pathway" | "county" | "student-type" | "study-location" | "support-needs" | "done";
 const TOTAL_STEPS = 5;
 
-const ttsCache = new Map<string, string>();
-
-function clearTTSCache() {
-  ttsCache.forEach((url) => {
-    URL.revokeObjectURL(url);
-  });
-  ttsCache.clear();
+function stripMarkdownForTTS(text: string): string {
+  return text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/#{1,6}\s+/g, '')
+    .replace(/(\*\*|__)(.*?)\1/g, '$2')
+    .replace(/(\*|_)(.*?)\1/g, '$2')
+    .replace(/`{1,3}[^`]*`{1,3}/g, '')
+    .replace(/^[-*+]\s+/gm, '')
+    .replace(/^\d+\.\s+/gm, '')
+    .replace(/\n{2,}/g, '. ')
+    .trim();
 }
 
-async function prefetchTTS(text: string): Promise<void> {
-  if (ttsCache.has(text)) return;
+async function playTTSForText(text: string): Promise<{ audio: HTMLAudioElement; url: string } | null> {
   try {
     const res = await fetch("/api/tts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text, voice: "nova" }),
     });
-    if (!res.ok) return;
+    if (!res.ok) return null;
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
-    ttsCache.set(text, url);
-  } catch {}
-}
-
-async function playTTSForText(text: string): Promise<{ audio: HTMLAudioElement; url: string } | null> {
-  try {
-    let url = ttsCache.get(text);
-    if (!url) {
-      const res = await fetch("/api/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, voice: "nova" }),
-      });
-      if (!res.ok) return null;
-      const blob = await res.blob();
-      url = URL.createObjectURL(blob);
-    } else {
-      ttsCache.delete(text);
-    }
     const audio = new Audio(url);
     audio.play().catch(() => {});
     return { audio, url };
@@ -203,35 +177,14 @@ export default function ChatPage() {
     setIsSpeaking(false);
   }, []);
 
-  const playDynamicAudio = useCallback(async (script: string) => {
-    if (!voiceEnabled) return;
-    stopCurrentAudio();
-    const requestId = ++audioRequestIdRef.current;
-    setIsSpeaking(true);
-    const result = await playTTSForText(script);
-    if (requestId !== audioRequestIdRef.current) {
-      if (result) {
-        result.audio.pause();
-        URL.revokeObjectURL(result.url);
-      }
-      return;
-    }
-    if (result) {
-      currentAudioRef.current = result.audio;
-      currentAudioUrlRef.current = result.url;
-      result.audio.onended = () => { setIsSpeaking(false); currentAudioRef.current = null; };
-    } else {
-      setIsSpeaking(false);
-    }
-  }, [voiceEnabled, stopCurrentAudio]);
-
   const playStaticAudio = useCallback((src: string) => {
     if (!voiceEnabled) return;
     stopCurrentAudio();
     const requestId = ++audioRequestIdRef.current;
     setIsSpeaking(true);
     const audio = new Audio(src);
-    audio.play().catch(() => {});
+    audio.onerror = () => { setIsSpeaking(false); currentAudioRef.current = null; };
+    audio.play().catch(() => { setIsSpeaking(false); });
     if (requestId !== audioRequestIdRef.current) {
       audio.pause();
       return;
@@ -241,14 +194,9 @@ export default function ChatPage() {
   }, [voiceEnabled, stopCurrentAudio]);
 
   useEffect(() => {
-    playStaticAudio("/audio/welcome-pathway.mp3");
-    if (voiceEnabled) {
-      prefetchTTS(getCountyScript("healthcare"));
-      prefetchTTS(getCountyScript("education"));
-    }
+    playStaticAudio("/audio/onboarding/welcome.mp3");
     return () => {
       stopCurrentAudio();
-      clearTTSCache();
     };
   }, []);
 
@@ -271,7 +219,7 @@ export default function ChatPage() {
       if (lastMsg.role === "assistant" && lastMsg.content) {
         stopCurrentAudio();
         setIsSpeaking(true);
-        playTTSForText(lastMsg.content).then((result) => {
+        playTTSForText(stripMarkdownForTTS(lastMsg.content)).then((result) => {
           if (result) {
             currentAudioRef.current = result.audio;
             currentAudioUrlRef.current = result.url;
@@ -392,30 +340,26 @@ export default function ChatPage() {
   const handlePathwaySelect = (pathway: string) => {
     setSelectedPathway(pathway);
     setOnboardingStep("county");
-    playDynamicAudio(getCountyScript(pathway));
+    playStaticAudio(getCountyAudio(pathway));
   };
 
   const handleCountySelect = (county: string) => {
     setSelectedCounty(county);
     setOnboardingStep("student-type");
-    playDynamicAudio(getStudentTypeScript(county));
+    playStaticAudio(getStudentTypeAudio(county));
   };
 
   const handleStudentTypeSelect = (typeId: string) => {
     setSelectedStudentType(typeId);
     stopCurrentAudio();
     setOnboardingStep("study-location");
-    playDynamicAudio(getStudyLocationScript(typeId));
-    if (voiceEnabled) {
-      prefetchTTS(getSupportNeedsScript("local"));
-      prefetchTTS(getSupportNeedsScript("travel"));
-    }
+    playStaticAudio(getStudyLocationAudio(typeId));
   };
 
   const handleStudyLocationSelect = (location: string) => {
     setStudyLocation(location);
     setOnboardingStep("support-needs");
-    playDynamicAudio(getSupportNeedsScript(location));
+    playStaticAudio(getSupportNeedsAudio(location));
   };
 
   const toggleSupport = (id: string) => {
@@ -451,22 +395,22 @@ export default function ChatPage() {
     if (onboardingStep === "county") {
       setSelectedPathway(null);
       setOnboardingStep("pathway");
-      playStaticAudio("/audio/welcome-pathway.mp3");
+      playStaticAudio("/audio/onboarding/welcome.mp3");
     } else if (onboardingStep === "student-type") {
       const pw = selectedPathway;
       setSelectedCounty(null);
       setOnboardingStep("county");
-      if (pw) playDynamicAudio(getCountyScript(pw));
+      if (pw) playStaticAudio(getCountyAudio(pw));
     } else if (onboardingStep === "study-location") {
       const county = selectedCounty;
       setSelectedStudentType(null);
       setOnboardingStep("student-type");
-      if (county) playDynamicAudio(getStudentTypeScript(county));
+      if (county) playStaticAudio(getStudentTypeAudio(county));
     } else if (onboardingStep === "support-needs") {
       const st = selectedStudentType;
       setStudyLocation(null);
       setOnboardingStep("study-location");
-      if (st) playDynamicAudio(getStudyLocationScript(st));
+      if (st) playStaticAudio(getStudyLocationAudio(st));
     }
   };
 
