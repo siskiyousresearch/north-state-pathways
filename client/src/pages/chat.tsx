@@ -152,6 +152,7 @@ export default function ChatPage() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const currentAudioUrlRef = useRef<string | null>(null);
+  const audioRequestIdRef = useRef(0);
 
   const resourcesUrl = `/api/resources?pathway=${encodeURIComponent(selectedPathway || "")}&county=${encodeURIComponent(selectedCounty || "")}`;
   const { data: resources = [] } = useQuery<{ id: number; name: string; type: string; description: string | null; url: string | null; eligibility: string | null; pathwayId: number | null; county: string | null }[]>({
@@ -160,6 +161,7 @@ export default function ChatPage() {
   });
 
   const stopCurrentAudio = useCallback(() => {
+    audioRequestIdRef.current++;
     if (currentAudioRef.current) {
       currentAudioRef.current.pause();
       currentAudioRef.current.currentTime = 0;
@@ -175,8 +177,16 @@ export default function ChatPage() {
   const playDynamicAudio = useCallback(async (script: string) => {
     if (!voiceEnabled) return;
     stopCurrentAudio();
+    const requestId = ++audioRequestIdRef.current;
     setIsSpeaking(true);
     const result = await playTTSForText(script);
+    if (requestId !== audioRequestIdRef.current) {
+      if (result) {
+        result.audio.pause();
+        URL.revokeObjectURL(result.url);
+      }
+      return;
+    }
     if (result) {
       currentAudioRef.current = result.audio;
       currentAudioUrlRef.current = result.url;
