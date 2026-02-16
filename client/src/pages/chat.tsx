@@ -104,6 +104,14 @@ const ONBOARDING_VIDEOS: Record<string, string> = {
   "support-needs": "/videos/onboarding-step5-support.mp4",
 };
 
+const ONBOARDING_VIDEOS_MOBILE: Record<string, string> = {
+  pathway: "/videos/onboarding-step1-pathway-mobile.mp4",
+  county: "/videos/onboarding-step2-county-mobile.mp4",
+  "student-type": "/videos/onboarding-step3-student-mobile.mp4",
+  "study-location": "/videos/onboarding-step4-location-mobile.mp4",
+  "support-needs": "/videos/onboarding-step5-support-mobile.mp4",
+};
+
 type OnboardingStep = "pathway" | "county" | "student-type" | "study-location" | "support-needs" | "done";
 const TOTAL_STEPS = 5;
 
@@ -156,6 +164,15 @@ export default function ChatPage() {
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const currentAudioUrlRef = useRef<string | null>(null);
   const audioRequestIdRef = useRef(0);
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+  const videos = isMobile ? ONBOARDING_VIDEOS_MOBILE : ONBOARDING_VIDEOS;
 
   const resourcesUrl = `/api/resources?pathway=${encodeURIComponent(selectedPathway || "")}&county=${encodeURIComponent(selectedCounty || "")}`;
   const { data: resources = [] } = useQuery<{ id: number; name: string; type: string; description: string | null; url: string | null; eligibility: string | null; pathwayId: number | null; county: string | null }[]>({
@@ -507,7 +524,7 @@ export default function ChatPage() {
                   <div className="text-center animate-in fade-in duration-300">
                     <div className="w-full max-w-lg mx-auto mb-6 rounded-md overflow-hidden">
                       <video
-                        src={ONBOARDING_VIDEOS["pathway"]}
+                        src={videos["pathway"]}
                         className="w-full h-48 object-cover"
                         autoPlay
                         loop
@@ -553,7 +570,7 @@ export default function ChatPage() {
                   <div className="text-center animate-in fade-in duration-300">
                     <div className="w-full max-w-xl mx-auto mb-6 rounded-md overflow-hidden">
                       <video
-                        src={ONBOARDING_VIDEOS["county"]}
+                        src={videos["county"]}
                         className="w-full h-48 object-cover"
                         autoPlay
                         loop
@@ -592,7 +609,7 @@ export default function ChatPage() {
                   <div className="text-center animate-in fade-in duration-300">
                     <div className="w-full max-w-xl mx-auto mb-6 rounded-md overflow-hidden">
                       <video
-                        src={ONBOARDING_VIDEOS["student-type"]}
+                        src={videos["student-type"]}
                         className="w-full h-48 object-cover"
                         autoPlay
                         loop
@@ -642,7 +659,7 @@ export default function ChatPage() {
                   <div className="text-center animate-in fade-in duration-300">
                     <div className="w-full max-w-lg mx-auto mb-6 rounded-md overflow-hidden">
                       <video
-                        src={ONBOARDING_VIDEOS["study-location"]}
+                        src={videos["study-location"]}
                         className="w-full h-48 object-cover"
                         autoPlay
                         loop
@@ -696,7 +713,7 @@ export default function ChatPage() {
                   <div className="text-center animate-in fade-in duration-300">
                     <div className="w-full max-w-lg mx-auto mb-6 rounded-md overflow-hidden">
                       <video
-                        src={ONBOARDING_VIDEOS["support-needs"]}
+                        src={videos["support-needs"]}
                         className="w-full h-48 object-cover"
                         autoPlay
                         loop
