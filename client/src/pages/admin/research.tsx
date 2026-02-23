@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger
 } from "@/components/ui/dialog";
@@ -17,10 +16,16 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
-  Plus, FlaskConical, Check, X, Loader2, Play, Eye, PlusCircle, Trash2, Pencil, RotateCw
+  Plus, FlaskConical, Check, X, Loader2, Play, PlusCircle, Trash2, Pencil, RotateCw,
+  GraduationCap, BookOpen, MapPin
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { ResearchTask, Pathway } from "@shared/schema";
+
+const NORTH_STATE_COUNTIES = [
+  "Butte County", "Glenn County", "Lassen County", "Modoc County", "Plumas County",
+  "Shasta County", "Sierra County", "Siskiyou County", "Tehama County", "Trinity County",
+];
 
 const statusColors: Record<string, string> = {
   pending: "secondary",
@@ -30,12 +35,43 @@ const statusColors: Record<string, string> = {
   rejected: "destructive",
 };
 
+interface RecommendedAction {
+  type: "program" | "resource";
+  name: string;
+  institution?: string;
+  county?: string;
+  level?: string;
+  description?: string;
+  url?: string;
+  resourceType?: string;
+  eligibility?: string;
+  counties?: string[];
+}
+
+function parseActions(aiResponse: string): { displayText: string; actions: RecommendedAction[] } {
+  const separator = "---ACTIONS---";
+  const idx = aiResponse.indexOf(separator);
+  if (idx === -1) return { displayText: aiResponse, actions: [] };
+
+  const displayText = aiResponse.substring(0, idx).trim();
+  const actionsPart = aiResponse.substring(idx + separator.length).trim();
+
+  const jsonMatch = actionsPart.match(/```json\s*([\s\S]*?)```/);
+  if (!jsonMatch) return { displayText, actions: [] };
+
+  try {
+    const parsed = JSON.parse(jsonMatch[1]);
+    if (Array.isArray(parsed)) return { displayText, actions: parsed };
+  } catch {}
+  return { displayText, actions: [] };
+}
+
 export default function ResearchPage() {
   const { toast } = useToast();
   const [showDialog, setShowDialog] = useState(false);
   const [editingTask, setEditingTask] = useState<ResearchTask | null>(null);
   const [selectedTask, setSelectedTask] = useState<ResearchTask | null>(null);
-  const [form, setForm] = useState({ title: "", description: "", pathwayId: "" });
+  const [form, setForm] = useState({ title: "", description: "", pathwayId: "", county: "" });
   const [showNewPathway, setShowNewPathway] = useState(false);
   const [newPathway, setNewPathway] = useState({ name: "", description: "" });
 
@@ -69,13 +105,14 @@ export default function ResearchPage() {
       apiRequest("POST", "/api/admin/research", {
         ...data,
         pathwayId: data.pathwayId ? parseInt(data.pathwayId) : null,
+        county: data.county || null,
         status: "pending",
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/research"] });
       setShowDialog(false);
       setEditingTask(null);
-      setForm({ title: "", description: "", pathwayId: "" });
+      setForm({ title: "", description: "", pathwayId: "", county: "" });
       toast({ title: "Research task created" });
     },
   });
@@ -86,12 +123,13 @@ export default function ResearchPage() {
         title: data.title,
         description: data.description || null,
         pathwayId: data.pathwayId ? parseInt(data.pathwayId) : null,
+        county: data.county || null,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/research"] });
       setShowDialog(false);
       setEditingTask(null);
-      setForm({ title: "", description: "", pathwayId: "" });
+      setForm({ title: "", description: "", pathwayId: "", county: "" });
       toast({ title: "Research task updated" });
     },
   });
@@ -102,6 +140,7 @@ export default function ResearchPage() {
       title: task.title,
       description: task.description || "",
       pathwayId: task.pathwayId ? String(task.pathwayId) : "",
+      county: task.county || "",
     });
     setShowDialog(true);
   };
@@ -139,6 +178,54 @@ export default function ResearchPage() {
     },
   });
 
+  const addProgram = useMutation({
+    mutationFn: (action: RecommendedAction) => {
+      const pathwayId = currentTask?.pathwayId || null;
+      return apiRequest("POST", "/api/admin/programs", {
+        name: action.name,
+        pathwayId,
+        county: action.county || null,
+        description: action.description || null,
+        level: action.level || null,
+        url: action.url || null,
+      });
+    },
+    onSuccess: (_, action) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pathways"] });
+      toast({ title: `Program "${action.name}" added` });
+    },
+    onError: () => {
+      toast({ title: "Failed to add program", variant: "destructive" });
+    },
+  });
+
+  const addResource = useMutation({
+    mutationFn: (action: RecommendedAction) => {
+      const pathwayId = currentTask?.pathwayId || null;
+      return apiRequest("POST", "/api/admin/resources", {
+        name: action.name,
+        type: action.resourceType || "Other",
+        description: action.description || null,
+        eligibility: action.eligibility || null,
+        url: action.url || null,
+        pathwayId,
+        counties: action.counties || (action.county ? [action.county] : null),
+        pathwayIds: pathwayId ? [pathwayId] : null,
+      });
+    },
+    onSuccess: (_, action) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/resources"] });
+      toast({ title: `Resource "${action.name}" added` });
+    },
+    onError: () => {
+      toast({ title: "Failed to add resource", variant: "destructive" });
+    },
+  });
+
+  const { displayText, actions } = currentTask?.aiResponse
+    ? parseActions(currentTask.aiResponse)
+    : { displayText: "", actions: [] };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -148,7 +235,7 @@ export default function ResearchPage() {
         </div>
         <Dialog open={showDialog} onOpenChange={(open) => {
           setShowDialog(open);
-          if (!open) { setEditingTask(null); setForm({ title: "", description: "", pathwayId: "" }); }
+          if (!open) { setEditingTask(null); setForm({ title: "", description: "", pathwayId: "", county: "" }); }
         }}>
           <DialogTrigger asChild>
             <Button data-testid="button-new-research">
@@ -162,11 +249,22 @@ export default function ResearchPage() {
             <div className="space-y-3 mt-2">
               <div>
                 <Label>Title</Label>
-                <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g., Find new nursing programs in Shasta County" data-testid="input-research-title" />
+                <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g., Find new nursing programs" data-testid="input-research-title" />
               </div>
               <div>
                 <Label>Description</Label>
                 <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="What should the AI research?" data-testid="input-research-description" />
+              </div>
+              <div>
+                <Label>County</Label>
+                <Select value={form.county} onValueChange={(v) => setForm({ ...form, county: v })}>
+                  <SelectTrigger data-testid="select-research-county"><SelectValue placeholder="All counties" /></SelectTrigger>
+                  <SelectContent>
+                    {NORTH_STATE_COUNTIES.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label>Related Pathway</Label>
@@ -260,10 +358,15 @@ export default function ResearchPage() {
                       data-testid={`button-research-task-${task.id}`}
                     >
                       <p className="text-sm font-medium break-words">{task.title}</p>
-                      <div className="flex items-center gap-2 mt-1.5">
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                         <Badge variant={statusColors[task.status] as any} className="text-xs">
                           {task.status}
                         </Badge>
+                        {task.county && (
+                          <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                            <MapPin className="w-3 h-3" /> {task.county.replace(" County", "")}
+                          </span>
+                        )}
                         <span className="text-xs text-muted-foreground">
                           {new Date(task.createdAt).toLocaleDateString()}
                         </span>
@@ -292,6 +395,11 @@ export default function ResearchPage() {
                       <Badge variant={statusColors[currentTask.status] as any}>
                         {currentTask.status}
                       </Badge>
+                      {currentTask.county && (
+                        <Badge variant="outline" className="text-xs">
+                          <MapPin className="w-3 h-3 mr-1" /> {currentTask.county}
+                        </Badge>
+                      )}
                       <span className="text-xs text-muted-foreground">
                         Created {new Date(currentTask.createdAt).toLocaleString()}
                       </span>
@@ -367,10 +475,62 @@ export default function ResearchPage() {
                             ),
                           }}
                         >
-                          {currentTask.aiResponse}
+                          {displayText}
                         </ReactMarkdown>
                       </div>
                     </Card>
+                  </div>
+                )}
+
+                {actions.length > 0 && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Suggested Actions</Label>
+                    <div className="mt-1 space-y-2">
+                      {actions.map((action, idx) => (
+                        <Card key={idx} className="p-3 border-dashed" data-testid={`card-action-${idx}`}>
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-2.5 min-w-0">
+                              <div className={`flex items-center justify-center w-7 h-7 rounded-md shrink-0 ${action.type === "program" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}`}>
+                                {action.type === "program" ? <GraduationCap className="w-3.5 h-3.5" /> : <BookOpen className="w-3.5 h-3.5" />}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <p className="text-sm font-medium">{action.name}</p>
+                                  <Badge variant="outline" className="text-xs capitalize">{action.type}</Badge>
+                                </div>
+                                {action.institution && (
+                                  <p className="text-xs text-muted-foreground mt-0.5">at {action.institution}</p>
+                                )}
+                                {action.description && (
+                                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{action.description}</p>
+                                )}
+                                {action.county && (
+                                  <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-0.5">
+                                    <MapPin className="w-3 h-3" /> {action.county}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                if (action.type === "program") {
+                                  addProgram.mutate(action);
+                                } else {
+                                  addResource.mutate(action);
+                                }
+                              }}
+                              disabled={addProgram.isPending || addResource.isPending}
+                              data-testid={`button-add-action-${idx}`}
+                            >
+                              <Plus className="w-3.5 h-3.5 mr-1" />
+                              Add {action.type === "program" ? "Program" : "Resource"}
+                            </Button>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
                   </div>
                 )}
 

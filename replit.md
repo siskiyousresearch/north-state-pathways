@@ -121,6 +121,12 @@ shared/
 26. Token usage tracking (per request: model, provider, type, prompt/completion tokens, estimated cost)
 27. Configurable daily and monthly token budgets with automatic enforcement
 28. Token usage dashboard with cost estimates, progress bars, breakdowns by model and type
+29. County-specific research tasks with dropdown for 10 North State counties
+30. Research agent produces structured output with JSON action recommendations (programs/resources to add)
+31. Actionable recommendation cards from research results — one-click "Add Program" / "Add Resource" buttons
+32. Resources support multi-county and multi-pathway selection via checkbox UI
+33. Resources schema: `counties` (text array) and `pathwayIds` (integer array) for multi-selection
+34. Research tasks schema: `county` field for scoping research to specific counties
 
 ## Running
 - `npm run dev` starts both frontend (Vite) and backend (Express) on port 5000

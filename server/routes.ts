@@ -620,7 +620,7 @@ export async function registerRoutes(
         const apiKey = settingsMap["openrouter_api_key"];
         if (!apiKey) return res.status(400).json({ error: "No OpenRouter API key configured" });
         client = new OpenAI({ apiKey, baseURL: "https://openrouter.ai/api/v1" });
-        model = "deepseek/deepseek-chat-v3-0324";
+        model = "openai/gpt-4o-mini";
       } else {
         return res.status(400).json({ error: "Unknown provider" });
       }
@@ -628,7 +628,7 @@ export async function registerRoutes(
       const response = await client.chat.completions.create({
         model,
         messages: [{ role: "user", content: "Say hello in one word." }],
-        max_completion_tokens: 10,
+        max_tokens: 10,
       });
 
       const reply = response.choices[0]?.message?.content;
@@ -723,58 +723,70 @@ export async function registerRoutes(
         researchModel = "gpt-5-mini";
       }
 
+      const countyScope = task.county ? `Focus EXCLUSIVELY on ${task.county}.` : "Cover all 10 North State counties: Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Sierra, Siskiyou, Tehama, and Trinity.";
+      const allPathways = await storage.getPathways();
+      const pathwayName = task.pathwayId ? allPathways.find((p: any) => p.id === task.pathwayId)?.name : null;
+
       const response = await researchClient.chat.completions.create({
         model: researchModel,
         messages: [
           {
             role: "system",
-            content: `You are a research assistant for the North State Pathways project, focused on education and healthcare career pathways in Northern California's North State region.
+            content: `You are a research assistant for North State Pathways, focused on education and career pathways in Northern California.
 
-IMPORTANT SCOPE LIMITATIONS:
-- Your research MUST be limited to institutions, programs, and resources in these 10 counties ONLY: Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Sierra, Siskiyou, Tehama, and Trinity counties in California.
-- Only report findings about: (1) Educational institutions and their programs, (2) Career/education programs (certificates, degrees, training), or (3) Resources (scholarships, financial aid, support services).
-- Do NOT include information about institutions or programs outside this 10-county region.
+SCOPE: ${countyScope}
+${pathwayName ? `PATHWAY FOCUS: ${pathwayName}` : ""}
+Do NOT include institutions or programs outside the specified county/region.
 
 Current knowledge base:
 ${knowledge}
 
-Provide your findings in this structured format:
+RESPONSE FORMAT — Follow this EXACTLY:
 
-## Findings Summary
-Brief overview of what was found.
+## Findings
+Concise summary of verified findings (2-4 paragraphs max). State only facts — do NOT suggest next steps, options, or ask follow-up questions.
 
-## Institutions
-For each institution found, list:
-- **Name**: Institution name
-- **County**: Which of the 10 counties
-- **Type**: Community college, university, training center, etc.
-- **Website**: URL if known
+## Programs Found
+For each program discovered, list on a single line:
+- **[Program Name]** at [Institution] — [Level] — [Brief description] — [URL if known]
 
-## Programs
-For each program found, list:
-- **Program Name**: Full name
-- **Institution**: Where it's offered
-- **County**: Which county
-- **Level**: Certificate, Associate's, Bachelor's, etc.
-- **Description**: What the program covers
-- **URL**: Direct link to program page if known
+## Resources Found
+For each resource (scholarship, financial aid, support service):
+- **[Resource Name]** ([Type]) — [Description] — Eligibility: [who qualifies] — [URL if known]
 
-## Resources
-For each resource found (scholarships, financial aid, support):
-- **Name**: Resource name
-- **Type**: Scholarship, financial aid, tutoring, etc.
-- **Description**: What it provides
-- **Eligibility**: Who qualifies
-- **URL**: Link if known
+---ACTIONS---
+After the separator above, output a JSON array of recommended actions. Each action creates a program or resource in the knowledge base. Use this exact format:
+\`\`\`json
+[
+  {
+    "type": "program",
+    "name": "Program Name",
+    "institution": "Institution Name",
+    "county": "County Name",
+    "level": "Certificate|Associate|Bachelor|Master|Training",
+    "description": "Brief description",
+    "url": "https://..."
+  },
+  {
+    "type": "resource",
+    "name": "Resource Name",
+    "resourceType": "Scholarship|Grant|Financial Aid|Support Service|Internship",
+    "description": "What it provides",
+    "eligibility": "Who qualifies",
+    "url": "https://...",
+    "counties": ["County1", "County2"]
+  }
+]
+\`\`\`
 
-## Recommendations
-How these findings should be integrated into the existing knowledge base.
-
-If you cannot find specific information about the requested topic within the 10-county region, clearly state that and suggest related searches that might yield better results. Always provide substantive findings — never return empty results without explanation.`,
+RULES:
+- Be concise and factual. No suggestions, no follow-up questions, no "options to consider."
+- Only include programs/resources you have actual information about.
+- The JSON actions block is for structured data extraction — include every item from your findings.`,
           },
           {
             role: "user",
-            content: `Research task: ${task.title}\n\nDescription: ${task.description || "No additional description"}`,
+            content: `Research task: ${task.title}\n\nDescription: ${task.description || "No additional description"}\n\nCounty: ${task.county || "All North State counties"}`,
           },
         ],
         max_completion_tokens: 4096,

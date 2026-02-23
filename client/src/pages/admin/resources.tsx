@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger
 } from "@/components/ui/dialog";
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Plus, BookOpen, ExternalLink, Trash2, Search, Pencil } from "lucide-react";
+import { Plus, BookOpen, ExternalLink, Trash2, Search, Pencil, MapPin } from "lucide-react";
 import type { Resource, Pathway } from "@shared/schema";
 
 const resourceTypes = [
@@ -24,8 +25,24 @@ const resourceTypes = [
   "Internship", "Program", "Support Service", "Other"
 ];
 
-const emptyForm = {
-  name: "", type: "", description: "", url: "", eligibility: "", pathwayId: "", county: ""
+const NORTH_STATE_COUNTIES = [
+  "Butte County", "Glenn County", "Lassen County", "Modoc County", "Plumas County",
+  "Shasta County", "Sierra County", "Siskiyou County", "Tehama County", "Trinity County",
+];
+
+interface ResourceForm {
+  name: string;
+  type: string;
+  description: string;
+  url: string;
+  eligibility: string;
+  selectedPathwayIds: number[];
+  selectedCounties: string[];
+}
+
+const emptyForm: ResourceForm = {
+  name: "", type: "", description: "", url: "", eligibility: "",
+  selectedPathwayIds: [], selectedCounties: [],
 };
 
 export default function ResourcesPage() {
@@ -33,17 +50,25 @@ export default function ResourcesPage() {
   const [search, setSearch] = useState("");
   const [showDialog, setShowDialog] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState<ResourceForm>(emptyForm);
 
   const { data: resources, isLoading } = useQuery<Resource[]>({ queryKey: ["/api/admin/resources"] });
   const { data: pathways } = useQuery<Pathway[]>({ queryKey: ["/api/admin/pathways"] });
 
+  const buildPayload = (f: ResourceForm) => ({
+    name: f.name,
+    type: f.type,
+    description: f.description || null,
+    url: f.url || null,
+    eligibility: f.eligibility || null,
+    pathwayId: f.selectedPathwayIds.length > 0 ? f.selectedPathwayIds[0] : null,
+    pathwayIds: f.selectedPathwayIds.length > 0 ? f.selectedPathwayIds : null,
+    county: f.selectedCounties.length > 0 ? f.selectedCounties[0] : null,
+    counties: f.selectedCounties.length > 0 ? f.selectedCounties : null,
+  });
+
   const createResource = useMutation({
-    mutationFn: (data: typeof form) =>
-      apiRequest("POST", "/api/admin/resources", {
-        ...data,
-        pathwayId: data.pathwayId ? parseInt(data.pathwayId) : null,
-      }),
+    mutationFn: (data: ResourceForm) => apiRequest("POST", "/api/admin/resources", buildPayload(data)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/resources"] });
       setShowDialog(false);
@@ -53,11 +78,8 @@ export default function ResourcesPage() {
   });
 
   const updateResource = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: typeof form }) =>
-      apiRequest("PATCH", `/api/admin/resources/${id}`, {
-        ...data,
-        pathwayId: data.pathwayId ? parseInt(data.pathwayId) : null,
-      }),
+    mutationFn: ({ id, data }: { id: number; data: ResourceForm }) =>
+      apiRequest("PATCH", `/api/admin/resources/${id}`, buildPayload(data)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/resources"] });
       setEditingResource(null);
@@ -75,14 +97,16 @@ export default function ResourcesPage() {
   });
 
   const openEdit = (resource: Resource) => {
+    const existingCounties = resource.counties || (resource.county ? [resource.county] : []);
+    const existingPathwayIds = resource.pathwayIds || (resource.pathwayId ? [resource.pathwayId] : []);
     setForm({
       name: resource.name || "",
       type: resource.type || "",
       description: resource.description || "",
       url: resource.url || "",
       eligibility: resource.eligibility || "",
-      pathwayId: resource.pathwayId ? String(resource.pathwayId) : "",
-      county: resource.county || "",
+      selectedPathwayIds: existingPathwayIds,
+      selectedCounties: existingCounties,
     });
     setEditingResource(resource);
   };
@@ -97,10 +121,38 @@ export default function ResourcesPage() {
     if (!open) setForm(emptyForm);
   };
 
+  const togglePathway = (pathwayId: number) => {
+    setForm(prev => ({
+      ...prev,
+      selectedPathwayIds: prev.selectedPathwayIds.includes(pathwayId)
+        ? prev.selectedPathwayIds.filter(id => id !== pathwayId)
+        : [...prev.selectedPathwayIds, pathwayId],
+    }));
+  };
+
+  const toggleCounty = (county: string) => {
+    setForm(prev => ({
+      ...prev,
+      selectedCounties: prev.selectedCounties.includes(county)
+        ? prev.selectedCounties.filter(c => c !== county)
+        : [...prev.selectedCounties, county],
+    }));
+  };
+
   const filtered = resources?.filter(
     (r) => r.name.toLowerCase().includes(search.toLowerCase()) ||
            (r.type && r.type.toLowerCase().includes(search.toLowerCase()))
   );
+
+  const getPathwayNames = (resource: Resource) => {
+    const ids = resource.pathwayIds || (resource.pathwayId ? [resource.pathwayId] : []);
+    return ids.map(id => pathways?.find(p => p.id === id)?.name).filter(Boolean);
+  };
+
+  const getCountyDisplay = (resource: Resource) => {
+    const c = resource.counties || (resource.county ? [resource.county] : []);
+    return c.map(name => name.replace(" County", ""));
+  };
 
   const resourceForm = (
     <div className="space-y-3 mt-2">
@@ -120,15 +172,52 @@ export default function ResourcesPage() {
         </Select>
       </div>
       <div>
-        <Label>Pathway</Label>
-        <Select value={form.pathwayId} onValueChange={(v) => setForm({ ...form, pathwayId: v })}>
-          <SelectTrigger data-testid="select-resource-pathway"><SelectValue placeholder="All pathways" /></SelectTrigger>
-          <SelectContent>
-            {pathways?.map((p) => (
-              <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+        <Label>Pathways</Label>
+        <div className="border rounded-md p-2 mt-1 space-y-1.5 max-h-36 overflow-y-auto" data-testid="select-resource-pathways">
+          {pathways?.map((p) => (
+            <label key={p.id} className="flex items-center gap-2 cursor-pointer hover:bg-accent/50 rounded px-1.5 py-1">
+              <Checkbox
+                checked={form.selectedPathwayIds.includes(p.id)}
+                onCheckedChange={() => togglePathway(p.id)}
+                data-testid={`checkbox-pathway-${p.id}`}
+              />
+              <span className="text-sm">{p.name}</span>
+            </label>
+          ))}
+          {(!pathways || pathways.length === 0) && (
+            <p className="text-xs text-muted-foreground px-1.5">No pathways available</p>
+          )}
+        </div>
+        {form.selectedPathwayIds.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            {form.selectedPathwayIds.map(id => {
+              const name = pathways?.find(p => p.id === id)?.name;
+              return name ? <Badge key={id} variant="secondary" className="text-xs">{name}</Badge> : null;
+            })}
+          </div>
+        )}
+      </div>
+      <div>
+        <Label>Applicable Counties</Label>
+        <div className="border rounded-md p-2 mt-1 grid grid-cols-2 gap-1 max-h-44 overflow-y-auto" data-testid="select-resource-counties">
+          {NORTH_STATE_COUNTIES.map((c) => (
+            <label key={c} className="flex items-center gap-2 cursor-pointer hover:bg-accent/50 rounded px-1.5 py-1">
+              <Checkbox
+                checked={form.selectedCounties.includes(c)}
+                onCheckedChange={() => toggleCounty(c)}
+                data-testid={`checkbox-county-${c}`}
+              />
+              <span className="text-sm">{c.replace(" County", "")}</span>
+            </label>
+          ))}
+        </div>
+        {form.selectedCounties.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            {form.selectedCounties.map(c => (
+              <Badge key={c} variant="outline" className="text-xs">{c.replace(" County", "")}</Badge>
             ))}
-          </SelectContent>
-        </Select>
+          </div>
+        )}
       </div>
       <div>
         <Label>URL</Label>
@@ -171,7 +260,7 @@ export default function ResourcesPage() {
               <Plus className="w-4 h-4 mr-1.5" /> Add Resource
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add Resource</DialogTitle>
             </DialogHeader>
@@ -189,7 +278,7 @@ export default function ResourcesPage() {
       </div>
 
       <Dialog open={!!editingResource} onOpenChange={(open) => { if (!open) closeEdit(); }}>
-        <DialogContent>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Resource</DialogTitle>
           </DialogHeader>
@@ -224,11 +313,19 @@ export default function ResourcesPage() {
                         <p className="text-sm font-medium truncate">{resource.name}</p>
                         <Badge variant="secondary" className="text-xs">{resource.type}</Badge>
                       </div>
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                        {getPathwayNames(resource).map((name) => (
+                          <Badge key={name} variant="outline" className="text-xs">{name}</Badge>
+                        ))}
+                        {getCountyDisplay(resource).length > 0 && (
+                          <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                            <MapPin className="w-3 h-3" />
+                            {getCountyDisplay(resource).join(", ")}
+                          </span>
+                        )}
+                      </div>
                       {resource.url && (
                         <p className="text-xs text-muted-foreground mt-0.5 truncate">{resource.url}</p>
-                      )}
-                      {resource.description && !resource.url && (
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{resource.description}</p>
                       )}
                     </div>
                   </div>

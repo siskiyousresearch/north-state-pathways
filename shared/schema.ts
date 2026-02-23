@@ -48,6 +48,8 @@ export const resources = pgTable("resources", {
   eligibility: text("eligibility"),
   pathwayId: integer("pathway_id").references(() => pathways.id),
   county: text("county"),
+  counties: text("counties").array(),
+  pathwayIds: integer("pathway_ids").array(),
 });
 
 export const chatSessions = pgTable("chat_sessions", {
@@ -75,6 +77,7 @@ export const researchTasks = pgTable("research_tasks", {
   description: text("description"),
   status: text("status").notNull().default("pending"),
   pathwayId: integer("pathway_id").references(() => pathways.id),
+  county: text("county"),
   findings: text("findings"),
   aiResponse: text("ai_response"),
   approved: boolean("approved").default(false),
