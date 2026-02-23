@@ -259,7 +259,7 @@ export default function SettingsPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => testApiKey(key)}
-                    disabled={!value || value.includes("•") || testingKey === key}
+                    disabled={!value || testingKey === key}
                     data-testid={`button-test-${key}-key`}
                   >
                     {testingKey === key ? (
