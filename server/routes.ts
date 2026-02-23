@@ -729,7 +729,7 @@ export async function registerRoutes(
 
       await storage.updateResearchTask(task.id, { status: "researching" });
 
-      const knowledge = await storage.getPathwayKnowledge();
+      const knowledge = await storage.getPathwayKnowledge().catch(() => "");
       const researchModelSetting = (await storage.getSetting("research_model")) || "gpt-5-mini";
 
       let researchClient: OpenAI;
@@ -743,39 +743,54 @@ export async function registerRoutes(
         researchModel = "gpt-5-mini";
       }
 
-      const countyScope = task.county ? `Focus EXCLUSIVELY on ${task.county}.` : "Cover all 10 North State counties: Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Sierra, Siskiyou, Tehama, and Trinity.";
+      const countyScope = task.county ? `Focus EXCLUSIVELY on ${task.county}, California.` : "Cover all 10 North State counties: Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Sierra, Siskiyou, Tehama, and Trinity counties in California.";
       const allPathways = await storage.getPathways();
       const pathwayName = task.pathwayId ? allPathways.find((p: any) => p.id === task.pathwayId)?.name : null;
+
+      const existingNames = knowledge
+        .split("\n")
+        .filter((line: string) => line.startsWith("- ") || line.startsWith("• "))
+        .map((line: string) => line.replace(/^[-•]\s*/, "").trim())
+        .slice(0, 50)
+        .join(", ");
 
       const response = await researchClient.chat.completions.create({
         model: researchModel,
         messages: [
           {
             role: "system",
-            content: `You are a research assistant for North State Pathways, focused on education and career pathways in Northern California.
+            content: `You are a web research assistant for North State Pathways. Your job is to SEARCH THE INTERNET and find NEW programs, institutions, scholarships, and resources that are NOT already in our database.
 
-SCOPE: ${countyScope}
-${pathwayName ? `PATHWAY FOCUS: ${pathwayName}` : ""}
-Do NOT include institutions or programs outside the specified county/region.
+YOUR TASK: Search the web for real, currently-available education and career programs, scholarships, and resources.
 
-Current knowledge base:
-${knowledge}
+GEOGRAPHIC SCOPE: ${countyScope}
+${pathwayName ? `PATHWAY FOCUS: ${pathwayName}-related programs and resources` : ""}
+
+ALREADY IN OUR DATABASE (do NOT repeat these):
+${existingNames || "None yet"}
+
+SEARCH INSTRUCTIONS:
+- Search for real programs at community colleges, universities, and training centers in the specified area
+- Find actual scholarships, grants, and financial aid opportunities
+- Include real URLs to program pages and institution websites
+- Only report programs and resources you can verify exist — no hypothetical or suggested programs
+- Do NOT include anything outside the specified county/region
 
 RESPONSE FORMAT — Follow this EXACTLY:
 
 ## Findings
-Concise summary of verified findings (2-4 paragraphs max). State only facts — do NOT suggest next steps, options, or ask follow-up questions.
+Concise summary of what you found on the web (2-4 paragraphs max). Mention specific institutions and their websites. State only verified facts.
 
 ## Programs Found
-For each program discovered, list on a single line:
-- **[Program Name]** at [Institution] — [Level] — [Brief description] — [URL if known]
+For each real program discovered online:
+- **[Program Name]** at [Institution] — [Level] — [Brief description] — [URL]
 
 ## Resources Found
-For each resource (scholarship, financial aid, support service):
-- **[Resource Name]** ([Type]) — [Description] — Eligibility: [who qualifies] — [URL if known]
+For each real resource (scholarship, financial aid, support service) found online:
+- **[Resource Name]** ([Type]) — [Description] — Eligibility: [who qualifies] — [URL]
 
 ---ACTIONS---
-After the separator above, output a JSON array of recommended actions. Each action creates a program or resource in the knowledge base. Use this exact format:
+Output a JSON array of items to add to the knowledge base. Only include items you found with real information:
 \`\`\`json
 [
   {
@@ -785,7 +800,7 @@ After the separator above, output a JSON array of recommended actions. Each acti
     "county": "County Name",
     "level": "Certificate|Associate|Bachelor|Master|Training",
     "description": "Brief description",
-    "url": "https://..."
+    "url": "https://actual-url"
   },
   {
     "type": "resource",
@@ -793,20 +808,21 @@ After the separator above, output a JSON array of recommended actions. Each acti
     "resourceType": "Scholarship|Grant|Financial Aid|Support Service|Internship",
     "description": "What it provides",
     "eligibility": "Who qualifies",
-    "url": "https://...",
+    "url": "https://actual-url",
     "counties": ["County1", "County2"]
   }
 ]
 \`\`\`
 
 RULES:
-- Be concise and factual. No suggestions, no follow-up questions, no "options to consider."
-- Only include programs/resources you have actual information about.
-- The JSON actions block is for structured data extraction — include every item from your findings.`,
+- SEARCH THE WEB. Do not make up programs or suggest what might exist.
+- Every item must have a real URL or clearly state the source.
+- Be concise and factual. No suggestions, no follow-up questions.
+- Skip items already in our database.`,
           },
           {
             role: "user",
-            content: `Research task: ${task.title}\n\nDescription: ${task.description || "No additional description"}\n\nCounty: ${task.county || "All North State counties"}`,
+            content: `Research task: ${task.title}\n\nDescription: ${task.description || "No additional description"}\n\nCounty: ${task.county || "All North State counties"}\n\nSearch the internet for real, currently available programs and resources matching this request.`,
           },
         ],
         max_completion_tokens: 4096,
