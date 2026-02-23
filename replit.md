@@ -117,7 +117,7 @@ shared/
 22. Admin login with session-based auth (express-session + PostgreSQL session store)
 23. Multi-provider AI: OpenAI, Anthropic, OpenRouter (DeepSeek, Qwen, Gemini, Llama, Grok, Mistral), Perplexity
 24. Admin-configurable API keys with masked display
-25. Separate research agent model selection with Perplexity Deep Research option
+25. Research agent uses web-connected Perplexity models only (Sonar, Sonar Pro, Deep Research) via OpenRouter — searches the internet for new programs/resources
 26. Token usage tracking (per request: model, provider, type, prompt/completion tokens, estimated cost)
 27. Configurable daily and monthly token budgets with automatic enforcement
 28. Token usage dashboard with cost estimates, progress bars, breakdowns by model and type

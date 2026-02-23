@@ -730,7 +730,7 @@ export async function registerRoutes(
       await storage.updateResearchTask(task.id, { status: "researching" });
 
       const knowledge = await storage.getPathwayKnowledge().catch(() => "");
-      const researchModelSetting = (await storage.getSetting("research_model")) || "gpt-5-mini";
+      const researchModelSetting = (await storage.getSetting("research_model")) || "perplexity/perplexity/sonar";
 
       let researchClient: OpenAI;
       let researchModel: string;
@@ -738,9 +738,9 @@ export async function registerRoutes(
         const result = await getAIClient(researchModelSetting);
         researchClient = result.client;
         researchModel = result.model;
-      } catch {
-        researchClient = replitOpenai;
-        researchModel = "gpt-5-mini";
+      } catch (clientErr: any) {
+        await storage.updateResearchTask(task.id, { status: "failed", aiResponse: `Failed to initialize research model: ${clientErr?.message || "Unknown error"}. Make sure an OpenRouter API key is configured in Settings.` });
+        return res.status(400).json({ error: "Research requires an OpenRouter API key. Please configure one in Settings." });
       }
 
       const countyScope = task.county ? `Focus EXCLUSIVELY on ${task.county}, California.` : "Cover all 10 North State counties: Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Sierra, Siskiyou, Tehama, and Trinity counties in California.";
