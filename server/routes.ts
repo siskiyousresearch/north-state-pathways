@@ -655,8 +655,11 @@ export async function registerRoutes(
         res.status(500).json({ error: "No response from model" });
       }
     } catch (error: any) {
-      const msg = error?.message || "Connection failed";
-      res.status(500).json({ error: msg.length > 200 ? msg.slice(0, 200) : msg });
+      let msg = error?.message || "Connection failed";
+      if (msg.includes("User not found") && provider === "openrouter") {
+        msg = "OpenRouter rejected this key (User not found). If this key works elsewhere, try generating a new key at openrouter.ai/settings/keys specifically for this project — keys can be IP-restricted.";
+      }
+      res.status(500).json({ error: msg.length > 300 ? msg.slice(0, 300) : msg });
     }
   });
 
