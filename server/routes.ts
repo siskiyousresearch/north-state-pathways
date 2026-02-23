@@ -596,6 +596,53 @@ export async function registerRoutes(
   // ========== SETTINGS API ==========
   const API_KEY_SETTINGS = ["openai_api_key", "anthropic_api_key", "openrouter_api_key"];
 
+  app.post("/api/admin/test-api-key", requireAdmin, async (req, res) => {
+    try {
+      const { provider } = req.body;
+      const settings = await storage.getAllSettings();
+      const settingsMap: Record<string, string> = {};
+      for (const s of settings) settingsMap[s.key] = s.value;
+
+      let client: OpenAI;
+      let model: string;
+
+      if (provider === "openai") {
+        const apiKey = settingsMap["openai_api_key"];
+        if (!apiKey) return res.status(400).json({ error: "No OpenAI API key configured" });
+        client = new OpenAI({ apiKey });
+        model = "gpt-4o-mini";
+      } else if (provider === "anthropic") {
+        const apiKey = settingsMap["anthropic_api_key"];
+        if (!apiKey) return res.status(400).json({ error: "No Anthropic API key configured" });
+        client = new OpenAI({ apiKey, baseURL: "https://api.anthropic.com/v1/" });
+        model = "claude-haiku-3-5-20241022";
+      } else if (provider === "openrouter") {
+        const apiKey = settingsMap["openrouter_api_key"];
+        if (!apiKey) return res.status(400).json({ error: "No OpenRouter API key configured" });
+        client = new OpenAI({ apiKey, baseURL: "https://openrouter.ai/api/v1" });
+        model = "deepseek/deepseek-chat-v3-0324";
+      } else {
+        return res.status(400).json({ error: "Unknown provider" });
+      }
+
+      const response = await client.chat.completions.create({
+        model,
+        messages: [{ role: "user", content: "Say hello in one word." }],
+        max_completion_tokens: 10,
+      });
+
+      const reply = response.choices[0]?.message?.content;
+      if (reply) {
+        res.json({ success: true, model });
+      } else {
+        res.status(500).json({ error: "No response from model" });
+      }
+    } catch (error: any) {
+      const msg = error?.message || "Connection failed";
+      res.status(500).json({ error: msg.length > 200 ? msg.slice(0, 200) : msg });
+    }
+  });
+
   app.get("/api/admin/settings", requireAdmin, async (_req, res) => {
     try {
       const settings = await storage.getAllSettings();

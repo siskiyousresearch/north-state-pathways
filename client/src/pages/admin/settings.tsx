@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Settings, Bot, Zap, DollarSign, Key, FlaskConical, Eye, EyeOff, BarChart3, TrendingUp } from "lucide-react";
+import { Settings, Bot, Zap, DollarSign, Key, FlaskConical, Eye, EyeOff, BarChart3, TrendingUp, CheckCircle2, Loader2 } from "lucide-react";
 
 interface ModelOption {
   value: string;
@@ -94,10 +94,29 @@ export default function SettingsPage() {
   const [monthlyBudget, setMonthlyBudget] = useState("");
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
   const [hasChanges, setHasChanges] = useState(false);
+  const [testingKey, setTestingKey] = useState<string | null>(null);
 
   const { data: settings, isLoading } = useQuery<Record<string, string>>({
     queryKey: ["/api/admin/settings"],
   });
+
+  const testApiKey = async (provider: string) => {
+    setTestingKey(provider);
+    try {
+      const res = await apiRequest("POST", "/api/admin/test-api-key", { provider });
+      const data = await res.json();
+      toast({ title: "You're good to go!", description: `AI model test successful (${data.model})` });
+    } catch (error: any) {
+      let msg = "API key test failed";
+      try {
+        const body = await error?.json?.();
+        if (body?.error) msg = body.error;
+      } catch {}
+      toast({ title: "Test failed", description: msg, variant: "destructive" });
+    } finally {
+      setTestingKey(null);
+    }
+  };
 
   interface UsageStats {
     totalTokens: number;
@@ -234,6 +253,21 @@ export default function SettingsPage() {
                     data-testid={`button-toggle-${key}-key`}
                   >
                     {showKeys[key] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => testApiKey(key)}
+                    disabled={!value || value.includes("•") || testingKey === key}
+                    data-testid={`button-test-${key}-key`}
+                  >
+                    {testingKey === key ? (
+                      <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+                    )}
+                    Test
                   </Button>
                 </div>
               </div>
