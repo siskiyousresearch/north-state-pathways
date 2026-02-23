@@ -87,6 +87,8 @@ shared/
 17. AI responses include clickable markdown links to program/institution/resource URLs
 18. All 21 programs have direct URLs to their institution program pages
 19. ReactMarkdown links open in new tabs with target="_blank"
+20. Admin conversation viewer uses rich markdown formatting (bold, spacing, clickable links) matching student chat experience
+21. Inline pathway creation from Research Tasks dialog (no need to navigate away)
 
 ## Running
 - `npm run dev` starts both frontend (Vite) and backend (Express) on port 5000

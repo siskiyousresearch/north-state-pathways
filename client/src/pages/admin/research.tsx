@@ -17,7 +17,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
-  Plus, FlaskConical, Check, X, Loader2, Play, Eye
+  Plus, FlaskConical, Check, X, Loader2, Play, Eye, PlusCircle
 } from "lucide-react";
 import type { ResearchTask, Pathway } from "@shared/schema";
 
@@ -34,9 +34,29 @@ export default function ResearchPage() {
   const [showDialog, setShowDialog] = useState(false);
   const [selectedTask, setSelectedTask] = useState<ResearchTask | null>(null);
   const [form, setForm] = useState({ title: "", description: "", pathwayId: "" });
+  const [showNewPathway, setShowNewPathway] = useState(false);
+  const [newPathway, setNewPathway] = useState({ name: "", description: "" });
 
   const { data: tasks, isLoading } = useQuery<ResearchTask[]>({ queryKey: ["/api/admin/research"] });
   const { data: pathways } = useQuery<Pathway[]>({ queryKey: ["/api/admin/pathways"] });
+
+  const createPathway = useMutation({
+    mutationFn: async (data: { name: string; description: string }) => {
+      const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      const res = await apiRequest("POST", "/api/admin/pathways", { name: data.name, slug, description: data.description || null });
+      return res.json();
+    },
+    onSuccess: (pathway: Pathway) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pathways"] });
+      setForm({ ...form, pathwayId: String(pathway.id) });
+      setShowNewPathway(false);
+      setNewPathway({ name: "", description: "" });
+      toast({ title: `Pathway "${pathway.name}" created` });
+    },
+    onError: () => {
+      toast({ title: "Failed to create pathway", variant: "destructive" });
+    },
+  });
 
   const createTask = useMutation({
     mutationFn: (data: typeof form) =>
@@ -105,14 +125,57 @@ export default function ResearchPage() {
               </div>
               <div>
                 <Label>Related Pathway</Label>
-                <Select value={form.pathwayId} onValueChange={(v) => setForm({ ...form, pathwayId: v })}>
-                  <SelectTrigger data-testid="select-research-pathway"><SelectValue placeholder="Select pathway" /></SelectTrigger>
-                  <SelectContent>
-                    {pathways?.map((p) => (
-                      <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-2">
+                  <Select value={form.pathwayId} onValueChange={(v) => setForm({ ...form, pathwayId: v })}>
+                    <SelectTrigger data-testid="select-research-pathway" className="flex-1"><SelectValue placeholder="Select pathway" /></SelectTrigger>
+                    <SelectContent>
+                      {pathways?.map((p) => (
+                        <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setShowNewPathway(!showNewPathway)}
+                    title="Create new pathway"
+                    data-testid="button-toggle-new-pathway"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                  </Button>
+                </div>
+                {showNewPathway && (
+                  <div className="mt-2 p-3 border rounded-md space-y-2 bg-muted/30">
+                    <p className="text-xs font-medium text-muted-foreground">New Pathway</p>
+                    <Input
+                      value={newPathway.name}
+                      onChange={(e) => setNewPathway({ ...newPathway, name: e.target.value })}
+                      placeholder="Pathway name (e.g., Nursing)"
+                      data-testid="input-new-pathway-name"
+                    />
+                    <Textarea
+                      value={newPathway.description}
+                      onChange={(e) => setNewPathway({ ...newPathway, description: e.target.value })}
+                      placeholder="Brief description (optional)"
+                      rows={2}
+                      data-testid="input-new-pathway-description"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => createPathway.mutate(newPathway)}
+                      disabled={!newPathway.name || createPathway.isPending}
+                      data-testid="button-create-new-pathway"
+                    >
+                      {createPathway.isPending ? (
+                        <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                      ) : (
+                        <Plus className="w-3.5 h-3.5 mr-1.5" />
+                      )}
+                      Create Pathway
+                    </Button>
+                  </div>
+                )}
               </div>
               <Button
                 className="w-full"

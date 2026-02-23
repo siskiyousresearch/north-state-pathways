@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import ReactMarkdown from "react-markdown";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -127,13 +128,27 @@ export default function ConversationsPage() {
                         </Avatar>
                       )}
                       <div
-                        className={`max-w-[75%] rounded-md px-3 py-2 text-sm ${
+                        className={`max-w-[75%] rounded-md px-3 py-2 text-sm leading-relaxed ${
                           msg.role === "user"
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted"
                         }`}
                       >
-                        {msg.content}
+                        {msg.role === "assistant" ? (
+                          <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mb-2 [&>ul]:ml-1 [&>ul>li]:mb-1 [&_strong]:text-foreground [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2">
+                            <ReactMarkdown
+                              components={{
+                                a: ({ href, children }) => (
+                                  <a href={href} target="_blank" rel="noopener noreferrer" data-testid="link-admin-chat-external">
+                                    {children}
+                                  </a>
+                                ),
+                              }}
+                            >{msg.content}</ReactMarkdown>
+                          </div>
+                        ) : (
+                          msg.content
+                        )}
                       </div>
                     </div>
                   ))}
