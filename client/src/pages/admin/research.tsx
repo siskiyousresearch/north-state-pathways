@@ -17,7 +17,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
-  Plus, FlaskConical, Check, X, Loader2, Play, Eye, PlusCircle, Trash2, Pencil
+  Plus, FlaskConical, Check, X, Loader2, Play, Eye, PlusCircle, Trash2, Pencil, RotateCw
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { ResearchTask, Pathway } from "@shared/schema";
@@ -39,8 +39,12 @@ export default function ResearchPage() {
   const [showNewPathway, setShowNewPathway] = useState(false);
   const [newPathway, setNewPathway] = useState({ name: "", description: "" });
 
-  const { data: tasks, isLoading } = useQuery<ResearchTask[]>({ queryKey: ["/api/admin/research"] });
+  const { data: tasks, isLoading } = useQuery<ResearchTask[]>({
+    queryKey: ["/api/admin/research"],
+  });
   const { data: pathways } = useQuery<Pathway[]>({ queryKey: ["/api/admin/pathways"] });
+
+  const currentTask = selectedTask && tasks?.find((t) => t.id === selectedTask.id) || selectedTask;
 
   const createPathway = useMutation({
     mutationFn: async (data: { name: string; description: string }) => {
@@ -279,24 +283,24 @@ export default function ResearchPage() {
 
         <div className="lg:col-span-2">
           <Card className="p-5">
-            {selectedTask ? (
+            {currentTask ? (
               <div className="space-y-4">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div>
-                    <h3 className="font-semibold text-lg">{selectedTask.title}</h3>
+                    <h3 className="font-semibold text-lg">{currentTask.title}</h3>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      <Badge variant={statusColors[selectedTask.status] as any}>
-                        {selectedTask.status}
+                      <Badge variant={statusColors[currentTask.status] as any}>
+                        {currentTask.status}
                       </Badge>
                       <span className="text-xs text-muted-foreground">
-                        Created {new Date(selectedTask.createdAt).toLocaleString()}
+                        Created {new Date(currentTask.createdAt).toLocaleString()}
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1 flex-wrap">
-                    {selectedTask.status === "pending" && (
+                    {currentTask.status === "pending" && (
                       <Button
-                        onClick={() => runResearch.mutate(selectedTask.id)}
+                        onClick={() => runResearch.mutate(currentTask.id)}
                         disabled={runResearch.isPending}
                         data-testid="button-run-research"
                       >
@@ -308,33 +312,48 @@ export default function ResearchPage() {
                         Run Research
                       </Button>
                     )}
-                    {selectedTask.status === "completed" && (
+                    {currentTask.status === "completed" && (
                       <>
-                        <Button onClick={() => approveTask.mutate(selectedTask.id)} data-testid="button-approve-research">
+                        <Button onClick={() => approveTask.mutate(currentTask.id)} data-testid="button-approve-research">
                           <Check className="w-4 h-4 mr-1.5" /> Approve
                         </Button>
-                        <Button variant="outline" onClick={() => rejectTask.mutate(selectedTask.id)} data-testid="button-reject-research">
+                        <Button variant="outline" onClick={() => rejectTask.mutate(currentTask.id)} data-testid="button-reject-research">
                           <X className="w-4 h-4 mr-1.5" /> Reject
                         </Button>
                       </>
                     )}
-                    <Button variant="outline" size="icon" onClick={() => openEditTask(selectedTask)} data-testid="button-edit-research">
+                    {(currentTask.status === "completed" || currentTask.status === "approved" || currentTask.status === "rejected") && (
+                      <Button
+                        variant="outline"
+                        onClick={() => runResearch.mutate(currentTask.id)}
+                        disabled={runResearch.isPending}
+                        data-testid="button-rerun-research"
+                      >
+                        {runResearch.isPending ? (
+                          <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                        ) : (
+                          <RotateCw className="w-4 h-4 mr-1.5" />
+                        )}
+                        Re-run
+                      </Button>
+                    )}
+                    <Button variant="outline" size="icon" onClick={() => openEditTask(currentTask)} data-testid="button-edit-research">
                       <Pencil className="w-4 h-4" />
                     </Button>
-                    <Button variant="outline" size="icon" onClick={() => { deleteTask.mutate(selectedTask.id); setSelectedTask(null); }} data-testid="button-delete-research">
+                    <Button variant="outline" size="icon" onClick={() => { deleteTask.mutate(currentTask.id); setSelectedTask(null); }} data-testid="button-delete-research">
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
 
-                {selectedTask.description && (
+                {currentTask.description && (
                   <div>
                     <Label className="text-xs text-muted-foreground">Description</Label>
-                    <p className="text-sm mt-1">{selectedTask.description}</p>
+                    <p className="text-sm mt-1">{currentTask.description}</p>
                   </div>
                 )}
 
-                {selectedTask.aiResponse && (
+                {currentTask.aiResponse && (
                   <div>
                     <Label className="text-xs text-muted-foreground">AI Findings</Label>
                     <Card className="p-4 mt-1 bg-muted/50">
@@ -348,14 +367,14 @@ export default function ResearchPage() {
                             ),
                           }}
                         >
-                          {selectedTask.aiResponse}
+                          {currentTask.aiResponse}
                         </ReactMarkdown>
                       </div>
                     </Card>
                   </div>
                 )}
 
-                {selectedTask.findings && (
+                {currentTask.findings && (
                   <div>
                     <Label className="text-xs text-muted-foreground">Approved Findings</Label>
                     <Card className="p-4 mt-1">
@@ -369,7 +388,7 @@ export default function ResearchPage() {
                             ),
                           }}
                         >
-                          {selectedTask.findings}
+                          {currentTask.findings}
                         </ReactMarkdown>
                       </div>
                     </Card>
