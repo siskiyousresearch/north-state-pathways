@@ -23,9 +23,9 @@ interface ModelOption {
 }
 
 const chatModels: ModelOption[] = [
-  { value: "gpt-4o-mini", label: "GPT-4o Mini (Replit)", desc: "Fast and affordable via Replit — no API key needed", tier: "Budget-friendly", provider: "replit" },
-  { value: "gpt-5-mini", label: "GPT-5 Mini (Replit)", desc: "More capable via Replit — no API key needed", tier: "Mid-range", provider: "replit" },
-  { value: "gpt-5-nano", label: "GPT-5 Nano (Replit)", desc: "Lightweight via Replit — no API key needed", tier: "Most affordable", provider: "replit" },
+  { value: "gpt-4o-mini", label: "GPT-4o Mini", desc: "Fast and affordable — no API key needed", tier: "Budget-friendly", provider: "default" },
+  { value: "gpt-5-mini", label: "GPT-5 Mini", desc: "More capable — no API key needed", tier: "Mid-range", provider: "default" },
+  { value: "gpt-5-nano", label: "GPT-5 Nano", desc: "Lightweight — no API key needed", tier: "Most affordable", provider: "default" },
 
   { value: "openai-direct/gpt-4o-mini", label: "GPT-4o Mini", desc: "Fast and affordable", tier: "Budget-friendly", provider: "openai" },
   { value: "openai-direct/gpt-4o", label: "GPT-4o", desc: "Flagship multimodal model", tier: "Premium", provider: "openai" },
@@ -46,8 +46,8 @@ const chatModels: ModelOption[] = [
 ];
 
 const profilingModels: ModelOption[] = [
-  { value: "gpt-4o-mini", label: "GPT-4o Mini (Replit)", desc: "Good balance — no API key needed", provider: "replit" },
-  { value: "gpt-5-nano", label: "GPT-5 Nano (Replit)", desc: "Fastest via Replit — no API key needed", provider: "replit" },
+  { value: "gpt-4o-mini", label: "GPT-4o Mini", desc: "Good balance — no API key needed", provider: "default" },
+  { value: "gpt-5-nano", label: "GPT-5 Nano", desc: "Fastest — no API key needed", provider: "default" },
   { value: "openai-direct/gpt-4.1-nano", label: "GPT-4.1 Nano", desc: "Ultra-cheap profiling", provider: "openai" },
   { value: "openai-direct/gpt-4o-mini", label: "GPT-4o Mini", desc: "Reliable and fast", provider: "openai" },
   { value: "anthropic/claude-haiku-3-5-20241022", label: "Claude 3.5 Haiku", desc: "Fast extraction", provider: "anthropic" },
@@ -56,7 +56,7 @@ const profilingModels: ModelOption[] = [
 ];
 
 const researchModels: ModelOption[] = [
-  { value: "gpt-5-mini", label: "GPT-5 Mini (Replit)", desc: "Good research via Replit — no API key needed", tier: "Mid-range", provider: "replit" },
+  { value: "gpt-5-mini", label: "GPT-5 Mini", desc: "Good research — no API key needed", tier: "Mid-range", provider: "default" },
   { value: "openai-direct/gpt-4o", label: "GPT-4o", desc: "Strong reasoning and research", tier: "Premium", provider: "openai" },
   { value: "openai-direct/gpt-4.1-mini", label: "GPT-4.1 Mini", desc: "Great balance for research", tier: "Mid-range", provider: "openai" },
   { value: "anthropic/claude-sonnet-4-20250514", label: "Claude Sonnet 4", desc: "Excellent at structured research", tier: "Mid-range", provider: "anthropic" },
@@ -68,7 +68,7 @@ const researchModels: ModelOption[] = [
 ];
 
 const providerColors: Record<string, string> = {
-  replit: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
+  default: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
   openai: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
   anthropic: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
   openrouter: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
@@ -77,7 +77,7 @@ const providerColors: Record<string, string> = {
 function ProviderBadge({ provider }: { provider: string }) {
   return (
     <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${providerColors[provider] || "bg-muted text-muted-foreground"}`}>
-      {provider === "replit" ? "Replit" : provider === "openai" ? "OpenAI" : provider === "anthropic" ? "Anthropic" : "OpenRouter"}
+      {provider === "default" ? "Default" : provider === "openai" ? "OpenAI" : provider === "anthropic" ? "Anthropic" : "OpenRouter"}
     </span>
   );
 }
@@ -207,7 +207,7 @@ export default function SettingsPage() {
             <h3 className="font-semibold">API Keys</h3>
           </div>
           <p className="text-sm text-muted-foreground mb-4">
-            Configure API keys to use models from different providers. Replit-hosted models work without any keys.
+            Configure API keys to use models from different providers. Default models work without any keys.
           </p>
           <div className="space-y-4">
             {[
