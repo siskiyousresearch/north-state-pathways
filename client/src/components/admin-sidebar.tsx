@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 const navItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
   { title: "Conversations", url: "/admin/conversations", icon: MessageSquare },
-  { title: "Pathways", url: "/admin/pathways", icon: Route },
+  { title: "Pathways & Programs", url: "/admin/pathways", icon: Route },
   { title: "Resources", url: "/admin/resources", icon: BookOpen },
   { title: "Research Tasks", url: "/admin/research", icon: FlaskConical },
   { title: "Settings", url: "/admin/settings", icon: Settings },
