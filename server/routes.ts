@@ -776,6 +776,15 @@ If you cannot find specific information about the requested topic within the 10-
     }
   });
 
+  app.patch("/api/admin/research/:id", requireAdmin, async (req, res) => {
+    try {
+      const updated = await storage.updateResearchTask(parseInt(req.params.id as string), req.body);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update research task" });
+    }
+  });
+
   app.delete("/api/admin/research/:id", requireAdmin, async (req, res) => {
     try {
       await storage.deleteResearchTask(parseInt(req.params.id as string));

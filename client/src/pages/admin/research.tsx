@@ -17,7 +17,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
-  Plus, FlaskConical, Check, X, Loader2, Play, Eye, PlusCircle, Trash2
+  Plus, FlaskConical, Check, X, Loader2, Play, Eye, PlusCircle, Trash2, Pencil
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { ResearchTask, Pathway } from "@shared/schema";
@@ -33,6 +33,7 @@ const statusColors: Record<string, string> = {
 export default function ResearchPage() {
   const { toast } = useToast();
   const [showDialog, setShowDialog] = useState(false);
+  const [editingTask, setEditingTask] = useState<ResearchTask | null>(null);
   const [selectedTask, setSelectedTask] = useState<ResearchTask | null>(null);
   const [form, setForm] = useState({ title: "", description: "", pathwayId: "" });
   const [showNewPathway, setShowNewPathway] = useState(false);
@@ -69,10 +70,37 @@ export default function ResearchPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/research"] });
       setShowDialog(false);
+      setEditingTask(null);
       setForm({ title: "", description: "", pathwayId: "" });
       toast({ title: "Research task created" });
     },
   });
+
+  const updateTask = useMutation({
+    mutationFn: (data: { id: number } & typeof form) =>
+      apiRequest("PATCH", `/api/admin/research/${data.id}`, {
+        title: data.title,
+        description: data.description || null,
+        pathwayId: data.pathwayId ? parseInt(data.pathwayId) : null,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/research"] });
+      setShowDialog(false);
+      setEditingTask(null);
+      setForm({ title: "", description: "", pathwayId: "" });
+      toast({ title: "Research task updated" });
+    },
+  });
+
+  const openEditTask = (task: ResearchTask) => {
+    setEditingTask(task);
+    setForm({
+      title: task.title,
+      description: task.description || "",
+      pathwayId: task.pathwayId ? String(task.pathwayId) : "",
+    });
+    setShowDialog(true);
+  };
 
   const runResearch = useMutation({
     mutationFn: (id: number) => apiRequest("POST", `/api/admin/research/${id}/run`),
@@ -114,7 +142,10 @@ export default function ResearchPage() {
           <h1 className="text-2xl font-bold" data-testid="text-research-title">Research Tasks</h1>
           <p className="text-muted-foreground text-sm mt-1">AI-powered pathway research with human approval</p>
         </div>
-        <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <Dialog open={showDialog} onOpenChange={(open) => {
+          setShowDialog(open);
+          if (!open) { setEditingTask(null); setForm({ title: "", description: "", pathwayId: "" }); }
+        }}>
           <DialogTrigger asChild>
             <Button data-testid="button-new-research">
               <Plus className="w-4 h-4 mr-1.5" /> New Research Task
@@ -122,7 +153,7 @@ export default function ResearchPage() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create Research Task</DialogTitle>
+              <DialogTitle>{editingTask ? "Edit Research Task" : "Create Research Task"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-3 mt-2">
               <div>
@@ -189,11 +220,14 @@ export default function ResearchPage() {
               </div>
               <Button
                 className="w-full"
-                onClick={() => createTask.mutate(form)}
+                onClick={() => editingTask
+                  ? updateTask.mutate({ id: editingTask.id, ...form })
+                  : createTask.mutate(form)
+                }
                 disabled={!form.title}
                 data-testid="button-create-research"
               >
-                Create Task
+                {editingTask ? "Update" : "Create"} Task
               </Button>
             </div>
           </DialogContent>
@@ -215,39 +249,22 @@ export default function ResearchPage() {
               ) : tasks && tasks.length > 0 ? (
                 <div className="divide-y">
                   {tasks.map((task) => (
-                    <div
+                    <button
                       key={task.id}
+                      onClick={() => setSelectedTask(task)}
                       className={`w-full p-3.5 text-left hover-elevate ${selectedTask?.id === task.id ? "bg-accent" : ""}`}
+                      data-testid={`button-research-task-${task.id}`}
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <button
-                          onClick={() => setSelectedTask(task)}
-                          className="flex-1 text-left min-w-0"
-                          data-testid={`button-research-task-${task.id}`}
-                        >
-                          <p className="text-sm font-medium truncate">{task.title}</p>
-                        </button>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <Badge variant={statusColors[task.status] as any} className="text-xs">
-                            {task.status}
-                          </Badge>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="w-6 h-6"
-                            onClick={(e) => { e.stopPropagation(); deleteTask.mutate(task.id); }}
-                            data-testid={`button-delete-task-${task.id}`}
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium truncate flex-1 min-w-0">{task.title}</p>
+                        <Badge variant={statusColors[task.status] as any} className="text-xs shrink-0">
+                          {task.status}
+                        </Badge>
                       </div>
-                      <button onClick={() => setSelectedTask(task)} className="w-full text-left">
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(task.createdAt).toLocaleDateString()}
-                        </p>
-                      </button>
-                    </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(task.createdAt).toLocaleDateString()}
+                      </p>
+                    </button>
                   ))}
                 </div>
               ) : (
@@ -276,7 +293,7 @@ export default function ResearchPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-wrap">
                     {selectedTask.status === "pending" && (
                       <Button
                         onClick={() => runResearch.mutate(selectedTask.id)}
@@ -301,6 +318,12 @@ export default function ResearchPage() {
                         </Button>
                       </>
                     )}
+                    <Button variant="outline" size="icon" onClick={() => openEditTask(selectedTask)} data-testid="button-edit-research">
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" onClick={() => { deleteTask.mutate(selectedTask.id); setSelectedTask(null); }} data-testid="button-delete-research">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
 
