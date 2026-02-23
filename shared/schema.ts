@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, serial, integer, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, serial, integer, timestamp, boolean, jsonb, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -103,6 +103,20 @@ export const appSettings = pgTable("app_settings", {
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+export const tokenUsage = pgTable("token_usage", {
+  id: serial("id").primaryKey(),
+  model: text("model").notNull(),
+  provider: text("provider").notNull(),
+  usageType: text("usage_type").notNull(),
+  promptTokens: integer("prompt_tokens").notNull().default(0),
+  completionTokens: integer("completion_tokens").notNull().default(0),
+  totalTokens: integer("total_tokens").notNull().default(0),
+  estimatedCost: real("estimated_cost").notNull().default(0),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertTokenUsageSchema = createInsertSchema(tokenUsage).omit({ id: true, createdAt: true });
+
 export const insertCountySchema = createInsertSchema(counties).omit({ id: true });
 export const insertInstitutionSchema = createInsertSchema(institutions).omit({ id: true });
 export const insertPathwaySchema = createInsertSchema(pathways).omit({ id: true });
@@ -132,3 +146,5 @@ export type InsertResearchTask = z.infer<typeof insertResearchTaskSchema>;
 export type Conversation = typeof conversations.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type AppSetting = typeof appSettings.$inferSelect;
+export type TokenUsage = typeof tokenUsage.$inferSelect;
+export type InsertTokenUsage = z.infer<typeof insertTokenUsageSchema>;

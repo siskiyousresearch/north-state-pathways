@@ -1,14 +1,14 @@
 import { db } from "./db";
-import { eq, desc, sql, and, count } from "drizzle-orm";
+import { eq, desc, sql, and, count, gte, sum } from "drizzle-orm";
 import {
   counties, institutions, pathways, programs, resources,
-  chatSessions, chatMessages, researchTasks, conversations, messages, appSettings,
+  chatSessions, chatMessages, researchTasks, conversations, messages, appSettings, tokenUsage,
   type InsertCounty, type InsertInstitution, type InsertPathway,
   type InsertProgram, type InsertResource, type InsertChatSession,
-  type InsertChatMessage, type InsertResearchTask,
+  type InsertChatMessage, type InsertResearchTask, type InsertTokenUsage,
   type County, type Institution, type Pathway, type Program,
   type Resource, type ChatSession, type ChatMessage, type ResearchTask,
-  type AppSetting
+  type AppSetting, type TokenUsage
 } from "@shared/schema";
 
 export interface IStorage {
@@ -63,6 +63,16 @@ export interface IStorage {
   }>;
 
   getPathwayKnowledge(): Promise<string>;
+
+  recordTokenUsage(data: InsertTokenUsage): Promise<TokenUsage>;
+  getTokenUsageStats(period: "day" | "month"): Promise<{
+    totalTokens: number;
+    promptTokens: number;
+    completionTokens: number;
+    estimatedCost: number;
+    byModel: { model: string; provider: string; totalTokens: number; estimatedCost: number }[];
+    byType: { usageType: string; totalTokens: number; estimatedCost: number }[];
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -291,6 +301,57 @@ export class DatabaseStorage implements IStorage {
     }
 
     return knowledge;
+  }
+
+  async recordTokenUsage(data: InsertTokenUsage): Promise<TokenUsage> {
+    const [record] = await db.insert(tokenUsage).values(data).returning();
+    return record;
+  }
+
+  async getTokenUsageStats(period: "day" | "month") {
+    const since = new Date();
+    if (period === "day") {
+      since.setHours(0, 0, 0, 0);
+    } else {
+      since.setDate(1);
+      since.setHours(0, 0, 0, 0);
+    }
+
+    const records = await db
+      .select()
+      .from(tokenUsage)
+      .where(gte(tokenUsage.createdAt, since));
+
+    let totalTokens = 0, promptTokens = 0, completionTokens = 0, estimatedCost = 0;
+    const modelMap = new Map<string, { model: string; provider: string; totalTokens: number; estimatedCost: number }>();
+    const typeMap = new Map<string, { usageType: string; totalTokens: number; estimatedCost: number }>();
+
+    for (const r of records) {
+      totalTokens += r.totalTokens;
+      promptTokens += r.promptTokens;
+      completionTokens += r.completionTokens;
+      estimatedCost += r.estimatedCost;
+
+      const mKey = `${r.provider}/${r.model}`;
+      const existing = modelMap.get(mKey) || { model: r.model, provider: r.provider, totalTokens: 0, estimatedCost: 0 };
+      existing.totalTokens += r.totalTokens;
+      existing.estimatedCost += r.estimatedCost;
+      modelMap.set(mKey, existing);
+
+      const tExisting = typeMap.get(r.usageType) || { usageType: r.usageType, totalTokens: 0, estimatedCost: 0 };
+      tExisting.totalTokens += r.totalTokens;
+      tExisting.estimatedCost += r.estimatedCost;
+      typeMap.set(r.usageType, tExisting);
+    }
+
+    return {
+      totalTokens,
+      promptTokens,
+      completionTokens,
+      estimatedCost,
+      byModel: Array.from(modelMap.values()).sort((a, b) => b.totalTokens - a.totalTokens),
+      byType: Array.from(typeMap.values()).sort((a, b) => b.totalTokens - a.totalTokens),
+    };
   }
 }
 

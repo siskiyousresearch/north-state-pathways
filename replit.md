@@ -116,6 +116,9 @@ shared/
 23. Multi-provider AI: OpenAI, Anthropic, OpenRouter (DeepSeek, Qwen, Gemini, Llama, Grok, Mistral), Perplexity
 24. Admin-configurable API keys with masked display
 25. Separate research agent model selection with Perplexity Deep Research option
+26. Token usage tracking (per request: model, provider, type, prompt/completion tokens, estimated cost)
+27. Configurable daily and monthly token budgets with automatic enforcement
+28. Token usage dashboard with cost estimates, progress bars, breakdowns by model and type
 
 ## Running
 - `npm run dev` starts both frontend (Vite) and backend (Express) on port 5000

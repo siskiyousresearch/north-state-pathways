@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Settings, Bot, Zap, DollarSign, Key, FlaskConical, Eye, EyeOff } from "lucide-react";
+import { Settings, Bot, Zap, DollarSign, Key, FlaskConical, Eye, EyeOff, BarChart3, TrendingUp } from "lucide-react";
 
 interface ModelOption {
   value: string;
@@ -90,11 +90,31 @@ export default function SettingsPage() {
   const [openaiKey, setOpenaiKey] = useState("");
   const [anthropicKey, setAnthropicKey] = useState("");
   const [openrouterKey, setOpenrouterKey] = useState("");
+  const [dailyBudget, setDailyBudget] = useState("");
+  const [monthlyBudget, setMonthlyBudget] = useState("");
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
   const [hasChanges, setHasChanges] = useState(false);
 
   const { data: settings, isLoading } = useQuery<Record<string, string>>({
     queryKey: ["/api/admin/settings"],
+  });
+
+  interface UsageStats {
+    totalTokens: number;
+    promptTokens: number;
+    completionTokens: number;
+    estimatedCost: number;
+    byModel: { model: string; provider: string; totalTokens: number; estimatedCost: number }[];
+    byType: { usageType: string; totalTokens: number; estimatedCost: number }[];
+  }
+
+  const { data: tokenUsage } = useQuery<{
+    daily: UsageStats;
+    monthly: UsageStats;
+    budgets: { daily: number | null; monthly: number | null };
+  }>({
+    queryKey: ["/api/admin/token-usage"],
+    refetchInterval: 30000,
   });
 
   useEffect(() => {
@@ -105,6 +125,8 @@ export default function SettingsPage() {
       setOpenaiKey(settings.openai_api_key || "");
       setAnthropicKey(settings.anthropic_api_key || "");
       setOpenrouterKey(settings.openrouter_api_key || "");
+      setDailyBudget(settings.daily_token_budget || "");
+      setMonthlyBudget(settings.monthly_token_budget || "");
       setHasChanges(false);
     }
   }, [settings]);
@@ -126,7 +148,10 @@ export default function SettingsPage() {
         saveSetting.mutateAsync({ key: "openai_api_key", value: openaiKey }),
         saveSetting.mutateAsync({ key: "anthropic_api_key", value: anthropicKey }),
         saveSetting.mutateAsync({ key: "openrouter_api_key", value: openrouterKey }),
+        saveSetting.mutateAsync({ key: "daily_token_budget", value: dailyBudget }),
+        saveSetting.mutateAsync({ key: "monthly_token_budget", value: monthlyBudget }),
       ]);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/token-usage"] });
       setHasChanges(false);
       toast({ title: "Settings saved", description: "All settings have been updated." });
     } catch {
@@ -362,6 +387,147 @@ export default function SettingsPage() {
             )}
           </div>
         </Card>
+
+        <Separator />
+
+        <Card className="p-5" data-testid="card-token-budget">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="w-4 h-4 text-primary" />
+            <h3 className="font-semibold">Token Budget</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Set daily and monthly token limits to control AI costs. Leave empty for unlimited usage.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-xs font-medium">Daily Token Limit</Label>
+              <Input
+                type="number"
+                value={dailyBudget}
+                onChange={(e) => { setDailyBudget(e.target.value); setHasChanges(true); }}
+                placeholder="e.g., 500000"
+                className="mt-1"
+                data-testid="input-daily-budget"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">Resets at midnight</p>
+            </div>
+            <div>
+              <Label className="text-xs font-medium">Monthly Token Limit</Label>
+              <Input
+                type="number"
+                value={monthlyBudget}
+                onChange={(e) => { setMonthlyBudget(e.target.value); setHasChanges(true); }}
+                placeholder="e.g., 10000000"
+                className="mt-1"
+                data-testid="input-monthly-budget"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">Resets on the 1st</p>
+            </div>
+          </div>
+        </Card>
+
+        {tokenUsage && (
+          <Card className="p-5" data-testid="card-token-usage">
+            <div className="flex items-center gap-2 mb-4">
+              <BarChart3 className="w-4 h-4 text-primary" />
+              <h3 className="font-semibold">Token Usage</h3>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-5">
+              <div className="p-3 rounded-md bg-muted/50">
+                <p className="text-xs font-medium text-muted-foreground mb-1">Today</p>
+                <p className="text-lg font-bold">{tokenUsage.daily.totalTokens.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">tokens</p>
+                <p className="text-sm font-semibold text-primary mt-1">${tokenUsage.daily.estimatedCost.toFixed(4)}</p>
+                <p className="text-[10px] text-muted-foreground">estimated cost</p>
+                {tokenUsage.budgets.daily && (
+                  <div className="mt-2">
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-0.5">
+                      <span>Budget</span>
+                      <span>{Math.round((tokenUsage.daily.totalTokens / tokenUsage.budgets.daily) * 100)}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-1.5">
+                      <div
+                        className={`h-1.5 rounded-full transition-all ${
+                          tokenUsage.daily.totalTokens / tokenUsage.budgets.daily > 0.9
+                            ? "bg-destructive"
+                            : tokenUsage.daily.totalTokens / tokenUsage.budgets.daily > 0.7
+                            ? "bg-yellow-500"
+                            : "bg-primary"
+                        }`}
+                        style={{ width: `${Math.min(100, (tokenUsage.daily.totalTokens / tokenUsage.budgets.daily) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="p-3 rounded-md bg-muted/50">
+                <p className="text-xs font-medium text-muted-foreground mb-1">This Month</p>
+                <p className="text-lg font-bold">{tokenUsage.monthly.totalTokens.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">tokens</p>
+                <p className="text-sm font-semibold text-primary mt-1">${tokenUsage.monthly.estimatedCost.toFixed(4)}</p>
+                <p className="text-[10px] text-muted-foreground">estimated cost</p>
+                {tokenUsage.budgets.monthly && (
+                  <div className="mt-2">
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-0.5">
+                      <span>Budget</span>
+                      <span>{Math.round((tokenUsage.monthly.totalTokens / tokenUsage.budgets.monthly) * 100)}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-1.5">
+                      <div
+                        className={`h-1.5 rounded-full transition-all ${
+                          tokenUsage.monthly.totalTokens / tokenUsage.budgets.monthly > 0.9
+                            ? "bg-destructive"
+                            : tokenUsage.monthly.totalTokens / tokenUsage.budgets.monthly > 0.7
+                            ? "bg-yellow-500"
+                            : "bg-primary"
+                        }`}
+                        style={{ width: `${Math.min(100, (tokenUsage.monthly.totalTokens / tokenUsage.budgets.monthly) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {tokenUsage.monthly.byType.length > 0 && (
+              <div className="mb-4">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Usage by Type (This Month)</p>
+                <div className="space-y-1.5">
+                  {tokenUsage.monthly.byType.map((t) => (
+                    <div key={t.usageType} className="flex items-center justify-between text-sm">
+                      <span className="capitalize">{t.usageType}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-muted-foreground text-xs">{t.totalTokens.toLocaleString()} tokens</span>
+                        <Badge variant="outline" className="text-xs">${t.estimatedCost.toFixed(4)}</Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {tokenUsage.monthly.byModel.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2">Usage by Model (This Month)</p>
+                <div className="space-y-1.5">
+                  {tokenUsage.monthly.byModel.map((m) => (
+                    <div key={`${m.provider}/${m.model}`} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate max-w-[180px]">{m.model}</span>
+                        <ProviderBadge provider={m.provider} />
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-muted-foreground text-xs">{m.totalTokens.toLocaleString()}</span>
+                        <Badge variant="outline" className="text-xs">${m.estimatedCost.toFixed(4)}</Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </Card>
+        )}
 
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-4">

@@ -36,6 +36,86 @@ function invalidateKnowledgeCache() {
 
 const DEFAULT_CHAT_MODEL = "gpt-4o-mini";
 
+const MODEL_COSTS: Record<string, { input: number; output: number }> = {
+  "gpt-4o-mini": { input: 0.15, output: 0.60 },
+  "gpt-4o": { input: 2.50, output: 10.00 },
+  "gpt-5-mini": { input: 0.30, output: 1.20 },
+  "gpt-5-nano": { input: 0.10, output: 0.40 },
+  "gpt-4.1-mini": { input: 0.40, output: 1.60 },
+  "gpt-4.1-nano": { input: 0.10, output: 0.40 },
+  "claude-sonnet-4-20250514": { input: 3.00, output: 15.00 },
+  "claude-haiku-3-5-20241022": { input: 0.80, output: 4.00 },
+  "deepseek/deepseek-chat-v3-0324": { input: 0.14, output: 0.28 },
+  "deepseek/deepseek-r1": { input: 0.55, output: 2.19 },
+  "qwen/qwen-2.5-72b-instruct": { input: 0.36, output: 0.36 },
+  "mistralai/mistral-small-3.1-24b-instruct": { input: 0.10, output: 0.30 },
+  "google/gemini-2.5-flash": { input: 0.15, output: 0.60 },
+  "google/gemini-2.5-pro-preview": { input: 1.25, output: 10.00 },
+  "meta-llama/llama-4-maverick": { input: 0.20, output: 0.60 },
+  "x-ai/grok-3-mini-beta": { input: 0.30, output: 0.50 },
+  "perplexity/sonar-pro": { input: 3.00, output: 15.00 },
+  "perplexity/sonar": { input: 1.00, output: 1.00 },
+  "perplexity/sonar-deep-research": { input: 2.00, output: 8.00 },
+};
+
+function estimateCost(model: string, promptTokens: number, completionTokens: number): number {
+  const costs = MODEL_COSTS[model] || { input: 0.50, output: 1.50 };
+  return (promptTokens * costs.input + completionTokens * costs.output) / 1_000_000;
+}
+
+function getProviderFromModelId(modelId: string): string {
+  if (modelId.startsWith("openai-direct/")) return "openai";
+  if (modelId.startsWith("anthropic/")) return "anthropic";
+  if (modelId.startsWith("openrouter/")) return "openrouter";
+  if (modelId.startsWith("perplexity/")) return "perplexity";
+  return "replit";
+}
+
+async function checkBudget(): Promise<{ allowed: boolean; reason?: string }> {
+  const dailyBudget = await storage.getSetting("daily_token_budget");
+  const monthlyBudget = await storage.getSetting("monthly_token_budget");
+
+  if (dailyBudget) {
+    const dailyStats = await storage.getTokenUsageStats("day");
+    if (dailyStats.totalTokens >= parseInt(dailyBudget)) {
+      return { allowed: false, reason: `Daily token budget exceeded (${dailyStats.totalTokens.toLocaleString()} / ${parseInt(dailyBudget).toLocaleString()})` };
+    }
+  }
+
+  if (monthlyBudget) {
+    const monthlyStats = await storage.getTokenUsageStats("month");
+    if (monthlyStats.totalTokens >= parseInt(monthlyBudget)) {
+      return { allowed: false, reason: `Monthly token budget exceeded (${monthlyStats.totalTokens.toLocaleString()} / ${parseInt(monthlyBudget).toLocaleString()})` };
+    }
+  }
+
+  return { allowed: true };
+}
+
+async function trackTokens(modelId: string, usageType: string, usage: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | undefined) {
+  if (!usage) return;
+  const prompt = usage.prompt_tokens || 0;
+  const completion = usage.completion_tokens || 0;
+  const total = usage.total_tokens || prompt + completion;
+  const provider = getProviderFromModelId(modelId);
+  const rawModel = modelId.replace(/^(openai-direct|anthropic|openrouter|perplexity)\//, "");
+  const cost = estimateCost(rawModel, prompt, completion);
+
+  try {
+    await storage.recordTokenUsage({
+      model: rawModel,
+      provider,
+      usageType,
+      promptTokens: prompt,
+      completionTokens: completion,
+      totalTokens: total,
+      estimatedCost: cost,
+    });
+  } catch (err) {
+    console.error("Failed to record token usage:", err);
+  }
+}
+
 async function getAIClient(modelId: string): Promise<{ client: OpenAI; model: string }> {
   const settings = await storage.getAllSettings();
   const settingsMap: Record<string, string> = {};
@@ -219,6 +299,11 @@ export async function registerRoutes(
       const { content } = req.body;
       if (!content || typeof content !== "string") return res.status(400).json({ error: "Content required" });
 
+      const budgetCheck = await checkBudget();
+      if (!budgetCheck.allowed) {
+        return res.status(429).json({ error: budgetCheck.reason });
+      }
+
       await storage.createChatMessage({ sessionId, role: "user", content });
 
       const history = await storage.getChatMessagesBySession(sessionId);
@@ -281,6 +366,11 @@ export async function registerRoutes(
 
       if (fullResponse) {
         await storage.createChatMessage({ sessionId, role: "assistant", content: fullResponse });
+        const systemContent = `${SYSTEM_PROMPT}\n\n--- PATHWAY KNOWLEDGE BASE ---\n${knowledge}\n--- END KNOWLEDGE BASE ---`;
+        const inputText = systemContent + history.map(m => m.content).join(" ");
+        const estPrompt = Math.ceil(inputText.length / 4);
+        const estCompletion = Math.ceil(fullResponse.length / 4);
+        trackTokens(chatModelSetting, "chat", { prompt_tokens: estPrompt, completion_tokens: estCompletion, total_tokens: estPrompt + estCompletion });
       }
 
       if (!clientDisconnected) {
@@ -314,6 +404,7 @@ export async function registerRoutes(
                 ],
                 response_format: { type: "json_object" },
               });
+              trackTokens(profilingModelSetting, "profiling", extractRes.usage as any);
               const extracted = JSON.parse(extractRes.choices[0]?.message?.content || "{}");
               if (extracted.userType || extracted.county) {
                 await storage.updateChatSession(sessionId, {
@@ -508,6 +599,7 @@ export async function registerRoutes(
   const validSettingKeys = [
     "chat_model", "profiling_model", "research_model",
     "openai_api_key", "anthropic_api_key", "openrouter_api_key",
+    "daily_token_budget", "monthly_token_budget",
   ] as const;
 
   const settingSchema = z.object({
@@ -592,6 +684,8 @@ Research the following topic and provide detailed, structured findings including
         max_completion_tokens: 4096,
       });
 
+      trackTokens(researchModelSetting, "research", response.usage as any);
+
       const aiResponse = response.choices[0]?.message?.content || "No findings generated.";
       await storage.updateResearchTask(task.id, {
         status: "completed",
@@ -630,6 +724,28 @@ Research the following topic and provide detailed, structured findings including
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to reject task" });
+    }
+  });
+
+  // ========== TOKEN USAGE API ==========
+  app.get("/api/admin/token-usage", requireAdmin, async (_req, res) => {
+    try {
+      const [daily, monthly] = await Promise.all([
+        storage.getTokenUsageStats("day"),
+        storage.getTokenUsageStats("month"),
+      ]);
+      const dailyBudget = await storage.getSetting("daily_token_budget");
+      const monthlyBudget = await storage.getSetting("monthly_token_budget");
+      res.json({
+        daily,
+        monthly,
+        budgets: {
+          daily: dailyBudget ? parseInt(dailyBudget) : null,
+          monthly: monthlyBudget ? parseInt(monthlyBudget) : null,
+        },
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch token usage" });
     }
   });
 
