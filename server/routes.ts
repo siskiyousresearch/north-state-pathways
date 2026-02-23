@@ -134,7 +134,11 @@ async function getAIClient(modelId: string): Promise<{ client: OpenAI; model: st
     const apiKey = settingsMap["openrouter_api_key"];
     if (!apiKey) throw new Error("OpenRouter API key not configured. Set it in Admin Settings.");
     return {
-      client: new OpenAI({ apiKey, baseURL: "https://openrouter.ai/api/v1" }),
+      client: new OpenAI({
+        apiKey,
+        baseURL: "https://openrouter.ai/api/v1",
+        defaultHeaders: { "HTTP-Referer": "https://northstatepathways.org", "X-Title": "North State Pathways" },
+      }),
       model: modelId.replace("openrouter/", ""),
     };
   }
@@ -143,7 +147,11 @@ async function getAIClient(modelId: string): Promise<{ client: OpenAI; model: st
     const apiKey = settingsMap["openrouter_api_key"];
     if (!apiKey) throw new Error("OpenRouter API key not configured (used for Perplexity models). Set it in Admin Settings.");
     return {
-      client: new OpenAI({ apiKey, baseURL: "https://openrouter.ai/api/v1" }),
+      client: new OpenAI({
+        apiKey,
+        baseURL: "https://openrouter.ai/api/v1",
+        defaultHeaders: { "HTTP-Referer": "https://northstatepathways.org", "X-Title": "North State Pathways" },
+      }),
       model: modelId.replace("perplexity/", ""),
     };
   }
@@ -600,21 +608,17 @@ export async function registerRoutes(
     try {
       const { provider, apiKey: providedKey } = req.body;
 
+      const keyMap: Record<string, string> = { openai: "openai_api_key", anthropic: "anthropic_api_key", openrouter: "openrouter_api_key" };
       let apiKey = providedKey;
       if (!apiKey || apiKey.includes("•")) {
         const settings = await storage.getAllSettings();
         const settingsMap: Record<string, string> = {};
         for (const s of settings) settingsMap[s.key] = s.value;
-        const keyMap: Record<string, string> = { openai: "openai_api_key", anthropic: "anthropic_api_key", openrouter: "openrouter_api_key" };
         apiKey = settingsMap[keyMap[provider]];
-      } else {
-        const keyMap: Record<string, string> = { openai: "openai_api_key", anthropic: "anthropic_api_key", openrouter: "openrouter_api_key" };
-        if (keyMap[provider]) {
-          await storage.setSetting(keyMap[provider], apiKey);
-        }
       }
 
       if (!apiKey) return res.status(400).json({ error: `No ${provider} API key configured` });
+      console.log(`[test-api-key] provider=${provider}, keyLength=${apiKey.length}, keyPrefix=${apiKey.substring(0, 6)}..., hasBullets=${apiKey.includes("•")}, fromDB=${!providedKey || providedKey.includes("•")}`);
 
       let client: OpenAI;
       let model: string;
@@ -626,7 +630,14 @@ export async function registerRoutes(
         client = new OpenAI({ apiKey, baseURL: "https://api.anthropic.com/v1/" });
         model = "claude-haiku-3-5-20241022";
       } else if (provider === "openrouter") {
-        client = new OpenAI({ apiKey, baseURL: "https://openrouter.ai/api/v1" });
+        client = new OpenAI({
+          apiKey,
+          baseURL: "https://openrouter.ai/api/v1",
+          defaultHeaders: {
+            "HTTP-Referer": "https://northstatepathways.org",
+            "X-Title": "North State Pathways",
+          },
+        });
         model = "openai/gpt-4o-mini";
       } else {
         return res.status(400).json({ error: "Unknown provider" });

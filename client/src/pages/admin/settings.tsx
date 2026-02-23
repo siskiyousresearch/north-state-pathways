@@ -137,8 +137,10 @@ export default function SettingsPage() {
     refetchInterval: 30000,
   });
 
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
+
   useEffect(() => {
-    if (settings) {
+    if (settings && !initialLoadDone) {
       setChatModel(settings.chat_model || "gpt-4o-mini");
       setProfilingModel(settings.profiling_model || "gpt-4o-mini");
       setResearchModel(settings.research_model || "gpt-5-mini");
@@ -148,8 +150,9 @@ export default function SettingsPage() {
       setDailyBudget(settings.daily_token_budget || "");
       setMonthlyBudget(settings.monthly_token_budget || "");
       setHasChanges(false);
+      setInitialLoadDone(true);
     }
-  }, [settings]);
+  }, [settings, initialLoadDone]);
 
   const saveSetting = useMutation({
     mutationFn: ({ key, value }: { key: string; value: string }) =>
