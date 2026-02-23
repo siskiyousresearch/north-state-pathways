@@ -524,7 +524,30 @@ export async function registerRoutes(
 
   app.post("/api/admin/programs", requireAdmin, async (req, res) => {
     try {
-      const parsed = insertProgramSchema.parse(req.body);
+      const body = { ...req.body };
+
+      if (body.institutionName && !body.institutionId) {
+        const institutions = await storage.getInstitutions();
+        const match = institutions.find(
+          (i) => i.name.toLowerCase().trim() === body.institutionName.toLowerCase().trim()
+        );
+        if (match) {
+          body.institutionId = match.id;
+        } else {
+          const newInst = await storage.createInstitution({
+            name: body.institutionName,
+            type: body.institutionType || "College",
+            county: body.county || null,
+            website: body.url || null,
+            description: null,
+          });
+          body.institutionId = newInst.id;
+        }
+      }
+      delete body.institutionName;
+      delete body.institutionType;
+
+      const parsed = insertProgramSchema.parse(body);
       const program = await storage.createProgram(parsed);
       invalidateKnowledgeCache();
       res.status(201).json(program);

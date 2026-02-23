@@ -184,6 +184,7 @@ export default function ResearchPage() {
       return apiRequest("POST", "/api/admin/programs", {
         name: action.name,
         pathwayId,
+        institutionName: action.institution || null,
         county: action.county || null,
         description: action.description || null,
         level: action.level || null,
