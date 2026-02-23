@@ -236,12 +236,12 @@ export default function ResearchPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-1">
-          <Card className="p-0">
+          <Card className="p-0 overflow-hidden">
             <div className="p-4 border-b">
               <h3 className="font-semibold text-sm">Tasks</h3>
               <p className="text-xs text-muted-foreground mt-0.5">{tasks?.length ?? 0} total</p>
             </div>
-            <ScrollArea className="h-[500px]">
+            <div className="max-h-[500px] overflow-y-auto">
               {isLoading ? (
                 <div className="p-4 space-y-3">
                   {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
@@ -252,18 +252,18 @@ export default function ResearchPage() {
                     <button
                       key={task.id}
                       onClick={() => setSelectedTask(task)}
-                      className={`w-full p-3.5 text-left hover-elevate ${selectedTask?.id === task.id ? "bg-accent" : ""}`}
+                      className={`w-full p-3 text-left hover:bg-accent/50 transition-colors ${selectedTask?.id === task.id ? "bg-accent" : ""}`}
                       data-testid={`button-research-task-${task.id}`}
                     >
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium truncate flex-1 min-w-0">{task.title}</p>
-                        <Badge variant={statusColors[task.status] as any} className="text-xs shrink-0">
+                      <p className="text-sm font-medium break-words">{task.title}</p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <Badge variant={statusColors[task.status] as any} className="text-xs">
                           {task.status}
                         </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(task.createdAt).toLocaleDateString()}
+                        </span>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(task.createdAt).toLocaleDateString()}
-                      </p>
                     </button>
                   ))}
                 </div>
@@ -273,7 +273,7 @@ export default function ResearchPage() {
                   <p className="text-sm text-muted-foreground">No research tasks yet</p>
                 </div>
               )}
-            </ScrollArea>
+            </div>
           </Card>
         </div>
 
