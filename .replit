@@ -41,3 +41,9 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_openai_ai_integrations:2.0.0", "github:1.0.0"]
+
+[userenv]
+
+[userenv.shared]
+ADMIN_USERNAME = "SCAILE"
+ADMIN_PASSWORD = "northstaterocks!"

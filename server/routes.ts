@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import OpenAI from "openai";
@@ -10,7 +10,7 @@ import {
 } from "@shared/schema";
 import { textToSpeech } from "./replit_integrations/audio/client";
 
-const openai = new OpenAI({
+const replitOpenai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
@@ -35,6 +35,50 @@ function invalidateKnowledgeCache() {
 }
 
 const DEFAULT_CHAT_MODEL = "gpt-4o-mini";
+
+async function getAIClient(modelId: string): Promise<{ client: OpenAI; model: string }> {
+  const settings = await storage.getAllSettings();
+  const settingsMap: Record<string, string> = {};
+  for (const s of settings) settingsMap[s.key] = s.value;
+
+  if (modelId.startsWith("anthropic/")) {
+    const apiKey = settingsMap["anthropic_api_key"];
+    if (!apiKey) throw new Error("Anthropic API key not configured. Set it in Admin Settings.");
+    return {
+      client: new OpenAI({ apiKey, baseURL: "https://api.anthropic.com/v1/" }),
+      model: modelId.replace("anthropic/", ""),
+    };
+  }
+
+  if (modelId.startsWith("openrouter/")) {
+    const apiKey = settingsMap["openrouter_api_key"];
+    if (!apiKey) throw new Error("OpenRouter API key not configured. Set it in Admin Settings.");
+    return {
+      client: new OpenAI({ apiKey, baseURL: "https://openrouter.ai/api/v1" }),
+      model: modelId.replace("openrouter/", ""),
+    };
+  }
+
+  if (modelId.startsWith("perplexity/")) {
+    const apiKey = settingsMap["openrouter_api_key"];
+    if (!apiKey) throw new Error("OpenRouter API key not configured (used for Perplexity models). Set it in Admin Settings.");
+    return {
+      client: new OpenAI({ apiKey, baseURL: "https://openrouter.ai/api/v1" }),
+      model: modelId.replace("perplexity/", ""),
+    };
+  }
+
+  if (modelId.startsWith("openai-direct/")) {
+    const apiKey = settingsMap["openai_api_key"];
+    if (!apiKey) throw new Error("OpenAI API key not configured. Set it in Admin Settings.");
+    return {
+      client: new OpenAI({ apiKey }),
+      model: modelId.replace("openai-direct/", ""),
+    };
+  }
+
+  return { client: replitOpenai, model: modelId };
+}
 
 const SYSTEM_PROMPT = `You are the North State Pathways AI Assistant — a warm, knowledgeable career advisor for students in Northern California.
 
@@ -74,10 +118,41 @@ Education: Teaching credentials, paraprofessional, education degrees
 
 You are an informational guide. Always recommend verifying details with institutions directly.`;
 
+function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  if (req.session && req.session.isAdmin) {
+    return next();
+  }
+  res.status(401).json({ error: "Unauthorized" });
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  // ========== AUTH API ==========
+  app.post("/api/auth/login", (req, res) => {
+    const { username, password } = req.body;
+    const adminUser = process.env.ADMIN_USERNAME || "SCAILE";
+    const adminPass = process.env.ADMIN_PASSWORD || "";
+
+    if (username === adminUser && password === adminPass) {
+      req.session.isAdmin = true;
+      res.json({ success: true });
+    } else {
+      res.status(401).json({ error: "Invalid credentials" });
+    }
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy(() => {
+      res.json({ success: true });
+    });
+  });
+
+  app.get("/api/auth/check", (req, res) => {
+    res.json({ authenticated: !!req.session?.isAdmin });
+  });
 
   // ========== PUBLIC RESOURCES API ==========
   app.get("/api/resources", async (req, res) => {
@@ -140,7 +215,7 @@ export async function registerRoutes(
 
   app.post("/api/chat/sessions/:id/messages", async (req, res) => {
     try {
-      const sessionId = parseInt(req.params.id);
+      const sessionId = parseInt(req.params.id as string);
       const { content } = req.body;
       if (!content || typeof content !== "string") return res.status(400).json({ error: "Content required" });
 
@@ -148,7 +223,18 @@ export async function registerRoutes(
 
       const history = await storage.getChatMessagesBySession(sessionId);
       const knowledge = await getCachedKnowledge();
-      const chatModel = (await storage.getSetting("chat_model")) || DEFAULT_CHAT_MODEL;
+      const chatModelSetting = (await storage.getSetting("chat_model")) || DEFAULT_CHAT_MODEL;
+
+      let aiClient: OpenAI;
+      let modelName: string;
+      try {
+        const result = await getAIClient(chatModelSetting);
+        aiClient = result.client;
+        modelName = result.model;
+      } catch {
+        aiClient = replitOpenai;
+        modelName = DEFAULT_CHAT_MODEL;
+      }
 
       const chatMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
         {
@@ -168,8 +254,8 @@ export async function registerRoutes(
       let clientDisconnected = false;
       req.on("close", () => { clientDisconnected = true; });
 
-      const stream = await openai.chat.completions.create({
-        model: chatModel,
+      const stream = await aiClient.chat.completions.create({
+        model: modelName,
         messages: chatMessages,
         stream: true,
         max_completion_tokens: 4096,
@@ -206,9 +292,19 @@ export async function registerRoutes(
           const fullConversation = [...history.map((m) => `${m.role}: ${m.content}`), `assistant: ${fullResponse}`].join("\n");
           (async () => {
             try {
-              const profilingModel = (await storage.getSetting("profiling_model")) || "gpt-4o-mini";
-              const extractRes = await openai.chat.completions.create({
-                model: profilingModel,
+              const profilingModelSetting = (await storage.getSetting("profiling_model")) || "gpt-4o-mini";
+              let profClient: OpenAI;
+              let profModel: string;
+              try {
+                const result = await getAIClient(profilingModelSetting);
+                profClient = result.client;
+                profModel = result.model;
+              } catch {
+                profClient = replitOpenai;
+                profModel = "gpt-4o-mini";
+              }
+              const extractRes = await profClient.chat.completions.create({
+                model: profModel,
                 messages: [
                   {
                     role: "system",
@@ -245,8 +341,8 @@ export async function registerRoutes(
     }
   });
 
-  // ========== ADMIN API ==========
-  app.get("/api/admin/stats", async (_req, res) => {
+  // ========== ADMIN API (protected) ==========
+  app.get("/api/admin/stats", requireAdmin, async (_req, res) => {
     try {
       const stats = await storage.getStats();
       res.json(stats);
@@ -256,7 +352,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/sessions", async (_req, res) => {
+  app.get("/api/admin/sessions", requireAdmin, async (_req, res) => {
     try {
       const sessions = await storage.getAllChatSessions();
       res.json(sessions);
@@ -265,9 +361,9 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/sessions/:id/messages", async (req, res) => {
+  app.get("/api/admin/sessions/:id/messages", requireAdmin, async (req, res) => {
     try {
-      const messages = await storage.getChatMessagesBySession(parseInt(req.params.id));
+      const messages = await storage.getChatMessagesBySession(parseInt(req.params.id as string));
       res.json(messages);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch messages" });
@@ -275,12 +371,12 @@ export async function registerRoutes(
   });
 
   // Pathways CRUD
-  app.get("/api/admin/pathways", async (_req, res) => {
+  app.get("/api/admin/pathways", requireAdmin, async (_req, res) => {
     try { res.json(await storage.getPathways()); }
     catch (error) { res.status(500).json({ error: "Failed to fetch pathways" }); }
   });
 
-  app.post("/api/admin/pathways", async (req, res) => {
+  app.post("/api/admin/pathways", requireAdmin, async (req, res) => {
     try {
       const parsed = insertPathwaySchema.parse(req.body);
       const pathway = await storage.createPathway(parsed);
@@ -292,10 +388,10 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/admin/pathways/:id", async (req, res) => {
+  app.patch("/api/admin/pathways/:id", requireAdmin, async (req, res) => {
     try {
       const parsed = insertPathwaySchema.partial().parse(req.body);
-      const pathway = await storage.updatePathway(parseInt(req.params.id), parsed);
+      const pathway = await storage.updatePathway(parseInt(req.params.id as string), parsed);
       invalidateKnowledgeCache();
       res.json(pathway);
     } catch (error) {
@@ -304,9 +400,9 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/admin/pathways/:id", async (req, res) => {
+  app.delete("/api/admin/pathways/:id", requireAdmin, async (req, res) => {
     try {
-      await storage.deletePathway(parseInt(req.params.id));
+      await storage.deletePathway(parseInt(req.params.id as string));
       invalidateKnowledgeCache();
       res.status(204).send();
     } catch (error) {
@@ -315,12 +411,12 @@ export async function registerRoutes(
   });
 
   // Programs CRUD
-  app.get("/api/admin/programs", async (_req, res) => {
+  app.get("/api/admin/programs", requireAdmin, async (_req, res) => {
     try { res.json(await storage.getPrograms()); }
     catch (error) { res.status(500).json({ error: "Failed to fetch programs" }); }
   });
 
-  app.post("/api/admin/programs", async (req, res) => {
+  app.post("/api/admin/programs", requireAdmin, async (req, res) => {
     try {
       const parsed = insertProgramSchema.parse(req.body);
       const program = await storage.createProgram(parsed);
@@ -332,9 +428,9 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/admin/programs/:id", async (req, res) => {
+  app.delete("/api/admin/programs/:id", requireAdmin, async (req, res) => {
     try {
-      await storage.deleteProgram(parseInt(req.params.id));
+      await storage.deleteProgram(parseInt(req.params.id as string));
       invalidateKnowledgeCache();
       res.status(204).send();
     } catch (error) {
@@ -343,18 +439,18 @@ export async function registerRoutes(
   });
 
   // Institutions
-  app.get("/api/admin/institutions", async (_req, res) => {
+  app.get("/api/admin/institutions", requireAdmin, async (_req, res) => {
     try { res.json(await storage.getInstitutions()); }
     catch (error) { res.status(500).json({ error: "Failed to fetch institutions" }); }
   });
 
   // Resources CRUD
-  app.get("/api/admin/resources", async (_req, res) => {
+  app.get("/api/admin/resources", requireAdmin, async (_req, res) => {
     try { res.json(await storage.getResources()); }
     catch (error) { res.status(500).json({ error: "Failed to fetch resources" }); }
   });
 
-  app.post("/api/admin/resources", async (req, res) => {
+  app.post("/api/admin/resources", requireAdmin, async (req, res) => {
     try {
       const parsed = insertResourceSchema.parse(req.body);
       const resource = await storage.createResource(parsed);
@@ -366,10 +462,10 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/admin/resources/:id", async (req, res) => {
+  app.patch("/api/admin/resources/:id", requireAdmin, async (req, res) => {
     try {
       const parsed = insertResourceSchema.partial().parse(req.body);
-      const resource = await storage.updateResource(parseInt(req.params.id), parsed);
+      const resource = await storage.updateResource(parseInt(req.params.id as string), parsed);
       if (!resource) return res.status(404).json({ error: "Resource not found" });
       invalidateKnowledgeCache();
       res.json(resource);
@@ -379,9 +475,9 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/admin/resources/:id", async (req, res) => {
+  app.delete("/api/admin/resources/:id", requireAdmin, async (req, res) => {
     try {
-      await storage.deleteResource(parseInt(req.params.id));
+      await storage.deleteResource(parseInt(req.params.id as string));
       invalidateKnowledgeCache();
       res.status(204).send();
     } catch (error) {
@@ -390,25 +486,41 @@ export async function registerRoutes(
   });
 
   // ========== SETTINGS API ==========
-  app.get("/api/admin/settings", async (_req, res) => {
+  const API_KEY_SETTINGS = ["openai_api_key", "anthropic_api_key", "openrouter_api_key"];
+
+  app.get("/api/admin/settings", requireAdmin, async (_req, res) => {
     try {
       const settings = await storage.getAllSettings();
       const settingsMap: Record<string, string> = {};
-      for (const s of settings) settingsMap[s.key] = s.value;
+      for (const s of settings) {
+        if (API_KEY_SETTINGS.includes(s.key) && s.value) {
+          settingsMap[s.key] = s.value.slice(0, 4) + "•".repeat(Math.max(0, s.value.length - 8)) + s.value.slice(-4);
+        } else {
+          settingsMap[s.key] = s.value;
+        }
+      }
       res.json(settingsMap);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch settings" });
     }
   });
 
+  const validSettingKeys = [
+    "chat_model", "profiling_model", "research_model",
+    "openai_api_key", "anthropic_api_key", "openrouter_api_key",
+  ] as const;
+
   const settingSchema = z.object({
-    key: z.enum(["chat_model", "profiling_model"]),
-    value: z.string().min(1),
+    key: z.enum(validSettingKeys),
+    value: z.string(),
   });
 
-  app.post("/api/admin/settings", async (req, res) => {
+  app.post("/api/admin/settings", requireAdmin, async (req, res) => {
     try {
       const parsed = settingSchema.parse(req.body);
+      if (API_KEY_SETTINGS.includes(parsed.key) && parsed.value.includes("•")) {
+        return res.json({ skipped: true });
+      }
       const setting = await storage.setSetting(parsed.key, parsed.value);
       res.json(setting);
     } catch (error) {
@@ -418,12 +530,12 @@ export async function registerRoutes(
   });
 
   // Research Tasks
-  app.get("/api/admin/research", async (_req, res) => {
+  app.get("/api/admin/research", requireAdmin, async (_req, res) => {
     try { res.json(await storage.getResearchTasks()); }
     catch (error) { res.status(500).json({ error: "Failed to fetch research tasks" }); }
   });
 
-  app.post("/api/admin/research", async (req, res) => {
+  app.post("/api/admin/research", requireAdmin, async (req, res) => {
     try {
       const parsed = insertResearchTaskSchema.parse(req.body);
       const task = await storage.createResearchTask(parsed);
@@ -434,17 +546,29 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/admin/research/:id/run", async (req, res) => {
+  app.post("/api/admin/research/:id/run", requireAdmin, async (req, res) => {
     try {
-      const task = await storage.getResearchTask(parseInt(req.params.id));
+      const task = await storage.getResearchTask(parseInt(req.params.id as string));
       if (!task) return res.status(404).json({ error: "Task not found" });
 
       await storage.updateResearchTask(task.id, { status: "researching" });
 
       const knowledge = await storage.getPathwayKnowledge();
+      const researchModelSetting = (await storage.getSetting("research_model")) || "gpt-5-mini";
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-5-mini",
+      let researchClient: OpenAI;
+      let researchModel: string;
+      try {
+        const result = await getAIClient(researchModelSetting);
+        researchClient = result.client;
+        researchModel = result.model;
+      } catch {
+        researchClient = replitOpenai;
+        researchModel = "gpt-5-mini";
+      }
+
+      const response = await researchClient.chat.completions.create({
+        model: researchModel,
         messages: [
           {
             role: "system",
@@ -482,9 +606,9 @@ Research the following topic and provide detailed, structured findings including
     }
   });
 
-  app.post("/api/admin/research/:id/approve", async (req, res) => {
+  app.post("/api/admin/research/:id/approve", requireAdmin, async (req, res) => {
     try {
-      const task = await storage.getResearchTask(parseInt(req.params.id));
+      const task = await storage.getResearchTask(parseInt(req.params.id as string));
       if (!task) return res.status(404).json({ error: "Task not found" });
       await storage.updateResearchTask(task.id, {
         status: "approved",
@@ -497,9 +621,9 @@ Research the following topic and provide detailed, structured findings including
     }
   });
 
-  app.post("/api/admin/research/:id/reject", async (req, res) => {
+  app.post("/api/admin/research/:id/reject", requireAdmin, async (req, res) => {
     try {
-      await storage.updateResearchTask(parseInt(req.params.id), {
+      await storage.updateResearchTask(parseInt(req.params.id as string), {
         status: "rejected",
         approved: false,
       });
