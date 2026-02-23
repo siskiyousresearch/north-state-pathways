@@ -102,8 +102,9 @@ export default function SettingsPage() {
 
   const testApiKey = async (provider: string) => {
     setTestingKey(provider);
+    const keyValues: Record<string, string> = { openai: openaiKey, anthropic: anthropicKey, openrouter: openrouterKey };
     try {
-      const res = await apiRequest("POST", "/api/admin/test-api-key", { provider });
+      const res = await apiRequest("POST", "/api/admin/test-api-key", { provider, apiKey: keyValues[provider] });
       const data = await res.json();
       toast({ title: "You're good to go!", description: `AI model test successful (${data.model})` });
     } catch (error: any) {

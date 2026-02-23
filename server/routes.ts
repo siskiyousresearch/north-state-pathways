@@ -598,27 +598,34 @@ export async function registerRoutes(
 
   app.post("/api/admin/test-api-key", requireAdmin, async (req, res) => {
     try {
-      const { provider } = req.body;
-      const settings = await storage.getAllSettings();
-      const settingsMap: Record<string, string> = {};
-      for (const s of settings) settingsMap[s.key] = s.value;
+      const { provider, apiKey: providedKey } = req.body;
+
+      let apiKey = providedKey;
+      if (!apiKey || apiKey.includes("•")) {
+        const settings = await storage.getAllSettings();
+        const settingsMap: Record<string, string> = {};
+        for (const s of settings) settingsMap[s.key] = s.value;
+        const keyMap: Record<string, string> = { openai: "openai_api_key", anthropic: "anthropic_api_key", openrouter: "openrouter_api_key" };
+        apiKey = settingsMap[keyMap[provider]];
+      } else {
+        const keyMap: Record<string, string> = { openai: "openai_api_key", anthropic: "anthropic_api_key", openrouter: "openrouter_api_key" };
+        if (keyMap[provider]) {
+          await storage.setSetting(keyMap[provider], apiKey);
+        }
+      }
+
+      if (!apiKey) return res.status(400).json({ error: `No ${provider} API key configured` });
 
       let client: OpenAI;
       let model: string;
 
       if (provider === "openai") {
-        const apiKey = settingsMap["openai_api_key"];
-        if (!apiKey) return res.status(400).json({ error: "No OpenAI API key configured" });
         client = new OpenAI({ apiKey });
         model = "gpt-4o-mini";
       } else if (provider === "anthropic") {
-        const apiKey = settingsMap["anthropic_api_key"];
-        if (!apiKey) return res.status(400).json({ error: "No Anthropic API key configured" });
         client = new OpenAI({ apiKey, baseURL: "https://api.anthropic.com/v1/" });
         model = "claude-haiku-3-5-20241022";
       } else if (provider === "openrouter") {
-        const apiKey = settingsMap["openrouter_api_key"];
-        if (!apiKey) return res.status(400).json({ error: "No OpenRouter API key configured" });
         client = new OpenAI({ apiKey, baseURL: "https://openrouter.ai/api/v1" });
         model = "openai/gpt-4o-mini";
       } else {
