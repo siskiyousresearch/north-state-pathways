@@ -618,7 +618,6 @@ export async function registerRoutes(
       }
 
       if (!apiKey) return res.status(400).json({ error: `No ${provider} API key configured` });
-      console.log(`[test-api-key] provider=${provider}, keyLength=${apiKey.length}, keyPrefix=${apiKey.substring(0, 6)}..., hasBullets=${apiKey.includes("•")}, fromDB=${!providedKey || providedKey.includes("•")}`);
 
       let client: OpenAI;
       let model: string;
