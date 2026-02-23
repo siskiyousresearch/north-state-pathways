@@ -56,13 +56,15 @@ const profilingModels: ModelOption[] = [
 ];
 
 const researchModels: ModelOption[] = [
-  { value: "openrouter/openai/gpt-4o-mini-search-preview", label: "GPT-4o Mini Search", desc: "Web search — cheapest option ($0.15/M)", tier: "Budget-friendly", provider: "openrouter" },
+  { value: "openai-direct/gpt-4o-mini-search-preview", label: "GPT-4o Mini Search (Direct)", desc: "Web search — cheapest ($0.15/M) — uses OpenAI key", tier: "Budget-friendly", provider: "openai" },
+  { value: "openrouter/openai/gpt-4o-mini-search-preview", label: "GPT-4o Mini Search", desc: "Web search — cheapest ($0.15/M) — uses OpenRouter key", tier: "Budget-friendly", provider: "openrouter" },
   { value: "perplexity/perplexity/sonar", label: "Perplexity Sonar", desc: "Web search — fast and reliable ($1/M)", tier: "Budget-friendly", provider: "openrouter" },
+  { value: "openai-direct/gpt-4o-search-preview", label: "GPT-4o Search (Direct)", desc: "Web search — strong ($2.50/M) — uses OpenAI key", tier: "Mid-range", provider: "openai" },
   { value: "perplexity/perplexity/sonar-reasoning-pro", label: "Perplexity Sonar Reasoning Pro", desc: "Web search with reasoning ($2/M)", tier: "Mid-range", provider: "openrouter" },
-  { value: "openrouter/openai/gpt-4o-search-preview", label: "GPT-4o Search", desc: "Web search — strong results ($2.50/M)", tier: "Mid-range", provider: "openrouter" },
+  { value: "openrouter/openai/gpt-4o-search-preview", label: "GPT-4o Search", desc: "Web search — strong ($2.50/M) — uses OpenRouter key", tier: "Mid-range", provider: "openrouter" },
   { value: "perplexity/perplexity/sonar-pro", label: "Perplexity Sonar Pro", desc: "Web search — thorough results ($3/M)", tier: "Mid-range", provider: "openrouter" },
   { value: "openrouter/openai/o4-mini-deep-research", label: "OpenAI o4 Mini Deep Research", desc: "Deep web research ($2/M)", tier: "Premium", provider: "openrouter" },
-  { value: "perplexity/perplexity/sonar-deep-research", label: "Perplexity Deep Research", desc: "Deepest web research — best for finding new programs ($2/M)", tier: "Premium", provider: "openrouter" },
+  { value: "perplexity/perplexity/sonar-deep-research", label: "Perplexity Deep Research", desc: "Deepest web research — best for discovery ($2/M)", tier: "Premium", provider: "openrouter" },
 ];
 
 const providerColors: Record<string, string> = {
@@ -384,7 +386,7 @@ export default function SettingsPage() {
             <h3 className="font-semibold">Research Agent Model</h3>
           </div>
           <p className="text-sm text-muted-foreground mb-4">
-            Powers the AI research tasks. All options are web-connected models that search the internet for real programs and resources. Requires an OpenRouter API key.
+            Powers the AI research tasks. All options are web-connected models that search the internet for real programs and resources. Models marked "(Direct)" use your OpenAI key; others use your OpenRouter key.
           </p>
           <div className="space-y-3">
             <div>

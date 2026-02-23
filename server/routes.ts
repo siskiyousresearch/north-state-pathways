@@ -739,8 +739,8 @@ export async function registerRoutes(
         researchClient = result.client;
         researchModel = result.model;
       } catch (clientErr: any) {
-        await storage.updateResearchTask(task.id, { status: "failed", aiResponse: `Failed to initialize research model: ${clientErr?.message || "Unknown error"}. Make sure an OpenRouter API key is configured in Settings.` });
-        return res.status(400).json({ error: "Research requires an OpenRouter API key. Please configure one in Settings." });
+        await storage.updateResearchTask(task.id, { status: "failed", aiResponse: `Failed to initialize research model: ${clientErr?.message || "Unknown error"}. Make sure the required API key (OpenAI or OpenRouter) is configured in Settings.` });
+        return res.status(400).json({ error: "Research requires an API key for the selected model. Please configure the appropriate key in Settings." });
       }
 
       const countyScope = task.county ? `Focus EXCLUSIVELY on ${task.county}, California.` : "Cover all 10 North State counties: Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Sierra, Siskiyou, Tehama, and Trinity counties in California.";
