@@ -526,6 +526,16 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/admin/programs/:id", requireAdmin, async (req, res) => {
+    try {
+      const updated = await storage.updateProgram(parseInt(req.params.id as string), req.body);
+      invalidateKnowledgeCache();
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update program" });
+    }
+  });
+
   app.delete("/api/admin/programs/:id", requireAdmin, async (req, res) => {
     try {
       await storage.deleteProgram(parseInt(req.params.id as string));
@@ -671,17 +681,49 @@ export async function registerRoutes(
         messages: [
           {
             role: "system",
-            content: `You are a research assistant for the North State Pathways project. Your job is to research and find information about education and career pathways in Northern California's North State region.
+            content: `You are a research assistant for the North State Pathways project, focused on education and healthcare career pathways in Northern California's North State region.
+
+IMPORTANT SCOPE LIMITATIONS:
+- Your research MUST be limited to institutions, programs, and resources in these 10 counties ONLY: Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Sierra, Siskiyou, Tehama, and Trinity counties in California.
+- Only report findings about: (1) Educational institutions and their programs, (2) Career/education programs (certificates, degrees, training), or (3) Resources (scholarships, financial aid, support services).
+- Do NOT include information about institutions or programs outside this 10-county region.
 
 Current knowledge base:
 ${knowledge}
 
-Research the following topic and provide detailed, structured findings including:
-- Specific programs, institutions, or resources found
-- Eligibility requirements
-- Contact information or URLs when available
-- How this fits into the existing pathway structure
-- Recommendations for adding to the knowledge base`,
+Provide your findings in this structured format:
+
+## Findings Summary
+Brief overview of what was found.
+
+## Institutions
+For each institution found, list:
+- **Name**: Institution name
+- **County**: Which of the 10 counties
+- **Type**: Community college, university, training center, etc.
+- **Website**: URL if known
+
+## Programs
+For each program found, list:
+- **Program Name**: Full name
+- **Institution**: Where it's offered
+- **County**: Which county
+- **Level**: Certificate, Associate's, Bachelor's, etc.
+- **Description**: What the program covers
+- **URL**: Direct link to program page if known
+
+## Resources
+For each resource found (scholarships, financial aid, support):
+- **Name**: Resource name
+- **Type**: Scholarship, financial aid, tutoring, etc.
+- **Description**: What it provides
+- **Eligibility**: Who qualifies
+- **URL**: Link if known
+
+## Recommendations
+How these findings should be integrated into the existing knowledge base.
+
+If you cannot find specific information about the requested topic within the 10-county region, clearly state that and suggest related searches that might yield better results. Always provide substantive findings — never return empty results without explanation.`,
           },
           {
             role: "user",
@@ -731,6 +773,15 @@ Research the following topic and provide detailed, structured findings including
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to reject task" });
+    }
+  });
+
+  app.delete("/api/admin/research/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteResearchTask(parseInt(req.params.id as string));
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete research task" });
     }
   });
 

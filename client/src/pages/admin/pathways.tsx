@@ -81,8 +81,29 @@ export default function PathwaysPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/programs"] });
       setShowProgramDialog(false);
+      setEditingProgram(null);
       setProgramForm({ name: "", pathwayId: "", institutionId: "", county: "", description: "", level: "", url: "" });
       toast({ title: "Program created" });
+    },
+  });
+
+  const updateProgram = useMutation({
+    mutationFn: (data: { id: number } & typeof programForm) =>
+      apiRequest("PATCH", `/api/admin/programs/${data.id}`, {
+        name: data.name,
+        pathwayId: data.pathwayId ? parseInt(data.pathwayId) : null,
+        institutionId: data.institutionId ? parseInt(data.institutionId) : null,
+        county: data.county || null,
+        description: data.description || null,
+        level: data.level || null,
+        url: data.url || null,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/programs"] });
+      setShowProgramDialog(false);
+      setEditingProgram(null);
+      setProgramForm({ name: "", pathwayId: "", institutionId: "", county: "", description: "", level: "", url: "" });
+      toast({ title: "Program updated" });
     },
   });
 
@@ -93,6 +114,20 @@ export default function PathwaysPage() {
       toast({ title: "Program deleted" });
     },
   });
+
+  const openEditProgram = (p: Program) => {
+    setEditingProgram(p);
+    setProgramForm({
+      name: p.name,
+      pathwayId: p.pathwayId ? String(p.pathwayId) : "",
+      institutionId: p.institutionId ? String(p.institutionId) : "",
+      county: p.county || "",
+      description: p.description || "",
+      level: p.level || "",
+      url: p.url || "",
+    });
+    setShowProgramDialog(true);
+  };
 
   const openEditPathway = (p: Pathway) => {
     setEditingPathway(p);
@@ -217,7 +252,10 @@ export default function PathwaysPage() {
               </div>
               <p className="text-sm text-muted-foreground">{filteredPrograms?.length ?? 0} programs</p>
             </div>
-            <Dialog open={showProgramDialog} onOpenChange={setShowProgramDialog}>
+            <Dialog open={showProgramDialog} onOpenChange={(open) => {
+              setShowProgramDialog(open);
+              if (!open) { setEditingProgram(null); setProgramForm({ name: "", pathwayId: "", institutionId: "", county: "", description: "", level: "", url: "" }); }
+            }}>
               <DialogTrigger asChild>
                 <Button data-testid="button-add-program">
                   <Plus className="w-4 h-4 mr-1.5" /> Add Program
@@ -225,7 +263,7 @@ export default function PathwaysPage() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Add Program</DialogTitle>
+                  <DialogTitle>{editingProgram ? "Edit Program" : "Add Program"}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3 mt-2">
                   <div>
@@ -263,16 +301,23 @@ export default function PathwaysPage() {
                     <Input value={programForm.level} onChange={(e) => setProgramForm({ ...programForm, level: e.target.value })} placeholder="Certificate, Associate's, Bachelor's..." data-testid="input-program-level" />
                   </div>
                   <div>
+                    <Label>URL</Label>
+                    <Input value={programForm.url} onChange={(e) => setProgramForm({ ...programForm, url: e.target.value })} placeholder="https://..." data-testid="input-program-url" />
+                  </div>
+                  <div>
                     <Label>Description</Label>
                     <Textarea value={programForm.description} onChange={(e) => setProgramForm({ ...programForm, description: e.target.value })} data-testid="input-program-description" />
                   </div>
                   <Button
                     className="w-full"
-                    onClick={() => createProgram.mutate(programForm)}
+                    onClick={() => editingProgram
+                      ? updateProgram.mutate({ id: editingProgram.id, ...programForm })
+                      : createProgram.mutate(programForm)
+                    }
                     disabled={!programForm.name}
                     data-testid="button-save-program"
                   >
-                    Create Program
+                    {editingProgram ? "Update" : "Create"} Program
                   </Button>
                 </div>
               </DialogContent>
@@ -301,9 +346,14 @@ export default function PathwaysPage() {
                           </div>
                         </div>
                       </div>
-                      <Button size="icon" variant="ghost" onClick={() => deleteProgram.mutate(program.id)} data-testid={`button-delete-program-${program.id}`}>
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button size="icon" variant="ghost" onClick={() => openEditProgram(program)} data-testid={`button-edit-program-${program.id}`}>
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" onClick={() => deleteProgram.mutate(program.id)} data-testid={`button-delete-program-${program.id}`}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
                     </div>
                   </Card>
                 ))}

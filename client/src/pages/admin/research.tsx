@@ -17,8 +17,9 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
-  Plus, FlaskConical, Check, X, Loader2, Play, Eye, PlusCircle
+  Plus, FlaskConical, Check, X, Loader2, Play, Eye, PlusCircle, Trash2
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import type { ResearchTask, Pathway } from "@shared/schema";
 
 const statusColors: Record<string, string> = {
@@ -94,6 +95,15 @@ export default function ResearchPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/research"] });
       toast({ title: "Research rejected" });
+    },
+  });
+
+  const deleteTask = useMutation({
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/admin/research/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/research"] });
+      if (selectedTask?.id === deleteTask.variables) setSelectedTask(null);
+      toast({ title: "Research task deleted" });
     },
   });
 
@@ -205,22 +215,39 @@ export default function ResearchPage() {
               ) : tasks && tasks.length > 0 ? (
                 <div className="divide-y">
                   {tasks.map((task) => (
-                    <button
+                    <div
                       key={task.id}
-                      onClick={() => setSelectedTask(task)}
                       className={`w-full p-3.5 text-left hover-elevate ${selectedTask?.id === task.id ? "bg-accent" : ""}`}
-                      data-testid={`button-research-task-${task.id}`}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm font-medium truncate">{task.title}</p>
-                        <Badge variant={statusColors[task.status] as any} className="text-xs shrink-0">
-                          {task.status}
-                        </Badge>
+                        <button
+                          onClick={() => setSelectedTask(task)}
+                          className="flex-1 text-left min-w-0"
+                          data-testid={`button-research-task-${task.id}`}
+                        >
+                          <p className="text-sm font-medium truncate">{task.title}</p>
+                        </button>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <Badge variant={statusColors[task.status] as any} className="text-xs">
+                            {task.status}
+                          </Badge>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="w-6 h-6"
+                            onClick={(e) => { e.stopPropagation(); deleteTask.mutate(task.id); }}
+                            data-testid={`button-delete-task-${task.id}`}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(task.createdAt).toLocaleDateString()}
-                      </p>
-                    </button>
+                      <button onClick={() => setSelectedTask(task)} className="w-full text-left">
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(task.createdAt).toLocaleDateString()}
+                        </p>
+                      </button>
+                    </div>
                   ))}
                 </div>
               ) : (
@@ -288,7 +315,19 @@ export default function ResearchPage() {
                   <div>
                     <Label className="text-xs text-muted-foreground">AI Findings</Label>
                     <Card className="p-4 mt-1 bg-muted/50">
-                      <p className="text-sm whitespace-pre-wrap">{selectedTask.aiResponse}</p>
+                      <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-base prose-headings:font-semibold prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1 prose-li:my-0.5 prose-ul:my-1">
+                        <ReactMarkdown
+                          components={{
+                            a: ({ children, href }) => (
+                              <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                                {children}
+                              </a>
+                            ),
+                          }}
+                        >
+                          {selectedTask.aiResponse}
+                        </ReactMarkdown>
+                      </div>
                     </Card>
                   </div>
                 )}
@@ -297,7 +336,19 @@ export default function ResearchPage() {
                   <div>
                     <Label className="text-xs text-muted-foreground">Approved Findings</Label>
                     <Card className="p-4 mt-1">
-                      <p className="text-sm whitespace-pre-wrap">{selectedTask.findings}</p>
+                      <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-base prose-headings:font-semibold prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1 prose-li:my-0.5 prose-ul:my-1">
+                        <ReactMarkdown
+                          components={{
+                            a: ({ children, href }) => (
+                              <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                                {children}
+                              </a>
+                            ),
+                          }}
+                        >
+                          {selectedTask.findings}
+                        </ReactMarkdown>
+                      </div>
                     </Card>
                   </div>
                 )}

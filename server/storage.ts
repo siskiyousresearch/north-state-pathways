@@ -27,6 +27,7 @@ export interface IStorage {
   getPrograms(): Promise<Program[]>;
   getProgramsByPathway(pathwayId: number): Promise<Program[]>;
   createProgram(data: InsertProgram): Promise<Program>;
+  updateProgram(id: number, data: Partial<InsertProgram>): Promise<Program | undefined>;
   deleteProgram(id: number): Promise<void>;
 
   getResources(): Promise<Resource[]>;
@@ -50,6 +51,7 @@ export interface IStorage {
   getResearchTask(id: number): Promise<ResearchTask | undefined>;
   createResearchTask(data: InsertResearchTask): Promise<ResearchTask>;
   updateResearchTask(id: number, data: Partial<InsertResearchTask>): Promise<ResearchTask | undefined>;
+  deleteResearchTask(id: number): Promise<void>;
 
   getStats(): Promise<{
     totalSessions: number;
@@ -121,6 +123,10 @@ export class DatabaseStorage implements IStorage {
     const [p] = await db.insert(programs).values(data).returning();
     return p;
   }
+  async updateProgram(id: number, data: Partial<InsertProgram>) {
+    const [p] = await db.update(programs).set(data).where(eq(programs.id, id)).returning();
+    return p;
+  }
   async deleteProgram(id: number) {
     await db.delete(programs).where(eq(programs.id, id));
   }
@@ -181,6 +187,9 @@ export class DatabaseStorage implements IStorage {
   async updateResearchTask(id: number, data: Partial<InsertResearchTask>) {
     const [t] = await db.update(researchTasks).set({ ...data, updatedAt: new Date() }).where(eq(researchTasks.id, id)).returning();
     return t;
+  }
+  async deleteResearchTask(id: number) {
+    await db.delete(researchTasks).where(eq(researchTasks.id, id));
   }
 
   async getStats() {

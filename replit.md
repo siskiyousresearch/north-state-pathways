@@ -60,6 +60,8 @@ shared/
 - `GET/POST /api/admin/research` - Research task management (auth required)
 - `POST /api/admin/research/:id/run` - Execute AI research (auth required)
 - `POST /api/admin/research/:id/approve|reject` - Approve/reject findings (auth required)
+- `DELETE /api/admin/research/:id` - Delete research task (auth required)
+- `PATCH /api/admin/programs/:id` - Update program (auth required)
 - `GET/POST /api/admin/settings` - App settings (auth required, API keys masked on GET)
 
 ## Database Tables
