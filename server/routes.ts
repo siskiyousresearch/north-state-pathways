@@ -218,7 +218,13 @@ export async function registerRoutes(
 
     if (username === adminUser && password === adminPass) {
       req.session.isAdmin = true;
-      res.json({ success: true });
+      req.session.save((err) => {
+        if (err) {
+          res.status(500).json({ error: "Session save failed" });
+        } else {
+          res.json({ success: true });
+        }
+      });
     } else {
       res.status(401).json({ error: "Invalid credentials" });
     }
@@ -231,6 +237,7 @@ export async function registerRoutes(
   });
 
   app.get("/api/auth/check", (req, res) => {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate");
     res.json({ authenticated: !!req.session?.isAdmin });
   });
 
