@@ -730,7 +730,7 @@ export async function registerRoutes(
       await storage.updateResearchTask(task.id, { status: "researching" });
 
       const knowledge = await storage.getPathwayKnowledge().catch(() => "");
-      const researchModelSetting = (await storage.getSetting("research_model")) || "perplexity/perplexity/sonar";
+      const researchModelSetting = (await storage.getSetting("research_model")) || "openrouter/openai/gpt-4o-mini-search-preview";
 
       let researchClient: OpenAI;
       let researchModel: string;

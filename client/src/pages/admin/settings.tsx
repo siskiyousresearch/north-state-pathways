@@ -56,9 +56,13 @@ const profilingModels: ModelOption[] = [
 ];
 
 const researchModels: ModelOption[] = [
-  { value: "perplexity/perplexity/sonar", label: "Perplexity Sonar", desc: "Web search — fast and affordable", tier: "Budget-friendly", provider: "openrouter" },
-  { value: "perplexity/perplexity/sonar-pro", label: "Perplexity Sonar Pro", desc: "Web search — more thorough results", tier: "Mid-range", provider: "openrouter" },
-  { value: "perplexity/perplexity/sonar-deep-research", label: "Perplexity Deep Research", desc: "Deep web research — best for finding new programs", tier: "Premium", provider: "openrouter" },
+  { value: "openrouter/openai/gpt-4o-mini-search-preview", label: "GPT-4o Mini Search", desc: "Web search — cheapest option ($0.15/M)", tier: "Budget-friendly", provider: "openrouter" },
+  { value: "perplexity/perplexity/sonar", label: "Perplexity Sonar", desc: "Web search — fast and reliable ($1/M)", tier: "Budget-friendly", provider: "openrouter" },
+  { value: "perplexity/perplexity/sonar-reasoning-pro", label: "Perplexity Sonar Reasoning Pro", desc: "Web search with reasoning ($2/M)", tier: "Mid-range", provider: "openrouter" },
+  { value: "openrouter/openai/gpt-4o-search-preview", label: "GPT-4o Search", desc: "Web search — strong results ($2.50/M)", tier: "Mid-range", provider: "openrouter" },
+  { value: "perplexity/perplexity/sonar-pro", label: "Perplexity Sonar Pro", desc: "Web search — thorough results ($3/M)", tier: "Mid-range", provider: "openrouter" },
+  { value: "openrouter/openai/o4-mini-deep-research", label: "OpenAI o4 Mini Deep Research", desc: "Deep web research ($2/M)", tier: "Premium", provider: "openrouter" },
+  { value: "perplexity/perplexity/sonar-deep-research", label: "Perplexity Deep Research", desc: "Deepest web research — best for finding new programs ($2/M)", tier: "Premium", provider: "openrouter" },
 ];
 
 const providerColors: Record<string, string> = {
@@ -80,7 +84,7 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [chatModel, setChatModel] = useState("gpt-4o-mini");
   const [profilingModel, setProfilingModel] = useState("gpt-4o-mini");
-  const [researchModel, setResearchModel] = useState("perplexity/perplexity/sonar");
+  const [researchModel, setResearchModel] = useState("openrouter/openai/gpt-4o-mini-search-preview");
   const [openaiKey, setOpenaiKey] = useState("");
   const [anthropicKey, setAnthropicKey] = useState("");
   const [openrouterKey, setOpenrouterKey] = useState("");
@@ -137,7 +141,9 @@ export default function SettingsPage() {
     if (settings && !initialLoadDone) {
       setChatModel(settings.chat_model || "gpt-4o-mini");
       setProfilingModel(settings.profiling_model || "gpt-4o-mini");
-      setResearchModel(settings.research_model || "perplexity/perplexity/sonar");
+      const savedResearch = settings.research_model || "";
+      const validResearch = researchModels.some(m => m.value === savedResearch);
+      setResearchModel(validResearch ? savedResearch : "openrouter/openai/gpt-4o-mini-search-preview");
       setOpenaiKey(settings.openai_api_key || "");
       setAnthropicKey(settings.anthropic_api_key || "");
       setOpenrouterKey(settings.openrouter_api_key || "");
@@ -378,7 +384,7 @@ export default function SettingsPage() {
             <h3 className="font-semibold">Research Agent Model</h3>
           </div>
           <p className="text-sm text-muted-foreground mb-4">
-            Powers the AI research tasks. All options use Perplexity's web-connected models to search the internet for real programs and resources. Requires an OpenRouter API key.
+            Powers the AI research tasks. All options are web-connected models that search the internet for real programs and resources. Requires an OpenRouter API key.
           </p>
           <div className="space-y-3">
             <div>
