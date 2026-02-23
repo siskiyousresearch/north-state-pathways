@@ -458,6 +458,68 @@ export async function registerRoutes(
     }
   });
 
+  let narrativeCache: { text: string; generatedAt: number } | null = null;
+  const NARRATIVE_TTL = 30 * 60 * 1000;
+
+  app.get("/api/admin/narrative", requireAdmin, async (_req, res) => {
+    try {
+      if (narrativeCache && Date.now() - narrativeCache.generatedAt < NARRATIVE_TTL) {
+        return res.json({ narrative: narrativeCache.text, cached: true });
+      }
+
+      const sessions = await storage.getAllChatSessions();
+      const stats = await storage.getStats();
+
+      if (!sessions || sessions.length === 0) {
+        return res.json({ narrative: "No student interactions yet. The narrative summary will appear here once students begin using the chatbot.", cached: false });
+      }
+
+      const sessionSummaries = sessions
+        .filter((s: any) => s.userType || s.county || s.interests)
+        .slice(0, 50)
+        .map((s: any) => {
+          const parts = [];
+          if (s.userType) parts.push(`Type: ${s.userType}`);
+          if (s.county) parts.push(`County: ${s.county}`);
+          if (s.interests && Array.isArray(s.interests) && s.interests.length > 0) parts.push(`Interests: ${s.interests.join(", ")}`);
+          return parts.join(" | ");
+        })
+        .filter((s: string) => s.length > 0);
+
+      const response = await replitOpenai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `You are an analytics writer for North State Pathways, an education and career guidance platform in Northern California. Write a brief narrative summary (2-3 short paragraphs) analyzing student interaction patterns. Be specific about what students are looking for, which areas are most active, and what gaps or unmet needs you observe. Write in a professional but warm tone, as if briefing an education administrator. Do not use bullet points or headers — just flowing paragraphs.`,
+          },
+          {
+            role: "user",
+            content: `Here are the aggregated stats and individual session data from our chatbot:
+
+Total sessions: ${stats.totalSessions}
+Total messages: ${stats.totalMessages}
+Top counties: ${stats.topCounties.map((c: any) => `${c.county} (${c.count})`).join(", ") || "None yet"}
+Top interests: ${stats.topInterests.map((i: any) => `${i.interest} (${i.count})`).join(", ") || "None yet"}
+
+Individual sessions:
+${sessionSummaries.join("\n")}
+
+Write 2-3 short paragraphs summarizing what students are seeking, which regions and interests are most active, and any gaps or patterns worth noting.`,
+          },
+        ],
+        max_tokens: 500,
+      });
+
+      const narrative = response.choices[0]?.message?.content || "Unable to generate summary.";
+      narrativeCache = { text: narrative, generatedAt: Date.now() };
+      res.json({ narrative, cached: false });
+    } catch (error) {
+      console.error("Error generating narrative:", error);
+      res.status(500).json({ error: "Failed to generate narrative summary" });
+    }
+  });
+
   app.get("/api/admin/sessions", requireAdmin, async (_req, res) => {
     try {
       const sessions = await storage.getAllChatSessions();

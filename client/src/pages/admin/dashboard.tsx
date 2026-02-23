@@ -4,10 +4,17 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   MessageSquare, Route, BookOpen, Users,
-  TrendingUp, MapPin, Heart, GraduationCap
+  TrendingUp, MapPin, Heart, GraduationCap, Sparkles
 } from "lucide-react";
 
 export default function AdminDashboard() {
+  const { data: narrative, isLoading: narrativeLoading } = useQuery<{
+    narrative: string;
+    cached: boolean;
+  }>({
+    queryKey: ["/api/admin/narrative"],
+  });
+
   const { data: stats, isLoading } = useQuery<{
     totalSessions: number;
     totalMessages: number;
@@ -119,6 +126,34 @@ export default function AdminDashboard() {
           )}
         </Card>
       </div>
+
+      <Card className="p-5" data-testid="card-student-narrative">
+        <div className="flex items-center justify-between gap-1 mb-4">
+          <div>
+            <h3 className="font-semibold">Student Insights</h3>
+            <p className="text-xs text-muted-foreground">AI-generated summary of student interactions</p>
+          </div>
+          <Sparkles className="w-4 h-4 text-muted-foreground" />
+        </div>
+        {narrativeLoading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-[90%]" />
+            <Skeleton className="h-4 w-[95%]" />
+            <Skeleton className="h-4 w-full mt-3" />
+            <Skeleton className="h-4 w-[85%]" />
+            <Skeleton className="h-4 w-[92%]" />
+          </div>
+        ) : narrative?.narrative ? (
+          <div className="text-sm text-muted-foreground leading-relaxed space-y-3">
+            {narrative.narrative.split("\n\n").map((paragraph, i) => (
+              <p key={i}>{paragraph}</p>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">Unable to generate summary at this time.</p>
+        )}
+      </Card>
 
       <Card className="p-5" data-testid="card-recent-sessions">
         <div className="flex items-center justify-between gap-1 mb-4">
