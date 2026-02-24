@@ -83,20 +83,12 @@ export default function OnboardingScriptsPage() {
     queryKey: ["/api/admin/pathways"],
   });
 
-  const scriptsQueryKey = selectedPathwayId
-    ? ["/api/admin/onboarding-scripts", { pathwayId: selectedPathwayId }]
-    : ["/api/admin/onboarding-scripts"];
+  const scriptsUrl = selectedPathwayId
+    ? `/api/admin/onboarding-scripts?pathwayId=${selectedPathwayId}`
+    : "/api/admin/onboarding-scripts";
 
   const { data: scripts = [], isLoading: scriptsLoading } = useQuery<OnboardingScript[]>({
-    queryKey: scriptsQueryKey,
-    queryFn: async () => {
-      const url = selectedPathwayId
-        ? `/api/admin/onboarding-scripts?pathwayId=${selectedPathwayId}`
-        : "/api/admin/onboarding-scripts";
-      const res = await fetch(url, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch scripts");
-      return res.json();
-    },
+    queryKey: [scriptsUrl],
     enabled: !!selectedPathwayId,
   });
 
@@ -115,7 +107,7 @@ export default function OnboardingScriptsPage() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/onboarding-scripts"] });
+      queryClient.invalidateQueries({ predicate: (query) => (query.queryKey[0] as string)?.includes("/api/admin/onboarding-scripts") });
       setShowCreateDialog(false);
       setCreateForm({ title: "", scriptText: "", contextKey: "" });
       toast({ title: "Script created" });
@@ -129,7 +121,7 @@ export default function OnboardingScriptsPage() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/onboarding-scripts"] });
+      queryClient.invalidateQueries({ predicate: (query) => (query.queryKey[0] as string)?.includes("/api/admin/onboarding-scripts") });
       toast({ title: "Script updated" });
     },
     onError: () => toast({ title: "Failed to update script", variant: "destructive" }),
@@ -140,7 +132,7 @@ export default function OnboardingScriptsPage() {
       await apiRequest("DELETE", `/api/admin/onboarding-scripts/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/onboarding-scripts"] });
+      queryClient.invalidateQueries({ predicate: (query) => (query.queryKey[0] as string)?.includes("/api/admin/onboarding-scripts") });
       setEditingScript(null);
       toast({ title: "Script deleted" });
     },
@@ -277,7 +269,7 @@ export default function OnboardingScriptsPage() {
             </Button>
           </div>
 
-          {(selectedContext === "__all__" ? allStepScripts : filteredScripts).length === 0 ? (
+          {(selectedContext === "__all__" || !selectedContext ? allStepScripts : filteredScripts).length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
                 No scripts for this step yet. Click "Add Script" to create one, or use the AI to auto-generate it.
@@ -285,7 +277,7 @@ export default function OnboardingScriptsPage() {
             </Card>
           ) : (
             <div className="grid gap-4">
-              {(selectedContext === "__all__" ? allStepScripts : filteredScripts).map(script => (
+              {(selectedContext === "__all__" || !selectedContext ? allStepScripts : filteredScripts).map(script => (
                 <ScriptCard
                   key={script.id}
                   script={script}
@@ -548,7 +540,7 @@ function ScriptEditor({
         credentials: "include",
       });
       if (!res.ok) throw new Error("Upload failed");
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/onboarding-scripts"] });
+      queryClient.invalidateQueries({ predicate: (query) => (query.queryKey[0] as string)?.includes("/api/admin/onboarding-scripts") });
       toast({ title: "Audio uploaded successfully" });
       setRecordedBlob(null);
     } catch {
@@ -565,7 +557,7 @@ function ScriptEditor({
         voice: selectedVoice,
       });
       if (!res.ok) throw new Error("Generation failed");
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/onboarding-scripts"] });
+      queryClient.invalidateQueries({ predicate: (query) => (query.queryKey[0] as string)?.includes("/api/admin/onboarding-scripts") });
       toast({ title: "Audio generated with AI voice" });
     } catch {
       toast({ title: "Failed to generate audio", variant: "destructive" });
