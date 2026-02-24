@@ -3,12 +3,14 @@ import { eq, desc, sql, and, count, gte, sum } from "drizzle-orm";
 import {
   counties, institutions, pathways, programs, resources,
   chatSessions, chatMessages, researchTasks, conversations, messages, appSettings, tokenUsage,
+  onboardingScripts,
   type InsertCounty, type InsertInstitution, type InsertPathway,
   type InsertProgram, type InsertResource, type InsertChatSession,
   type InsertChatMessage, type InsertResearchTask, type InsertTokenUsage,
+  type InsertOnboardingScript,
   type County, type Institution, type Pathway, type Program,
   type Resource, type ChatSession, type ChatMessage, type ResearchTask,
-  type AppSetting, type TokenUsage
+  type AppSetting, type TokenUsage, type OnboardingScript
 } from "@shared/schema";
 
 export interface IStorage {
@@ -52,6 +54,12 @@ export interface IStorage {
   createResearchTask(data: InsertResearchTask): Promise<ResearchTask>;
   updateResearchTask(id: number, data: Partial<InsertResearchTask>): Promise<ResearchTask | undefined>;
   deleteResearchTask(id: number): Promise<void>;
+
+  getOnboardingScripts(pathwayId?: number): Promise<OnboardingScript[]>;
+  getOnboardingScript(id: number): Promise<OnboardingScript | undefined>;
+  createOnboardingScript(data: InsertOnboardingScript): Promise<OnboardingScript>;
+  updateOnboardingScript(id: number, data: Partial<InsertOnboardingScript>): Promise<OnboardingScript | undefined>;
+  deleteOnboardingScript(id: number): Promise<void>;
 
   getStats(): Promise<{
     totalSessions: number;
@@ -310,6 +318,28 @@ export class DatabaseStorage implements IStorage {
     }
 
     return knowledge;
+  }
+
+  async getOnboardingScripts(pathwayId?: number): Promise<OnboardingScript[]> {
+    if (pathwayId) {
+      return db.select().from(onboardingScripts).where(eq(onboardingScripts.pathwayId, pathwayId)).orderBy(onboardingScripts.step, onboardingScripts.sortOrder);
+    }
+    return db.select().from(onboardingScripts).orderBy(onboardingScripts.step, onboardingScripts.sortOrder);
+  }
+  async getOnboardingScript(id: number): Promise<OnboardingScript | undefined> {
+    const [s] = await db.select().from(onboardingScripts).where(eq(onboardingScripts.id, id));
+    return s;
+  }
+  async createOnboardingScript(data: InsertOnboardingScript): Promise<OnboardingScript> {
+    const [s] = await db.insert(onboardingScripts).values(data).returning();
+    return s;
+  }
+  async updateOnboardingScript(id: number, data: Partial<InsertOnboardingScript>): Promise<OnboardingScript | undefined> {
+    const [s] = await db.update(onboardingScripts).set({ ...data, updatedAt: new Date() }).where(eq(onboardingScripts.id, id)).returning();
+    return s;
+  }
+  async deleteOnboardingScript(id: number): Promise<void> {
+    await db.delete(onboardingScripts).where(eq(onboardingScripts.id, id));
   }
 
   async recordTokenUsage(data: InsertTokenUsage): Promise<TokenUsage> {

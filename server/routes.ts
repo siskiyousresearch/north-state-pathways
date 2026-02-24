@@ -6,8 +6,10 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 import {
   insertPathwaySchema, insertProgramSchema, insertResourceSchema,
-  insertResearchTaskSchema
+  insertResearchTaskSchema, insertOnboardingScriptSchema
 } from "@shared/schema";
+import { writeFile, mkdir, unlink } from "fs/promises";
+import path from "path";
 import { textToSpeech } from "./replit_integrations/audio/client";
 
 const replitOpenai = new OpenAI({
@@ -993,6 +995,185 @@ RULES:
       });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch token usage" });
+    }
+  });
+
+  // ========== ONBOARDING SCRIPTS API (Admin) ==========
+  app.get("/api/admin/onboarding-scripts", requireAdmin, async (req, res) => {
+    try {
+      const pathwayId = req.query.pathwayId ? parseInt(req.query.pathwayId as string) : undefined;
+      const scripts = await storage.getOnboardingScripts(pathwayId);
+      res.json(scripts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch onboarding scripts" });
+    }
+  });
+
+  app.post("/api/admin/onboarding-scripts", requireAdmin, async (req, res) => {
+    try {
+      const parsed = insertOnboardingScriptSchema.parse(req.body);
+      const script = await storage.createOnboardingScript(parsed);
+      res.status(201).json(script);
+    } catch (error: any) {
+      if (error?.name === "ZodError") return res.status(400).json({ error: error.errors });
+      res.status(500).json({ error: "Failed to create onboarding script" });
+    }
+  });
+
+  app.patch("/api/admin/onboarding-scripts/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      const updateSchema = insertOnboardingScriptSchema.partial();
+      const parsed = updateSchema.parse(req.body);
+      const script = await storage.updateOnboardingScript(id, parsed);
+      if (!script) return res.status(404).json({ error: "Script not found" });
+      res.json(script);
+    } catch (error: any) {
+      if (error?.name === "ZodError") return res.status(400).json({ error: error.errors });
+      res.status(500).json({ error: "Failed to update onboarding script" });
+    }
+  });
+
+  app.delete("/api/admin/onboarding-scripts/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      const existing = await storage.getOnboardingScript(id);
+      if (!existing) return res.status(404).json({ error: "Script not found" });
+      if (existing.audioUrl && existing.audioUrl.startsWith("/audio/onboarding/custom/")) {
+        const filePath = path.join(process.cwd(), "public", existing.audioUrl);
+        try { await unlink(filePath); } catch {}
+      }
+      await storage.deleteOnboardingScript(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete onboarding script" });
+    }
+  });
+
+  app.post("/api/admin/onboarding-scripts/:id/upload-audio", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      const script = await storage.getOnboardingScript(id);
+      if (!script) return res.status(404).json({ error: "Script not found" });
+
+      const chunks: Buffer[] = [];
+      req.on("data", (chunk: Buffer) => chunks.push(chunk));
+      req.on("end", async () => {
+        try {
+          const audioBuffer = Buffer.concat(chunks);
+          if (audioBuffer.length === 0) return res.status(400).json({ error: "No audio data" });
+
+          const audioDir = path.join(process.cwd(), "public", "audio", "onboarding", "custom");
+          await mkdir(audioDir, { recursive: true });
+
+          const filename = `script-${id}-${Date.now()}.mp3`;
+          const filePath = path.join(audioDir, filename);
+          await writeFile(filePath, audioBuffer);
+
+          if (script.audioUrl && script.audioUrl.startsWith("/audio/onboarding/custom/")) {
+            const oldPath = path.join(process.cwd(), "public", script.audioUrl);
+            try { await unlink(oldPath); } catch {}
+          }
+
+          const audioUrl = `/audio/onboarding/custom/${filename}`;
+          const updated = await storage.updateOnboardingScript(id, { audioUrl });
+          res.json(updated);
+        } catch (error) {
+          console.error("Audio upload error:", error);
+          res.status(500).json({ error: "Failed to save audio" });
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to upload audio" });
+    }
+  });
+
+  app.post("/api/admin/onboarding-scripts/:id/generate-audio", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      const script = await storage.getOnboardingScript(id);
+      if (!script) return res.status(404).json({ error: "Script not found" });
+
+      const voice = req.body.voice || "nova";
+      const audioBuffer = await textToSpeech(script.scriptText, voice, "mp3");
+
+      const audioDir = path.join(process.cwd(), "public", "audio", "onboarding", "custom");
+      await mkdir(audioDir, { recursive: true });
+
+      const filename = `script-${id}-${Date.now()}.mp3`;
+      const filePath = path.join(audioDir, filename);
+      await writeFile(filePath, audioBuffer);
+
+      if (script.audioUrl && script.audioUrl.startsWith("/audio/onboarding/custom/")) {
+        const oldPath = path.join(process.cwd(), "public", script.audioUrl);
+        try { await unlink(oldPath); } catch {}
+      }
+
+      const audioUrl = `/audio/onboarding/custom/${filename}`;
+      const updated = await storage.updateOnboardingScript(id, { audioUrl });
+      res.json(updated);
+    } catch (error) {
+      console.error("TTS generation error:", error);
+      res.status(500).json({ error: "Failed to generate audio" });
+    }
+  });
+
+  app.post("/api/admin/onboarding-scripts/auto-generate", requireAdmin, async (req, res) => {
+    try {
+      const { pathwayId, step, contextKey } = req.body;
+      if (!pathwayId || !step) return res.status(400).json({ error: "pathwayId and step are required" });
+
+      const pathway = await storage.getPathway(pathwayId);
+      if (!pathway) return res.status(404).json({ error: "Pathway not found" });
+
+      const stepDescriptions: Record<string, string> = {
+        welcome: "Welcome message introducing the pathway",
+        county: "Asking which county the student lives in",
+        "student-type": "Asking what type of student they are (high school, college grad, etc.)",
+        "study-location": "Asking if they prefer to study locally or are willing to travel",
+        "support-needs": "Asking what kind of support they need (financial, mentoring, work experience)",
+      };
+
+      const prompt = `You are writing a friendly, encouraging voice narration script for a career guidance chatbot. The pathway is "${pathway.name}". This is for the onboarding step: "${step}" - ${stepDescriptions[step] || step}.${contextKey ? ` The specific context is: "${contextKey}".` : ""}
+
+Write a brief, warm narration script (2-4 sentences) that:
+- Speaks directly to the student in second person
+- Is encouraging and supportive
+- Guides them to make their selection
+- References the ${pathway.name} pathway naturally
+- Sounds natural when spoken aloud (avoid text-like formatting)
+
+Return ONLY the script text, no quotes or formatting.`;
+
+      const completion = await replitOpenai.chat.completions.create({
+        model: "openai/gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 200,
+      });
+
+      const scriptText = completion.choices[0]?.message?.content?.trim() || "";
+      res.json({ scriptText });
+    } catch (error) {
+      console.error("Auto-generate script error:", error);
+      res.status(500).json({ error: "Failed to generate script" });
+    }
+  });
+
+  // Public endpoint: fetch pathways (for chat page)
+  app.get("/api/pathways", async (_req, res) => {
+    try { res.json(await storage.getPathways()); }
+    catch (error) { res.status(500).json({ error: "Failed to fetch pathways" }); }
+  });
+
+  // Public endpoint: fetch onboarding scripts for a pathway
+  app.get("/api/onboarding-scripts", async (req, res) => {
+    try {
+      const pathwayId = req.query.pathwayId ? parseInt(req.query.pathwayId as string) : undefined;
+      if (!pathwayId) return res.status(400).json({ error: "pathwayId required" });
+      const scripts = await storage.getOnboardingScripts(pathwayId);
+      res.json(scripts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch onboarding scripts" });
     }
   });
 

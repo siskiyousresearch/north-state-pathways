@@ -13,6 +13,7 @@ import PathwaysPage from "./pathways";
 import ResourcesPage from "./resources";
 import ResearchPage from "./research";
 import SettingsPage from "./settings";
+import OnboardingScriptsPage from "./onboarding-scripts";
 import AdminLogin from "./login";
 
 export default function AdminLayout() {
@@ -77,6 +78,7 @@ export default function AdminLayout() {
               <Route path="/admin/resources" component={ResourcesPage} />
               <Route path="/admin/research" component={ResearchPage} />
               <Route path="/admin/settings" component={SettingsPage} />
+              <Route path="/admin/onboarding-scripts" component={OnboardingScriptsPage} />
             </Switch>
           </main>
         </div>

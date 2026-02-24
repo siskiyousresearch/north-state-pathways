@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import ReactMarkdown from "react-markdown";
+import type { Pathway, OnboardingScript } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -173,6 +174,34 @@ export default function ChatPage() {
     return () => window.removeEventListener("resize", check);
   }, []);
   const videos = isMobile ? ONBOARDING_VIDEOS_MOBILE : ONBOARDING_VIDEOS;
+
+  const { data: dbPathways = [] } = useQuery<Pathway[]>({
+    queryKey: ["/api/pathways"],
+  });
+
+  const selectedPathwayId = useMemo(() => {
+    if (!selectedPathway) return null;
+    const pw = dbPathways.find(p => p.slug === selectedPathway);
+    return pw?.id ?? null;
+  }, [selectedPathway, dbPathways]);
+
+  const { data: onboardingScripts = [] } = useQuery<OnboardingScript[]>({
+    queryKey: ["/api/onboarding-scripts", { pathwayId: selectedPathwayId }],
+    queryFn: async () => {
+      if (!selectedPathwayId) return [];
+      const res = await fetch(`/api/onboarding-scripts?pathwayId=${selectedPathwayId}`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!selectedPathwayId,
+  });
+
+  const getScriptAudio = useCallback((step: string, contextKey?: string): string | null => {
+    const match = onboardingScripts.find(s =>
+      s.step === step && (contextKey ? s.contextKey === contextKey : !s.contextKey)
+    );
+    return match?.audioUrl || null;
+  }, [onboardingScripts]);
 
   const resourcesUrl = `/api/resources?pathway=${encodeURIComponent(selectedPathway || "")}&county=${encodeURIComponent(selectedCounty || "")}`;
   const { data: resources = [] } = useQuery<{ id: number; name: string; type: string; description: string | null; url: string | null; eligibility: string | null; pathwayId: number | null; county: string | null }[]>({
@@ -354,29 +383,34 @@ export default function ChatPage() {
     }
   };
 
+  const playStepAudio = useCallback((step: string, contextKey: string | undefined, fallbackUrl: string) => {
+    const dbAudio = getScriptAudio(step, contextKey);
+    playStaticAudio(dbAudio || fallbackUrl);
+  }, [getScriptAudio, playStaticAudio]);
+
   const handlePathwaySelect = (pathway: string) => {
     setSelectedPathway(pathway);
     setOnboardingStep("county");
-    playStaticAudio(getCountyAudio(pathway));
+    playStepAudio("county", undefined, getCountyAudio(pathway));
   };
 
   const handleCountySelect = (county: string) => {
     setSelectedCounty(county);
     setOnboardingStep("student-type");
-    playStaticAudio(getStudentTypeAudio(county));
+    playStepAudio("student-type", county.toLowerCase(), getStudentTypeAudio(county));
   };
 
   const handleStudentTypeSelect = (typeId: string) => {
     setSelectedStudentType(typeId);
     stopCurrentAudio();
     setOnboardingStep("study-location");
-    playStaticAudio(getStudyLocationAudio(typeId));
+    playStepAudio("study-location", typeId, getStudyLocationAudio(typeId));
   };
 
   const handleStudyLocationSelect = (location: string) => {
     setStudyLocation(location);
     setOnboardingStep("support-needs");
-    playStaticAudio(getSupportNeedsAudio(location));
+    playStepAudio("support-needs", location, getSupportNeedsAudio(location));
   };
 
   const toggleSupport = (id: string) => {
@@ -412,22 +446,22 @@ export default function ChatPage() {
     if (onboardingStep === "county") {
       setSelectedPathway(null);
       setOnboardingStep("pathway");
-      playStaticAudio("/audio/onboarding/welcome.mp3");
+      playStepAudio("welcome", undefined, "/audio/onboarding/welcome.mp3");
     } else if (onboardingStep === "student-type") {
       const pw = selectedPathway;
       setSelectedCounty(null);
       setOnboardingStep("county");
-      if (pw) playStaticAudio(getCountyAudio(pw));
+      if (pw) playStepAudio("county", undefined, getCountyAudio(pw));
     } else if (onboardingStep === "study-location") {
       const county = selectedCounty;
       setSelectedStudentType(null);
       setOnboardingStep("student-type");
-      if (county) playStaticAudio(getStudentTypeAudio(county));
+      if (county) playStepAudio("student-type", county.toLowerCase(), getStudentTypeAudio(county));
     } else if (onboardingStep === "support-needs") {
       const st = selectedStudentType;
       setStudyLocation(null);
       setOnboardingStep("study-location");
-      if (st) playStaticAudio(getStudyLocationAudio(st));
+      if (st) playStepAudio("study-location", st, getStudyLocationAudio(st));
     }
   };
 

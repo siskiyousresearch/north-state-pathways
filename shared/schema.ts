@@ -106,6 +106,20 @@ export const appSettings = pgTable("app_settings", {
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+export const onboardingScripts = pgTable("onboarding_scripts", {
+  id: serial("id").primaryKey(),
+  pathwayId: integer("pathway_id").references(() => pathways.id, { onDelete: "cascade" }),
+  step: text("step").notNull(),
+  contextKey: text("context_key"),
+  title: text("title").notNull(),
+  scriptText: text("script_text").notNull(),
+  audioUrl: text("audio_url"),
+  imageUrl: text("image_url"),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 export const tokenUsage = pgTable("token_usage", {
   id: serial("id").primaryKey(),
   model: text("model").notNull(),
@@ -118,6 +132,7 @@ export const tokenUsage = pgTable("token_usage", {
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+export const insertOnboardingScriptSchema = createInsertSchema(onboardingScripts).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertTokenUsageSchema = createInsertSchema(tokenUsage).omit({ id: true, createdAt: true });
 
 export const insertCountySchema = createInsertSchema(counties).omit({ id: true });
@@ -146,6 +161,8 @@ export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type ResearchTask = typeof researchTasks.$inferSelect;
 export type InsertResearchTask = z.infer<typeof insertResearchTaskSchema>;
 
+export type OnboardingScript = typeof onboardingScripts.$inferSelect;
+export type InsertOnboardingScript = z.infer<typeof insertOnboardingScriptSchema>;
 export type Conversation = typeof conversations.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type AppSetting = typeof appSettings.$inferSelect;

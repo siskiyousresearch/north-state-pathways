@@ -63,9 +63,15 @@ shared/
 - `DELETE /api/admin/research/:id` - Delete research task (auth required)
 - `PATCH /api/admin/programs/:id` - Update program (auth required)
 - `GET/POST /api/admin/settings` - App settings (auth required, API keys masked on GET)
+- `GET/POST/PATCH/DELETE /api/admin/onboarding-scripts` - Onboarding script CRUD (auth required)
+- `POST /api/admin/onboarding-scripts/:id/upload-audio` - Upload recorded audio (auth required)
+- `POST /api/admin/onboarding-scripts/:id/generate-audio` - Generate TTS audio (auth required)
+- `POST /api/admin/onboarding-scripts/auto-generate` - AI-generate script text (auth required)
+- `GET /api/onboarding-scripts?pathwayId=N` - Public: fetch scripts for a pathway
 
 ## Database Tables
 - counties, institutions, pathways, programs, resources (knowledge base)
+- onboarding_scripts (editable narration scripts per pathway/step with audio URLs)
 - chat_sessions, chat_messages (student interactions)
 - research_tasks (AI research with human approval)
 - app_settings (key-value store for AI model selection, API keys)
@@ -127,6 +133,11 @@ shared/
 32. Resources support multi-county and multi-pathway selection via checkbox UI
 33. Resources schema: `counties` (text array) and `pathwayIds` (integer array) for multi-selection
 34. Research tasks schema: `county` field for scoping research to specific counties
+35. Admin Onboarding Scripts page: edit narration scripts per pathway/step, record voice audio via browser microphone, or generate with AI TTS
+36. Database-backed onboarding scripts with fallback to static audio files
+37. `onboarding_scripts` table: pathway_id, step, context_key, title, script_text, audio_url, image_url
+38. Audio recording uses browser MediaRecorder API, files saved to public/audio/onboarding/custom/
+39. AI script auto-generation using GPT-4o Mini for creating initial narration text
 
 ## Running
 - `npm run dev` starts both frontend (Vite) and backend (Express) on port 5000
