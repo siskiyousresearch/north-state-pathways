@@ -743,7 +743,7 @@ Write 2-3 short paragraphs summarizing what students are seeking, which regions 
       }
     } catch (error: any) {
       let msg = error?.message || "Connection failed";
-      if (msg.includes("User not found") && provider === "openrouter") {
+      if (msg.includes("User not found") && req.body?.provider === "openrouter") {
         msg = "OpenRouter rejected this key (User not found). If this key works elsewhere, try generating a new key at openrouter.ai/settings/keys specifically for this project — keys can be IP-restricted.";
       }
       res.status(500).json({ error: msg.length > 300 ? msg.slice(0, 300) : msg });
