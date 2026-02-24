@@ -446,7 +446,7 @@ export default function ChatPage() {
     if (onboardingStep === "county") {
       setSelectedPathway(null);
       setOnboardingStep("pathway");
-      playStepAudio("welcome", undefined, "/audio/onboarding/welcome.mp3");
+      playStepAudio("pathway", undefined, "/audio/onboarding/welcome.mp3");
     } else if (onboardingStep === "student-type") {
       const pw = selectedPathway;
       setSelectedCounty(null);

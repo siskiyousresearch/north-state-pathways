@@ -21,11 +21,11 @@ import {
 import type { Pathway, OnboardingScript } from "@shared/schema";
 
 const STEPS = [
-  { id: "welcome", label: "Welcome", description: "Initial welcome message when student arrives" },
-  { id: "county", label: "County Selection", description: "Prompt to select their county" },
-  { id: "student-type", label: "Student Type", description: "Prompt to identify their education level" },
-  { id: "study-location", label: "Study Location", description: "Ask about local vs. travel preference" },
-  { id: "support-needs", label: "Support Needs", description: "Ask about needed support services" },
+  { id: "pathway", label: "Step 1: Choose Your Path", description: "Welcome — choose Healthcare or Education" },
+  { id: "county", label: "Step 2: Select Your County", description: "\"I want to work in [pathway] and I live in...\"" },
+  { id: "student-type", label: "Step 3: I AM A...", description: "Tell us about your education background" },
+  { id: "study-location", label: "Step 4: Where Do You Want to Study?", description: "Local vs. open to travel preference" },
+  { id: "support-needs", label: "Step 5: What Else Can We Help With?", description: "Select support services needed" },
 ];
 
 const VOICES = [
@@ -68,7 +68,7 @@ const CONTEXT_OPTIONS: Record<string, { id: string; label: string }[]> = {
 export default function OnboardingScriptsPage() {
   const { toast } = useToast();
   const [selectedPathwayId, setSelectedPathwayId] = useState<string>("");
-  const [selectedStep, setSelectedStep] = useState<string>("welcome");
+  const [selectedStep, setSelectedStep] = useState<string>("pathway");
   const [selectedContext, setSelectedContext] = useState<string>("");
   const [editingScript, setEditingScript] = useState<OnboardingScript | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);

@@ -21,52 +21,52 @@ async function seedOnboardingScripts() {
   const STUDENT_TYPES = ["high-school", "hs-grad-no-college", "some-college", "associates", "bachelors-seeking-masters", "seeking-doctorate"];
 
   const healthcareCountyMessages: Record<string, string> = {
-    butte: "Butte County has excellent healthcare training programs. Now tell us a bit about yourself — what's your current education level?",
-    glenn: "Glenn County is growing its healthcare workforce. Tell us about yourself — what's your current education level?",
-    lassen: "Lassen County needs healthcare professionals like you. What's your current education level?",
-    modoc: "Modoc County is building its healthcare community. What's your current education level?",
-    plumas: "Plumas County has opportunities in healthcare. Tell us about your education level.",
-    shasta: "Shasta County is a hub for healthcare training in the North State. What's your education level?",
-    sierra: "Sierra County is part of our healthcare network. What's your current education level?",
-    siskiyou: "Siskiyou County offers unique healthcare opportunities. What's your education level?",
-    tehama: "Tehama County is growing its healthcare sector. What's your current education level?",
-    trinity: "Trinity County needs healthcare professionals. Tell us about your education level.",
+    butte: "Butte County has excellent healthcare training programs! Now tell us about yourself — which of these best describes you?",
+    glenn: "Glenn County is growing its healthcare workforce! Tell us about yourself — which of these best describes you?",
+    lassen: "Lassen County needs healthcare professionals like you! Which of these best describes you?",
+    modoc: "Modoc County is building its healthcare community! Which of these best describes you?",
+    plumas: "Plumas County has opportunities in healthcare! Tell us — which of these best describes you?",
+    shasta: "Shasta County is a hub for healthcare training in the North State! Which of these best describes you?",
+    sierra: "Sierra County is part of our healthcare network! Which of these best describes you?",
+    siskiyou: "Siskiyou County offers unique healthcare opportunities! Which of these best describes you?",
+    tehama: "Tehama County is growing its healthcare sector! Which of these best describes you?",
+    trinity: "Trinity County needs healthcare professionals! Tell us — which of these best describes you?",
   };
 
   const educationCountyMessages: Record<string, string> = {
-    butte: "Butte County has great education programs. Tell us about yourself — what's your current education level?",
-    glenn: "Glenn County schools are looking for dedicated educators. What's your current education level?",
-    lassen: "Lassen County needs educators like you. What's your current education level?",
-    modoc: "Modoc County is looking for passionate educators. What's your education level?",
-    plumas: "Plumas County has opportunities in education. What's your education level?",
-    shasta: "Shasta County has strong education pathways. What's your current education level?",
-    sierra: "Sierra County communities need educators. What's your education level?",
-    siskiyou: "Siskiyou County offers unique education career opportunities. What's your education level?",
-    tehama: "Tehama County is investing in education. What's your current education level?",
-    trinity: "Trinity County schools need dedicated professionals. Tell us about your education level.",
+    butte: "Butte County has great education programs! Now tell us about yourself — which of these best describes you?",
+    glenn: "Glenn County schools are looking for dedicated educators! Tell us about yourself — which of these best describes you?",
+    lassen: "Lassen County needs educators like you! Which of these best describes you?",
+    modoc: "Modoc County is looking for passionate educators! Which of these best describes you?",
+    plumas: "Plumas County has opportunities in education! Which of these best describes you?",
+    shasta: "Shasta County has strong education pathways! Which of these best describes you?",
+    sierra: "Sierra County communities need educators! Which of these best describes you?",
+    siskiyou: "Siskiyou County offers unique education career opportunities! Which of these best describes you?",
+    tehama: "Tehama County is investing in education! Which of these best describes you?",
+    trinity: "Trinity County schools need dedicated professionals! Tell us — which of these best describes you?",
   };
 
   const healthcareStudyLocation: Record<string, string> = {
-    "high-school": "As a high school student, you have a wonderful opportunity to start early on a healthcare career. Would you prefer to study close to home or are you open to traveling?",
-    "hs-grad-no-college": "As a high school graduate, there are many healthcare pathways open to you. Do you want to study locally or are you willing to travel?",
-    "some-college": "With some college experience, you're well-positioned for healthcare programs. Would you prefer local programs or are you open to traveling?",
-    "associates": "Having an associate's degree opens up many healthcare career paths. Do you want to continue studying locally or travel for your education?",
-    "bachelors-seeking-masters": "With a bachelor's degree, advanced healthcare programs await you. Would you prefer a local program or are you willing to travel?",
-    "seeking-doctorate": "Pursuing a doctorate in healthcare is an incredible goal. Are you looking for programs close to home or willing to travel?",
+    "high-school": "As a high school student, you have a wonderful opportunity to start early on a healthcare career. Where do you want to study — close to home, or are you open to traveling?",
+    "hs-grad-no-college": "As a high school graduate, there are many healthcare pathways open to you. Where do you want to study — locally, or are you willing to travel?",
+    "some-college": "With some college experience, you're well-positioned for healthcare programs. Where do you want to study — locally, or are you open to traveling?",
+    "associates": "Having an associate's degree opens up many healthcare career paths. Where do you want to study — continue locally, or travel for your education?",
+    "bachelors-seeking-masters": "With a bachelor's degree, advanced healthcare programs await you. Where do you want to study — a local program, or are you willing to travel?",
+    "seeking-doctorate": "Pursuing a doctorate in healthcare is an incredible goal. Where do you want to study — close to home, or are you willing to travel?",
   };
 
   const educationStudyLocation: Record<string, string> = {
-    "high-school": "Starting your journey toward an education career while in high school is wonderful. Would you like to study locally or are you open to traveling?",
-    "hs-grad-no-college": "As a high school graduate interested in education, many paths are open. Do you want to study locally or travel?",
-    "some-college": "With some college experience, you're well on your way to an education career. Would you prefer local or travel?",
-    "associates": "Your associate's degree is a great foundation for education careers. Study locally or travel?",
-    "bachelors-seeking-masters": "A master's in education opens doors to leadership roles. Would you prefer a local program or travel?",
-    "seeking-doctorate": "A doctorate in education is a powerful goal. Are you looking at local programs or willing to travel?",
+    "high-school": "Starting your journey toward an education career while in high school is wonderful. Where do you want to study — close to home, or are you open to traveling?",
+    "hs-grad-no-college": "As a high school graduate interested in education, many paths are open. Where do you want to study — locally, or are you willing to travel?",
+    "some-college": "With some college experience, you're well on your way to an education career. Where do you want to study — locally, or would you prefer to travel?",
+    "associates": "Your associate's degree is a great foundation for education careers. Where do you want to study — locally, or are you open to traveling?",
+    "bachelors-seeking-masters": "A master's in education opens doors to leadership roles. Where do you want to study — a local program, or are you willing to travel?",
+    "seeking-doctorate": "A doctorate in education is a powerful goal. Where do you want to study — locally, or are you open to traveling?",
   };
 
   const studyLocationLabels: Record<string, string> = {
-    "high-school": "High School", "hs-grad-no-college": "HS Grad", "some-college": "Some College",
-    "associates": "Associates", "bachelors-seeking-masters": "Bachelors", "seeking-doctorate": "Doctorate",
+    "high-school": "High School Student", "hs-grad-no-college": "HS Graduate", "some-college": "Some College",
+    "associates": "Associate's Degree", "bachelors-seeking-masters": "Seeking Master's", "seeking-doctorate": "Seeking Doctorate",
   };
 
   const scripts: Array<{
@@ -80,20 +80,20 @@ async function seedOnboardingScripts() {
     const studyMessages = isHealthcare ? healthcareStudyLocation : educationStudyLocation;
 
     scripts.push({
-      pathwayId: pw.id, step: "welcome", contextKey: null,
-      title: "Welcome",
+      pathwayId: pw.id, step: "pathway", contextKey: null,
+      title: "Choose Your Path",
       scriptText: isHealthcare
-        ? "Welcome to North State Pathways! We're here to help you discover exciting career opportunities in healthcare across Northern California. Let's find the right path for you."
-        : "Welcome to North State Pathways! We're here to help you discover rewarding careers in education across Northern California. Let's find the right path for you.",
+        ? "Welcome to North State Pathways! We're here to help you explore exciting career opportunities across Northern California. Let's find the right path for you — choose Healthcare or Education to get started."
+        : "Welcome to North State Pathways! We're here to help you discover rewarding career opportunities across Northern California. Let's find the right path for you — choose Healthcare or Education to get started.",
       audioUrl: "/audio/onboarding/welcome.mp3",
     });
 
     scripts.push({
       pathwayId: pw.id, step: "county", contextKey: null,
-      title: "County Selection",
+      title: "Select Your County",
       scriptText: isHealthcare
-        ? "Great choice! Healthcare careers are in high demand across the North State. Which county do you live in? This will help us find programs and opportunities near you."
-        : "Education is a wonderful career path! Our North State communities need dedicated educators. Which county do you call home?",
+        ? "Great choice — Healthcare! Careers in healthcare are in high demand across the North State. Now, which county do you live in? Select your county so we can find programs near you."
+        : "Great choice — Education! Our North State communities need dedicated educators. Which county do you call home? Select your county so we can find programs near you.",
       audioUrl: isHealthcare ? "/audio/onboarding/county-healthcare.mp3" : "/audio/onboarding/county-education.mp3",
     });
 
@@ -101,7 +101,7 @@ async function seedOnboardingScripts() {
       const label = county.charAt(0).toUpperCase() + county.slice(1);
       scripts.push({
         pathwayId: pw.id, step: "student-type", contextKey: county,
-        title: `Student Type - ${label}`,
+        title: `I AM A... — ${label}`,
         scriptText: countyMessages[county],
         audioUrl: `/audio/onboarding/studenttype-${county}.mp3`,
       });
@@ -110,7 +110,7 @@ async function seedOnboardingScripts() {
     for (const st of STUDENT_TYPES) {
       scripts.push({
         pathwayId: pw.id, step: "study-location", contextKey: st,
-        title: `Study Location - ${studyLocationLabels[st]}`,
+        title: `Study Location — ${studyLocationLabels[st]}`,
         scriptText: studyMessages[st],
         audioUrl: `/audio/onboarding/studylocation-${st}.mp3`,
       });
@@ -118,19 +118,19 @@ async function seedOnboardingScripts() {
 
     scripts.push({
       pathwayId: pw.id, step: "support-needs", contextKey: "local",
-      title: "Support Needs - Local",
+      title: "Support Needs — Study Locally",
       scriptText: isHealthcare
-        ? "Studying locally is a great choice — you'll have community support nearby. Last question: what kind of support would be most helpful for you?"
-        : "Studying locally keeps you connected to your community. What kind of support would help you succeed?",
+        ? "Studying locally is a great choice — you'll have community support nearby. Almost there! What else can we help with? Select any support services that interest you."
+        : "Studying locally keeps you connected to your community. Almost there! What else can we help with? Select any support services that interest you.",
       audioUrl: "/audio/onboarding/supportneeds-local.mp3",
     });
 
     scripts.push({
       pathwayId: pw.id, step: "support-needs", contextKey: "travel",
-      title: "Support Needs - Travel",
+      title: "Support Needs — Open to Travel",
       scriptText: isHealthcare
-        ? "Being open to travel expands your options significantly. Last question: what kind of support are you looking for?"
-        : "Being flexible about location gives you more program options. What support would be most helpful?",
+        ? "Being open to travel expands your options significantly. Almost there! What else can we help with? Select any support services that interest you."
+        : "Being flexible about location gives you more program options. Almost there! What else can we help with? Select any support services that interest you.",
       audioUrl: "/audio/onboarding/supportneeds-travel.mp3",
     });
   }
