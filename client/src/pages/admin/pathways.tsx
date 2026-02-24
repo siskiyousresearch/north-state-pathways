@@ -21,7 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   Plus, Route, GraduationCap, Building2,
-  Pencil, Trash2, Search
+  Pencil, Trash2, Search, ExternalLink
 } from "lucide-react";
 import type { Pathway, Program, Institution } from "@shared/schema";
 
@@ -339,8 +339,19 @@ export default function PathwaysPage() {
                           <GraduationCap className="w-4 h-4 text-primary" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">{program.name}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium truncate">{program.name}</p>
+                            {program.url && (
+                              <a href={program.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 shrink-0" data-testid={`link-program-url-${program.id}`}>
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                            )}
+                          </div>
                           <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                            {(() => {
+                              const inst = institutions?.find(i => i.id === program.institutionId);
+                              return inst ? <span className="text-xs text-muted-foreground">{inst.name}</span> : null;
+                            })()}
                             {program.county && <Badge variant="secondary" className="text-xs">{program.county}</Badge>}
                             {program.level && <Badge variant="outline" className="text-xs">{program.level}</Badge>}
                           </div>

@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   Plus, FlaskConical, Check, X, Loader2, Play, PlusCircle, Trash2, Pencil, RotateCw,
-  GraduationCap, BookOpen, MapPin
+  GraduationCap, BookOpen, MapPin, ExternalLink
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { ResearchTask, Pathway } from "@shared/schema";
@@ -505,11 +505,24 @@ export default function ResearchPage() {
                                 {action.description && (
                                   <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{action.description}</p>
                                 )}
-                                {action.county && (
-                                  <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-0.5">
-                                    <MapPin className="w-3 h-3" /> {action.county}
-                                  </p>
-                                )}
+                                <div className="flex items-center gap-3 flex-wrap mt-0.5">
+                                  {action.county && (
+                                    <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                                      <MapPin className="w-3 h-3" /> {action.county}
+                                    </span>
+                                  )}
+                                  {action.url && (
+                                    <a
+                                      href={action.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-primary hover:underline flex items-center gap-0.5"
+                                      data-testid={`link-action-url-${idx}`}
+                                    >
+                                      <ExternalLink className="w-3 h-3" /> Verify source
+                                    </a>
+                                  )}
+                                </div>
                               </div>
                             </div>
                             <Button
