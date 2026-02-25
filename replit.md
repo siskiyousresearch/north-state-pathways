@@ -9,6 +9,7 @@ An AI-powered chatbot platform for North State Pathways (northstatepathways.org)
 - **Database**: PostgreSQL with Drizzle ORM
 - **AI**: Multi-provider support (OpenAI, Anthropic, OpenRouter/DeepSeek/Perplexity) with Replit AI Integrations as default
 - **Auth**: Session-based admin authentication (express-session + connect-pg-simple)
+- **i18n**: Custom React context with EN/ES translations (`client/src/lib/i18n.ts`)
 - **Routing**: wouter for frontend, Express for API
 
 ## Project Structure
@@ -138,6 +139,13 @@ shared/
 37. `onboarding_scripts` table: pathway_id, step, context_key, title, script_text, audio_url, image_url
 38. Audio recording uses browser MediaRecorder API, files saved to public/audio/onboarding/custom/
 39. AI script auto-generation using GPT-4o Mini for creating initial narration text
+40. Full Spanish/English language support: EN/ES toggle on landing, about, and chat pages
+41. `client/src/lib/i18n.ts`: 130+ translation keys, `useLanguage()` hook, localStorage persistence ("nsp-language")
+42. `onboarding_scripts` table has `language` column (default "en"); 40 English + 40 Spanish scripts seeded
+43. Spanish TTS audio files in `public/audio/onboarding/es/` (generated via gpt-audio model)
+44. Spanish system prompt (`SYSTEM_PROMPT_SPANISH`) for AI chatbot responses in Spanish
+45. Admin Onboarding Scripts page: EN/ES filter tabs for managing scripts by language
+46. Chat messages accept `language` field to select Spanish AI responses
 
 ## Running
 - `npm run dev` starts both frontend (Vite) and backend (Express) on port 5000

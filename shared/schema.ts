@@ -115,6 +115,7 @@ export const onboardingScripts = pgTable("onboarding_scripts", {
   scriptText: text("script_text").notNull(),
   audioUrl: text("audio_url"),
   imageUrl: text("image_url"),
+  language: text("language").default("en").notNull(),
   sortOrder: integer("sort_order").default(0),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),

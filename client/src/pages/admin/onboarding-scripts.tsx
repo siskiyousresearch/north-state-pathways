@@ -70,6 +70,7 @@ export default function OnboardingScriptsPage() {
   const [selectedPathwayId, setSelectedPathwayId] = useState<string>("");
   const [selectedStep, setSelectedStep] = useState<string>("pathway");
   const [selectedContext, setSelectedContext] = useState<string>("");
+  const [selectedLanguage, setSelectedLanguage] = useState<"en" | "es">("en");
   const [editingScript, setEditingScript] = useState<OnboardingScript | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
@@ -84,11 +85,16 @@ export default function OnboardingScriptsPage() {
   });
 
   const scriptsUrl = selectedPathwayId
-    ? `/api/admin/onboarding-scripts?pathwayId=${selectedPathwayId}`
-    : "/api/admin/onboarding-scripts";
+    ? `/api/admin/onboarding-scripts?pathwayId=${selectedPathwayId}&language=${selectedLanguage}`
+    : `/api/admin/onboarding-scripts?language=${selectedLanguage}`;
 
   const { data: scripts = [], isLoading: scriptsLoading } = useQuery<OnboardingScript[]>({
-    queryKey: [scriptsUrl],
+    queryKey: ["/api/admin/onboarding-scripts", selectedPathwayId, selectedLanguage],
+    queryFn: async () => {
+      const res = await fetch(scriptsUrl, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch scripts");
+      return res.json();
+    },
     enabled: !!selectedPathwayId,
   });
 
@@ -101,13 +107,17 @@ export default function OnboardingScriptsPage() {
 
   const allStepScripts = scripts.filter(s => s.step === selectedStep);
 
+  const invalidateScripts = () => {
+    queryClient.invalidateQueries({ predicate: (query) => (query.queryKey[0] as string)?.includes("/api/admin/onboarding-scripts") });
+  };
+
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
       const res = await apiRequest("POST", "/api/admin/onboarding-scripts", data);
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ predicate: (query) => (query.queryKey[0] as string)?.includes("/api/admin/onboarding-scripts") });
+      invalidateScripts();
       setShowCreateDialog(false);
       setCreateForm({ title: "", scriptText: "", contextKey: "" });
       toast({ title: "Script created" });
@@ -121,7 +131,7 @@ export default function OnboardingScriptsPage() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ predicate: (query) => (query.queryKey[0] as string)?.includes("/api/admin/onboarding-scripts") });
+      invalidateScripts();
       toast({ title: "Script updated" });
     },
     onError: () => toast({ title: "Failed to update script", variant: "destructive" }),
@@ -132,7 +142,7 @@ export default function OnboardingScriptsPage() {
       await apiRequest("DELETE", `/api/admin/onboarding-scripts/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ predicate: (query) => (query.queryKey[0] as string)?.includes("/api/admin/onboarding-scripts") });
+      invalidateScripts();
       setEditingScript(null);
       toast({ title: "Script deleted" });
     },
@@ -147,6 +157,7 @@ export default function OnboardingScriptsPage() {
       contextKey: selectedContext || null,
       title: createForm.title,
       scriptText: createForm.scriptText,
+      language: selectedLanguage,
     });
   };
 
@@ -157,6 +168,7 @@ export default function OnboardingScriptsPage() {
         pathwayId: parseInt(selectedPathwayId),
         step: selectedStep,
         contextKey: selectedContext || null,
+        language: selectedLanguage,
       });
       const data = await res.json();
       if (forCreate) {
@@ -231,6 +243,30 @@ export default function OnboardingScriptsPage() {
             </Select>
           </div>
         )}
+
+        <div>
+          <Label>Language</Label>
+          <div className="flex gap-0.5 mt-1">
+            <Button
+              variant={selectedLanguage === "en" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedLanguage("en")}
+              className="toggle-elevate"
+              data-testid="button-language-en"
+            >
+              EN
+            </Button>
+            <Button
+              variant={selectedLanguage === "es" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedLanguage("es")}
+              className="toggle-elevate"
+              data-testid="button-language-es"
+            >
+              ES
+            </Button>
+          </div>
+        </div>
       </div>
 
       {!selectedPathwayId ? (
@@ -249,7 +285,12 @@ export default function OnboardingScriptsPage() {
         <>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold">{stepInfo?.label} Scripts</h2>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-lg font-semibold">{stepInfo?.label} Scripts</h2>
+                <Badge variant="outline" data-testid="badge-language-indicator">
+                  {selectedLanguage === "en" ? "English" : "Spanish"}
+                </Badge>
+              </div>
               <p className="text-sm text-muted-foreground">{stepInfo?.description}</p>
               {selectedContext && selectedContext !== "__all__" && (
                 <Badge variant="secondary" className="mt-1">
@@ -294,7 +335,7 @@ export default function OnboardingScriptsPage() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Add Script for {stepInfo?.label}</DialogTitle>
+            <DialogTitle>Add Script for {stepInfo?.label} ({selectedLanguage === "en" ? "English" : "Spanish"})</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>

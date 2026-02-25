@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import ReactMarkdown from "react-markdown";
 import type { Pathway, OnboardingScript } from "@shared/schema";
+import { useLanguage } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +14,7 @@ import {
   MapPin, User, Loader2, Bot, ChevronLeft,
   Stethoscope, School, Volume2, VolumeX,
   Home, Plane, HandHeart, DollarSign, Briefcase, Check, ArrowRight,
-  ExternalLink, BookOpen, GraduationCap, Heart
+  ExternalLink, BookOpen, GraduationCap, Heart, Globe
 } from "lucide-react";
 
 interface ChatMsg {
@@ -27,58 +28,19 @@ const counties = [
   "Shasta", "Sierra", "Siskiyou", "Tehama", "Trinity"
 ];
 
-const studentTypes = [
-  {
-    id: "high-school",
-    label: "High School Student",
-    description: "Currently attending high school"
-  },
-  {
-    id: "hs-grad-no-college",
-    label: "High School Graduate",
-    description: "Graduated high school and have never attended college"
-  },
-  {
-    id: "some-college",
-    label: "Former or Current College Student",
-    description: "Some college classes but no degree"
-  },
-  {
-    id: "associates",
-    label: "Associate's Degree Holder",
-    description: "Have an associate's degree and would like to continue my education"
-  },
-  {
-    id: "bachelors-seeking-masters",
-    label: "College Graduate - Seeking Master's",
-    description: "College graduate and would like to obtain a master's degree"
-  },
-  {
-    id: "seeking-doctorate",
-    label: "College Graduate - Seeking Doctorate",
-    description: "College graduate and would like to obtain a doctorate"
-  }
+const studentTypeKeys = [
+  { id: "high-school", labelKey: "studentType.highSchool", descKey: "studentType.highSchoolDesc" },
+  { id: "hs-grad-no-college", labelKey: "studentType.hsGrad", descKey: "studentType.hsGradDesc" },
+  { id: "some-college", labelKey: "studentType.someCollege", descKey: "studentType.someCollegeDesc" },
+  { id: "associates", labelKey: "studentType.associates", descKey: "studentType.associatesDesc" },
+  { id: "bachelors-seeking-masters", labelKey: "studentType.masters", descKey: "studentType.mastersDesc" },
+  { id: "seeking-doctorate", labelKey: "studentType.doctorate", descKey: "studentType.doctorateDesc" },
 ];
 
-const supportOptions = [
-  {
-    id: "wraparound",
-    icon: HandHeart,
-    label: "Help to Be Successful",
-    description: "Tutoring, counseling, mentoring, and other wraparound services"
-  },
-  {
-    id: "financial",
-    icon: DollarSign,
-    label: "Financial Support",
-    description: "Scholarships, grants, financial aid, and tuition assistance"
-  },
-  {
-    id: "work-experience",
-    icon: Briefcase,
-    label: "Work Experience",
-    description: "Internships, clinical placements, apprenticeships, and job shadows"
-  }
+const supportOptionKeys = [
+  { id: "wraparound", icon: HandHeart, labelKey: "support.wraparound", descKey: "support.wraparoundDesc" },
+  { id: "financial", icon: DollarSign, labelKey: "support.financial", descKey: "support.financialDesc" },
+  { id: "work-experience", icon: Briefcase, labelKey: "support.workExperience", descKey: "support.workExperienceDesc" },
 ];
 
 function getCountyAudio(pathway: string): string {
@@ -146,6 +108,7 @@ async function playTTSForText(text: string): Promise<{ audio: HTMLAudioElement; 
 }
 
 export default function ChatPage() {
+  const { language, setLanguage, t } = useLanguage();
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -186,10 +149,10 @@ export default function ChatPage() {
   }, [selectedPathway, dbPathways]);
 
   const { data: onboardingScripts = [] } = useQuery<OnboardingScript[]>({
-    queryKey: ["/api/onboarding-scripts", { pathwayId: selectedPathwayId }],
+    queryKey: ["/api/onboarding-scripts", { pathwayId: selectedPathwayId, language }],
     queryFn: async () => {
       if (!selectedPathwayId) return [];
-      const res = await fetch(`/api/onboarding-scripts?pathwayId=${selectedPathwayId}`);
+      const res = await fetch(`/api/onboarding-scripts?pathwayId=${selectedPathwayId}&language=${language}`);
       if (!res.ok) return [];
       return res.json();
     },
@@ -322,7 +285,7 @@ export default function ChatPage() {
       const res = await fetch(`/api/chat/sessions/${sid}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: content.trim() }),
+        body: JSON.stringify({ content: content.trim(), language }),
       });
 
       const reader = res.body?.getReader();
@@ -366,7 +329,7 @@ export default function ChatPage() {
         if (last && last.role === "assistant") {
           updated[updated.length - 1] = {
             ...last,
-            content: "I'm sorry, I encountered an error. Please try again.",
+            content: t("chat.errorMsg"),
           };
         }
         return updated;
@@ -420,18 +383,22 @@ export default function ChatPage() {
   };
 
   const handleSupportsContinue = async () => {
-    const st = studentTypes.find((s) => s.id === selectedStudentType);
-    const pathwayLabel = selectedPathway === "healthcare" ? "Healthcare" : "Education";
+    const st = studentTypeKeys.find((s) => s.id === selectedStudentType);
+    const stLabel = st ? t(st.labelKey).toLowerCase() : selectedStudentType;
+    const stDesc = st ? t(st.descKey).toLowerCase() : "";
+    const pathwayLabel = selectedPathway === "healthcare" ? t("chat.healthcare") : t("chat.education");
     const locationPref = studyLocation === "local"
-      ? "I prefer to study locally near where I live"
-      : "I am open to traveling for my education";
+      ? (language === "es" ? "Prefiero estudiar localmente cerca de donde vivo" : "I prefer to study locally near where I live")
+      : (language === "es" ? "Estoy dispuesto a viajar para mi educación" : "I am open to traveling for my education");
     const supportNeeds = selectedSupports.length > 0
-      ? `I'm also interested in: ${selectedSupports.map((s) => {
-          const opt = supportOptions.find((o) => o.id === s);
-          return opt?.label?.toLowerCase() || s;
+      ? `${language === "es" ? "También me interesa" : "I'm also interested in"}: ${selectedSupports.map((s) => {
+          const opt = supportOptionKeys.find((o) => o.id === s);
+          return opt ? t(opt.labelKey).toLowerCase() : s;
         }).join(", ")}`
       : "";
-    const introMessage = `I'm interested in ${pathwayLabel} career pathways. I live in ${selectedCounty} County. I am a ${st?.label?.toLowerCase()}${st?.description ? ` (${st?.description?.toLowerCase()})` : ""}. ${locationPref}. ${supportNeeds} What programs and opportunities are available for me?`;
+    const introMessage = language === "es"
+      ? `Estoy interesado en carreras de ${pathwayLabel}. Vivo en el condado de ${selectedCounty}. Soy ${stLabel}${stDesc ? ` (${stDesc})` : ""}. ${locationPref}. ${supportNeeds} ¿Qué programas y oportunidades hay disponibles para mí?`
+      : `I'm interested in ${pathwayLabel} career pathways. I live in ${selectedCounty} County. I am a ${stLabel}${stDesc ? ` (${stDesc})` : ""}. ${locationPref}. ${supportNeeds} What programs and opportunities are available for me?`;
     stopCurrentAudio();
     setOnboardingStep("done");
     try {
@@ -486,12 +453,22 @@ export default function ChatPage() {
               <Sparkles className="w-4 h-4 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-sm font-bold leading-tight" data-testid="text-chat-title">Pathways Assistant</h1>
-              <p className="text-xs text-muted-foreground leading-tight">North State Career Guide</p>
+              <h1 className="text-sm font-bold leading-tight" data-testid="text-chat-title">{t("chat.title")}</h1>
+              <p className="text-xs text-muted-foreground leading-tight">{t("chat.subtitle")}</p>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setLanguage(language === "en" ? "es" : "en")}
+            className="text-xs font-semibold px-2 h-7 gap-1"
+            data-testid="button-toggle-language"
+          >
+            <Globe className="w-3.5 h-3.5" />
+            {language === "en" ? "ES" : "EN"}
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -505,12 +482,12 @@ export default function ChatPage() {
           </Button>
           {isSpeaking && voiceEnabled && (
             <Badge variant="secondary" className="text-xs" data-testid="badge-speaking">
-              Speaking...
+              {t("chat.speaking")}
             </Badge>
           )}
           {sessionId && !isSpeaking && (
             <Badge variant="secondary" className="text-xs">
-              Session Active
+              {t("chat.sessionActive")}
             </Badge>
           )}
         </div>
@@ -550,7 +527,7 @@ export default function ChatPage() {
                     onClick={goBackOnboarding}
                     data-testid="button-onboarding-back"
                   >
-                    <ChevronLeft className="w-4 h-4 mr-1" /> Back
+                    <ChevronLeft className="w-4 h-4 mr-1" /> {t("chat.back")}
                   </Button>
                 )}
 
@@ -568,10 +545,10 @@ export default function ChatPage() {
                       />
                     </div>
                     <h2 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-welcome-heading">
-                      Welcome to North State Pathways
+                      {t("chat.welcomeTitle")}
                     </h2>
                     <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-                      Let's find the right path for you. Which area interests you most?
+                      {t("chat.welcomeDesc")}
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto">
                       <Card
@@ -582,8 +559,8 @@ export default function ChatPage() {
                         <div className="flex items-center justify-center w-14 h-14 rounded-full bg-destructive/10 dark:bg-destructive/20 mx-auto mb-4">
                           <Stethoscope className="w-7 h-7 text-destructive" />
                         </div>
-                        <h3 className="font-semibold text-lg mb-1">Healthcare</h3>
-                        <p className="text-sm text-muted-foreground">Nursing, EMS, Medical Assisting, and more</p>
+                        <h3 className="font-semibold text-lg mb-1">{t("chat.healthcare")}</h3>
+                        <p className="text-sm text-muted-foreground">{t("chat.healthcareDesc")}</p>
                       </Card>
                       <Card
                         className="p-6 cursor-pointer hover-elevate active-elevate-2 text-center group"
@@ -593,8 +570,8 @@ export default function ChatPage() {
                         <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 dark:bg-primary/20 mx-auto mb-4">
                           <School className="w-7 h-7 text-primary" />
                         </div>
-                        <h3 className="font-semibold text-lg mb-1">Education</h3>
-                        <p className="text-sm text-muted-foreground">Teaching, Administration, Counseling, and more</p>
+                        <h3 className="font-semibold text-lg mb-1">{t("chat.education")}</h3>
+                        <p className="text-sm text-muted-foreground">{t("chat.educationDesc")}</p>
                       </Card>
                     </div>
                   </div>
@@ -614,14 +591,14 @@ export default function ChatPage() {
                       />
                     </div>
                     <h2 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-county-heading">
-                      I want to work in{" "}
+                      {t("chat.countyIntro")}{" "}
                       <span className="text-primary">
-                        {selectedPathway === "healthcare" ? "Healthcare" : "Education"}
+                        {selectedPathway === "healthcare" ? t("chat.healthcare") : t("chat.education")}
                       </span>{" "}
-                      and I live in...
+                      {t("chat.countyAnd")}
                     </h2>
                     <p className="text-muted-foreground mb-6">
-                      Select your county so we can find programs near you
+                      {t("chat.countySelect")}
                     </p>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 max-w-xl mx-auto">
                       {counties.map((county) => (
@@ -653,21 +630,21 @@ export default function ChatPage() {
                       />
                     </div>
                     <h2 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-student-type-heading">
-                      I AM A...
+                      {t("chat.iAmA")}
                     </h2>
                     <div className="flex items-center justify-center gap-2 text-muted-foreground mb-1">
                       <Badge variant="secondary">
-                        {selectedPathway === "healthcare" ? "Healthcare" : "Education"}
+                        {selectedPathway === "healthcare" ? t("chat.healthcare") : t("chat.education")}
                       </Badge>
                       <Badge variant="secondary">
-                        <MapPin className="w-3 h-3 mr-1" />{selectedCounty} County
+                        <MapPin className="w-3 h-3 mr-1" />{selectedCounty} {language === "es" ? "Condado" : "County"}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-6">
-                      Tell us about your education background
+                      {t("chat.tellUsBackground")}
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto">
-                      {studentTypes.map((st) => (
+                      {studentTypeKeys.map((st) => (
                         <Card
                           key={st.id}
                           className="p-4 cursor-pointer hover-elevate active-elevate-2 text-left"
@@ -679,8 +656,8 @@ export default function ChatPage() {
                               <User className="w-4 h-4 text-primary" />
                             </div>
                             <div>
-                              <p className="text-sm font-semibold">{st.label}</p>
-                              <p className="text-xs text-muted-foreground mt-0.5">{st.description}</p>
+                              <p className="text-sm font-semibold">{t(st.labelKey)}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{t(st.descKey)}</p>
                             </div>
                           </div>
                         </Card>
@@ -703,18 +680,18 @@ export default function ChatPage() {
                       />
                     </div>
                     <h2 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-study-location-heading">
-                      Where do you want to study?
+                      {t("chat.studyLocationTitle")}
                     </h2>
                     <div className="flex items-center justify-center gap-2 text-muted-foreground mb-1">
                       <Badge variant="secondary">
-                        {selectedPathway === "healthcare" ? "Healthcare" : "Education"}
+                        {selectedPathway === "healthcare" ? t("chat.healthcare") : t("chat.education")}
                       </Badge>
                       <Badge variant="secondary">
-                        <MapPin className="w-3 h-3 mr-1" />{selectedCounty} County
+                        <MapPin className="w-3 h-3 mr-1" />{selectedCounty} {language === "es" ? "Condado" : "County"}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-6">
-                      Would you prefer to stay local or are you open to traveling?
+                      {t("chat.studyLocationDesc")}
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto">
                       <Card
@@ -725,8 +702,8 @@ export default function ChatPage() {
                         <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mx-auto mb-4">
                           <Home className="w-7 h-7 text-primary" />
                         </div>
-                        <h3 className="font-semibold text-lg mb-1">Study Locally</h3>
-                        <p className="text-sm text-muted-foreground">I want to study where I am</p>
+                        <h3 className="font-semibold text-lg mb-1">{t("chat.studyLocal")}</h3>
+                        <p className="text-sm text-muted-foreground">{t("chat.studyLocalDesc")}</p>
                       </Card>
                       <Card
                         className="p-6 cursor-pointer hover-elevate active-elevate-2 text-center"
@@ -736,8 +713,8 @@ export default function ChatPage() {
                         <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mx-auto mb-4">
                           <Plane className="w-7 h-7 text-primary" />
                         </div>
-                        <h3 className="font-semibold text-lg mb-1">Open to Travel</h3>
-                        <p className="text-sm text-muted-foreground">I am OK to travel for my education</p>
+                        <h3 className="font-semibold text-lg mb-1">{t("chat.openToTravel")}</h3>
+                        <p className="text-sm text-muted-foreground">{t("chat.openToTravelDesc")}</p>
                       </Card>
                     </div>
                   </div>
@@ -757,24 +734,24 @@ export default function ChatPage() {
                       />
                     </div>
                     <h2 className="text-xl md:text-2xl font-bold mb-2" data-testid="text-support-needs-heading">
-                      What else can we help with?
+                      {t("chat.supportTitle")}
                     </h2>
                     <div className="flex items-center justify-center gap-2 text-muted-foreground mb-1">
                       <Badge variant="secondary">
-                        {selectedPathway === "healthcare" ? "Healthcare" : "Education"}
+                        {selectedPathway === "healthcare" ? t("chat.healthcare") : t("chat.education")}
                       </Badge>
                       <Badge variant="secondary">
-                        <MapPin className="w-3 h-3 mr-1" />{selectedCounty} County
+                        <MapPin className="w-3 h-3 mr-1" />{selectedCounty} {language === "es" ? "Condado" : "County"}
                       </Badge>
                       <Badge variant="secondary">
-                        {studyLocation === "local" ? "Local" : "Open to Travel"}
+                        {studyLocation === "local" ? t("chat.studyLocal") : t("chat.openToTravel")}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-6">
-                      Select any that apply, then continue
+                      {t("chat.supportDesc")}
                     </p>
                     <div className="grid grid-cols-1 gap-3 max-w-lg mx-auto mb-6">
-                      {supportOptions.map((opt) => {
+                      {supportOptionKeys.map((opt) => {
                         const isSelected = selectedSupports.includes(opt.id);
                         return (
                           <Card
@@ -796,8 +773,8 @@ export default function ChatPage() {
                                 )}
                               </div>
                               <div>
-                                <p className="text-sm font-semibold">{opt.label}</p>
-                                <p className="text-xs text-muted-foreground mt-0.5">{opt.description}</p>
+                                <p className="text-sm font-semibold">{t(opt.labelKey)}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">{t(opt.descKey)}</p>
                               </div>
                             </div>
                           </Card>
@@ -809,7 +786,7 @@ export default function ChatPage() {
                       onClick={handleSupportsContinue}
                       data-testid="button-continue-to-chat"
                     >
-                      Start Chatting <ArrowRight className="w-4 h-4 ml-2" />
+                      {t("chat.startChatting")} <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
                 )}
@@ -826,11 +803,11 @@ export default function ChatPage() {
                 <div className="p-4 border-b">
                   <div className="flex items-center gap-2 mb-1">
                     <BookOpen className="w-4 h-4 text-primary" />
-                    <h2 className="text-sm font-bold" data-testid="text-resources-title">Resources & Support</h2>
+                    <h2 className="text-sm font-bold" data-testid="text-resources-title">{t("chat.resources")}</h2>
                   </div>
                   <div className="flex items-center gap-1 flex-wrap">
                     <Badge variant="secondary" className="text-xs">
-                      {selectedPathway === "healthcare" ? "Healthcare" : "Education"}
+                      {selectedPathway === "healthcare" ? t("chat.healthcare") : t("chat.education")}
                     </Badge>
                     {selectedCounty && (
                       <Badge variant="secondary" className="text-xs">
@@ -841,7 +818,7 @@ export default function ChatPage() {
                 </div>
                 <div className="flex-1 overflow-y-auto p-3 space-y-2">
                   {resources.length === 0 ? (
-                    <p className="text-xs text-muted-foreground p-2">Loading resources...</p>
+                    <p className="text-xs text-muted-foreground p-2">{t("chat.loadingResources")}</p>
                   ) : (
                     resources.map((resource) => (
                       <div
@@ -900,7 +877,7 @@ export default function ChatPage() {
                 </div>
                 <div className="p-3 border-t">
                   <p className="text-xs text-muted-foreground text-center">
-                    Visit <a href="https://northstatepathways.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">northstatepathways.org</a>
+                    {t("chat.visitWebsite").split("northstatepathways.org")[0]}<a href="https://northstatepathways.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">northstatepathways.org</a>
                   </p>
                 </div>
               </div>
@@ -947,7 +924,7 @@ export default function ChatPage() {
                           ) : (
                             <div className="flex items-center gap-2 text-muted-foreground">
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              <span className="text-xs">Thinking...</span>
+                              <span className="text-xs">{t("chat.thinking")}</span>
                             </div>
                           )}
                         </div>
@@ -971,7 +948,7 @@ export default function ChatPage() {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Ask about education pathways, healthcare careers, scholarships..."
+                        placeholder={t("chat.placeholder")}
                         className="min-h-[44px] max-h-[120px] resize-none text-sm"
                         rows={1}
                         disabled={isLoading}
@@ -991,7 +968,7 @@ export default function ChatPage() {
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2 text-center">
-                      Powered by AI. Information is for guidance only — verify with institutions directly.
+                      {t("chat.disclaimer")}
                     </p>
                   </div>
                 </div>

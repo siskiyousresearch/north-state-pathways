@@ -55,7 +55,7 @@ export interface IStorage {
   updateResearchTask(id: number, data: Partial<InsertResearchTask>): Promise<ResearchTask | undefined>;
   deleteResearchTask(id: number): Promise<void>;
 
-  getOnboardingScripts(pathwayId?: number): Promise<OnboardingScript[]>;
+  getOnboardingScripts(pathwayId?: number, language?: string): Promise<OnboardingScript[]>;
   getOnboardingScript(id: number): Promise<OnboardingScript | undefined>;
   createOnboardingScript(data: InsertOnboardingScript): Promise<OnboardingScript>;
   updateOnboardingScript(id: number, data: Partial<InsertOnboardingScript>): Promise<OnboardingScript | undefined>;
@@ -320,11 +320,16 @@ export class DatabaseStorage implements IStorage {
     return knowledge;
   }
 
-  async getOnboardingScripts(pathwayId?: number): Promise<OnboardingScript[]> {
+  async getOnboardingScripts(pathwayId?: number, language?: string): Promise<OnboardingScript[]> {
+    const lang = language || "en";
     if (pathwayId) {
-      return db.select().from(onboardingScripts).where(eq(onboardingScripts.pathwayId, pathwayId)).orderBy(onboardingScripts.step, onboardingScripts.sortOrder);
+      return db.select().from(onboardingScripts)
+        .where(and(eq(onboardingScripts.pathwayId, pathwayId), eq(onboardingScripts.language, lang)))
+        .orderBy(onboardingScripts.step, onboardingScripts.sortOrder);
     }
-    return db.select().from(onboardingScripts).orderBy(onboardingScripts.step, onboardingScripts.sortOrder);
+    return db.select().from(onboardingScripts)
+      .where(eq(onboardingScripts.language, lang))
+      .orderBy(onboardingScripts.step, onboardingScripts.sortOrder);
   }
   async getOnboardingScript(id: number): Promise<OnboardingScript | undefined> {
     const [s] = await db.select().from(onboardingScripts).where(eq(onboardingScripts.id, id));

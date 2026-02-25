@@ -1,0 +1,157 @@
+import { createContext, useContext } from "react";
+
+export type Language = "en" | "es";
+
+interface LanguageContextType {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string) => string;
+}
+
+export const LanguageContext = createContext<LanguageContextType>({
+  language: "en",
+  setLanguage: () => {},
+  t: (key: string) => key,
+});
+
+export function useLanguage() {
+  return useContext(LanguageContext);
+}
+
+const translations: Record<string, Record<Language, string>> = {
+  "nav.title": { en: "North State Pathways", es: "North State Pathways" },
+  "nav.aiAssistant": { en: "AI Career Assistant", es: "Asistente de Carreras IA" },
+  "nav.about": { en: "About", es: "Acerca de" },
+  "nav.startExploring": { en: "Start Exploring", es: "Comenzar a Explorar" },
+  "nav.admin": { en: "Admin", es: "Admin" },
+
+  "landing.badge": { en: "Powered by AI", es: "Impulsado por IA" },
+  "landing.heroTitle": { en: "Your Future Starts Here in the North State", es: "Tu Futuro Comienza Aquí en el Norte del Estado" },
+  "landing.heroDesc": { en: "Explore education and healthcare career pathways across 10 counties in Northern California. Get personalized guidance from our AI assistant.", es: "Explora opciones de carreras en educación y salud en 10 condados del norte de California. Recibe orientación personalizada de nuestro asistente de IA." },
+  "landing.talkToAI": { en: "Talk to Our AI Assistant", es: "Habla con Nuestro Asistente de IA" },
+  "landing.howWeHelp": { en: "How We Can Help", es: "Cómo Podemos Ayudarte" },
+  "landing.howWeHelpDesc": { en: "Whether you're a high school student, college student, adult learner, parent, or counselor, we're here to guide you.", es: "Ya seas estudiante de preparatoria, universitario, adulto en formación, padre o consejero, estamos aquí para guiarte." },
+  "landing.feat1Title": { en: "AI-Powered Guidance", es: "Orientación con IA" },
+  "landing.feat1Desc": { en: "Get personalized education and career pathway recommendations through an intelligent conversation.", es: "Recibe recomendaciones personalizadas de carreras y educación a través de una conversación inteligente." },
+  "landing.feat2Title": { en: "Education Pathways", es: "Rutas Educativas" },
+  "landing.feat2Desc": { en: "Explore programs from community colleges to universities across the North State region.", es: "Explora programas desde colegios comunitarios hasta universidades en toda la región del Norte del Estado." },
+  "landing.feat3Title": { en: "Healthcare Careers", es: "Carreras en Salud" },
+  "landing.feat3Desc": { en: "Discover nursing, medical assisting, EMS, and allied health programs near you.", es: "Descubre programas de enfermería, asistencia médica, servicios de emergencia y salud cerca de ti." },
+  "landing.feat4Title": { en: "Local Resources", es: "Recursos Locales" },
+  "landing.feat4Desc": { en: "Find scholarships, financial aid, and support services specific to your county.", es: "Encuentra becas, ayuda financiera y servicios de apoyo específicos para tu condado." },
+  "landing.servingRegion": { en: "Serving the North State Region", es: "Sirviendo la Región del Norte del Estado" },
+  "landing.servingRegionDesc": { en: "Resources and pathways across 10 counties in Northern California", es: "Recursos y rutas en 10 condados del norte de California" },
+  "landing.county": { en: "County", es: "Condado" },
+  "landing.whoIsFor": { en: "Who Is This For?", es: "¿Para Quién Es Esto?" },
+  "landing.audience1Title": { en: "Students & Families", es: "Estudiantes y Familias" },
+  "landing.audience1Desc": { en: "High school students exploring careers, college students seeking programs, and parents navigating options.", es: "Estudiantes de preparatoria explorando carreras, universitarios buscando programas y padres navegando opciones." },
+  "landing.audience2Title": { en: "Adult Learners", es: "Adultos en Formación" },
+  "landing.audience2Desc": { en: "Career changers, workforce re-entrants, and adults seeking new education pathways.", es: "Personas cambiando de carrera, reingresando al mercado laboral y adultos buscando nuevas rutas educativas." },
+  "landing.audience3Title": { en: "Counselors & Advisors", es: "Consejeros y Asesores" },
+  "landing.audience3Desc": { en: "School counselors and college advisors looking for regional pathway information.", es: "Consejeros escolares y asesores universitarios buscando información sobre rutas regionales." },
+  "landing.ctaTitle": { en: "Ready to Explore Your Path?", es: "¿Listo para Explorar Tu Camino?" },
+  "landing.ctaDesc": { en: "Start a conversation with our AI assistant and discover education and career opportunities right here in the North State.", es: "Inicia una conversación con nuestro asistente de IA y descubre oportunidades educativas y profesionales aquí en el Norte del Estado." },
+  "landing.getStarted": { en: "Get Started Now", es: "Comienza Ahora" },
+  "landing.footer": { en: "A partnership of SCAILE, North State Together, and regional K-16 institutions.", es: "Una asociación de SCAILE, North State Together e instituciones regionales K-16." },
+
+  "about.badge": { en: "About Us", es: "Acerca de Nosotros" },
+  "about.heroTitle": { en: "Empowering North State Students", es: "Empoderando a Estudiantes del Norte del Estado" },
+  "about.heroDesc": { en: "Comprehensive educational services focused on academic excellence and personal growth", es: "Servicios educativos integrales enfocados en la excelencia académica y el crecimiento personal" },
+  "about.missionTitle": { en: "Our Mission", es: "Nuestra Misión" },
+  "about.missionP1": { en: "North State Education Pathways is a leading provider of comprehensive educational services in the region. With a focus on both academic excellence and personal growth, we empower students to reach their full potential and thrive in their educational journeys.", es: "North State Education Pathways es un proveedor líder de servicios educativos integrales en la región. Con un enfoque en la excelencia académica y el crecimiento personal, empoderamos a los estudiantes para alcanzar su máximo potencial y prosperar en su camino educativo." },
+  "about.missionP2": { en: "At North State Education Pathways, we believe that education is the foundation for a brighter future. Our experienced team of educators and counselors work closely with students, leveraging the latest teaching methods and cutting-edge technologies to deliver an exceptional learning experience.", es: "En North State Education Pathways, creemos que la educación es la base para un futuro mejor. Nuestro experimentado equipo de educadores y consejeros trabaja de cerca con los estudiantes, utilizando los últimos métodos de enseñanza y tecnología de vanguardia para ofrecer una experiencia de aprendizaje excepcional." },
+  "about.valuesTitle": { en: "What We Stand For", es: "Lo Que Representamos" },
+  "about.valuesDesc": { en: "Our core values guide everything we do in supporting North State students", es: "Nuestros valores fundamentales guían todo lo que hacemos para apoyar a los estudiantes del Norte del Estado" },
+  "about.value1Title": { en: "Personalized Guidance", es: "Orientación Personalizada" },
+  "about.value1Desc": { en: "From personalized lesson plans to innovative extracurricular activities, we ensure every student gets tailored support.", es: "Desde planes de estudio personalizados hasta actividades extracurriculares innovadoras, aseguramos que cada estudiante reciba apoyo a su medida." },
+  "about.value2Title": { en: "Innovation", es: "Innovación" },
+  "about.value2Desc": { en: "Leveraging cutting-edge technologies including AI-powered tools to deliver an exceptional learning experience.", es: "Utilizando tecnología de vanguardia, incluyendo herramientas de IA, para ofrecer una experiencia de aprendizaje excepcional." },
+  "about.value3Title": { en: "Community Partnership", es: "Alianzas Comunitarias" },
+  "about.value3Desc": { en: "Working closely with regional K-16 institutions, employers, and community organizations across 10 counties.", es: "Trabajando de cerca con instituciones K-16 regionales, empleadores y organizaciones comunitarias en 10 condados." },
+  "about.pathwaysTitle": { en: "Our Pathways", es: "Nuestras Rutas" },
+  "about.pathwaysDesc": { en: "We offer two primary career pathways serving Northern California communities", es: "Ofrecemos dos rutas profesionales principales para las comunidades del norte de California" },
+  "about.healthcareTitle": { en: "Healthcare Careers", es: "Carreras en Salud" },
+  "about.healthcareDesc": { en: "Explore nursing, emergency medical services, medical assisting, health information technology, and allied health programs across the region.", es: "Explora programas de enfermería, servicios médicos de emergencia, asistencia médica, tecnología de información en salud y programas de salud afines en toda la región." },
+  "about.educationTitle": { en: "Education Careers", es: "Carreras en Educación" },
+  "about.educationDesc": { en: "Discover pathways to teaching, school administration, counseling, early childhood education, and special education across our partner institutions.", es: "Descubre rutas hacia la enseñanza, administración escolar, consejería, educación temprana y educación especial en nuestras instituciones asociadas." },
+  "about.nursing": { en: "Nursing", es: "Enfermería" },
+  "about.ems": { en: "EMS", es: "Emergencias" },
+  "about.medicalAssisting": { en: "Medical Assisting", es: "Asistencia Médica" },
+  "about.healthIT": { en: "Health IT", es: "TI en Salud" },
+  "about.teaching": { en: "Teaching", es: "Enseñanza" },
+  "about.administration": { en: "Administration", es: "Administración" },
+  "about.counseling": { en: "Counseling", es: "Consejería" },
+  "about.ece": { en: "ECE", es: "Educación Temprana" },
+  "about.regionTitle": { en: "Serving the North State Region", es: "Sirviendo la Región del Norte del Estado" },
+  "about.regionDesc": { en: "Our services span 10 counties across Northern California", es: "Nuestros servicios abarcan 10 condados en el norte de California" },
+  "about.partnersTitle": { en: "Our Partners", es: "Nuestros Socios" },
+  "about.partnersDesc": { en: "A partnership of SCAILE, North State Together, and regional K-16 institutions working together to build stronger career pathways.", es: "Una asociación de SCAILE, North State Together e instituciones K-16 regionales trabajando juntos para construir rutas profesionales más sólidas." },
+  "about.scaile": { en: "SCAILE", es: "SCAILE" },
+  "about.scaileDesc": { en: "Supporting innovation in education through technology and AI.", es: "Apoyando la innovación en educación a través de tecnología e IA." },
+  "about.nst": { en: "North State Together", es: "North State Together" },
+  "about.nstDesc": { en: "A collaborative of community organizations advancing educational equity.", es: "Una colaboración de organizaciones comunitarias promoviendo la equidad educativa." },
+  "about.k16": { en: "K-16 Institutions", es: "Instituciones K-16" },
+  "about.k16Desc": { en: "Community colleges, CSU campuses, and UC programs across the region.", es: "Colegios comunitarios, campus CSU y programas UC en toda la región." },
+  "about.ctaTitle": { en: "Ready to Find Your Path?", es: "¿Listo para Encontrar Tu Camino?" },
+  "about.ctaDesc": { en: "Start a conversation with our AI assistant and discover the education and career opportunities waiting for you in the North State.", es: "Inicia una conversación con nuestro asistente de IA y descubre las oportunidades educativas y profesionales que te esperan en el Norte del Estado." },
+  "about.ctaButton": { en: "Talk to Our AI Assistant", es: "Habla con Nuestro Asistente de IA" },
+
+  "chat.title": { en: "Pathways Assistant", es: "Asistente de Rutas" },
+  "chat.subtitle": { en: "North State Career Guide", es: "Guía de Carreras del Norte del Estado" },
+  "chat.speaking": { en: "Speaking...", es: "Hablando..." },
+  "chat.sessionActive": { en: "Session Active", es: "Sesión Activa" },
+  "chat.back": { en: "Back", es: "Atrás" },
+  "chat.welcomeTitle": { en: "Welcome to North State Pathways", es: "Bienvenido a North State Pathways" },
+  "chat.welcomeDesc": { en: "Let's find the right path for you. Which area interests you most?", es: "Encontremos el camino correcto para ti. ¿Qué área te interesa más?" },
+  "chat.healthcare": { en: "Healthcare", es: "Salud" },
+  "chat.healthcareDesc": { en: "Nursing, EMS, Medical Assisting, and more", es: "Enfermería, Emergencias, Asistencia Médica y más" },
+  "chat.education": { en: "Education", es: "Educación" },
+  "chat.educationDesc": { en: "Teaching, Administration, Counseling, and more", es: "Enseñanza, Administración, Consejería y más" },
+  "chat.countyIntro": { en: "I want to work in", es: "Quiero trabajar en" },
+  "chat.countyAnd": { en: "and I live in...", es: "y vivo en..." },
+  "chat.countySelect": { en: "Select your county so we can find programs near you", es: "Selecciona tu condado para encontrar programas cerca de ti" },
+  "chat.iAmA": { en: "I AM A...", es: "SOY UN/A..." },
+  "chat.tellUsBackground": { en: "Tell us about your education background", es: "Cuéntanos sobre tu formación académica" },
+  "chat.studyLocationTitle": { en: "Where do you want to study?", es: "¿Dónde quieres estudiar?" },
+  "chat.studyLocationDesc": { en: "Would you prefer to stay local or are you open to traveling?", es: "¿Prefieres quedarte cerca o estás dispuesto a viajar?" },
+  "chat.studyLocal": { en: "Study Locally", es: "Estudiar Localmente" },
+  "chat.studyLocalDesc": { en: "I want to study where I am", es: "Quiero estudiar donde estoy" },
+  "chat.openToTravel": { en: "Open to Travel", es: "Dispuesto a Viajar" },
+  "chat.openToTravelDesc": { en: "I am OK to travel for my education", es: "Estoy dispuesto a viajar para mi educación" },
+  "chat.supportTitle": { en: "What else can we help with?", es: "¿En qué más podemos ayudarte?" },
+  "chat.supportDesc": { en: "Select any that apply, then continue", es: "Selecciona las que apliquen, luego continúa" },
+  "chat.startChatting": { en: "Start Chatting", es: "Comenzar Chat" },
+  "chat.resources": { en: "Resources & Support", es: "Recursos y Apoyo" },
+  "chat.loadingResources": { en: "Loading resources...", es: "Cargando recursos..." },
+  "chat.visitWebsite": { en: "Visit northstatepathways.org", es: "Visita northstatepathways.org" },
+  "chat.placeholder": { en: "Ask about education pathways, healthcare careers, scholarships...", es: "Pregunta sobre rutas educativas, carreras en salud, becas..." },
+  "chat.thinking": { en: "Thinking...", es: "Pensando..." },
+  "chat.disclaimer": { en: "Powered by AI. Information is for guidance only — verify with institutions directly.", es: "Impulsado por IA. La información es solo orientativa — verifica directamente con las instituciones." },
+  "chat.errorMsg": { en: "I'm sorry, I encountered an error. Please try again.", es: "Lo siento, encontré un error. Por favor intenta de nuevo." },
+
+  "studentType.highSchool": { en: "High School Student", es: "Estudiante de Preparatoria" },
+  "studentType.highSchoolDesc": { en: "Currently attending high school", es: "Actualmente asistiendo a la preparatoria" },
+  "studentType.hsGrad": { en: "High School Graduate", es: "Graduado de Preparatoria" },
+  "studentType.hsGradDesc": { en: "Graduated high school and have never attended college", es: "Graduado de preparatoria y nunca ha asistido a la universidad" },
+  "studentType.someCollege": { en: "Former or Current College Student", es: "Estudiante Universitario Actual o Anterior" },
+  "studentType.someCollegeDesc": { en: "Some college classes but no degree", es: "Algunas clases universitarias pero sin título" },
+  "studentType.associates": { en: "Associate's Degree Holder", es: "Titular de Grado Asociado" },
+  "studentType.associatesDesc": { en: "Have an associate's degree and would like to continue my education", es: "Tengo un grado asociado y me gustaría continuar mi educación" },
+  "studentType.masters": { en: "College Graduate - Seeking Master's", es: "Graduado Universitario - Buscando Maestría" },
+  "studentType.mastersDesc": { en: "College graduate and would like to obtain a master's degree", es: "Graduado universitario que desea obtener una maestría" },
+  "studentType.doctorate": { en: "College Graduate - Seeking Doctorate", es: "Graduado Universitario - Buscando Doctorado" },
+  "studentType.doctorateDesc": { en: "College graduate and would like to obtain a doctorate", es: "Graduado universitario que desea obtener un doctorado" },
+
+  "support.wraparound": { en: "Help to Be Successful", es: "Ayuda para Tener Éxito" },
+  "support.wraparoundDesc": { en: "Tutoring, counseling, mentoring, and other wraparound services", es: "Tutoría, consejería, mentoría y otros servicios de apoyo integral" },
+  "support.financial": { en: "Financial Support", es: "Apoyo Financiero" },
+  "support.financialDesc": { en: "Scholarships, grants, financial aid, and tuition assistance", es: "Becas, subvenciones, ayuda financiera y asistencia con matrícula" },
+  "support.workExperience": { en: "Work Experience", es: "Experiencia Laboral" },
+  "support.workExperienceDesc": { en: "Internships, clinical placements, apprenticeships, and job shadows", es: "Pasantías, prácticas clínicas, aprendizajes y observación laboral" },
+};
+
+export function getTranslation(key: string, language: Language): string {
+  const entry = translations[key];
+  if (!entry) return key;
+  return entry[language] || entry["en"] || key;
+}

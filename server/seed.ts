@@ -139,6 +139,151 @@ async function seedOnboardingScripts() {
   console.log(`Seeded ${scripts.length} onboarding scripts.`);
 }
 
+async function seedSpanishOnboardingScripts() {
+  const existing = await db.select().from(onboardingScripts);
+  const spanishExists = existing.some((s: any) => s.language === "es");
+  if (spanishExists) {
+    console.log("Spanish onboarding scripts already seeded, skipping.");
+    return;
+  }
+
+  const allPathways = await db.select().from(pathways);
+  const healthcare = allPathways.find(p => p.slug === "healthcare");
+  const education = allPathways.find(p => p.slug === "education");
+  if (!healthcare || !education) {
+    console.log("Healthcare/Education pathways not found, skipping Spanish onboarding scripts seed.");
+    return;
+  }
+
+  console.log("Seeding Spanish onboarding scripts...");
+  const COUNTIES = ["butte", "glenn", "lassen", "modoc", "plumas", "shasta", "sierra", "siskiyou", "tehama", "trinity"];
+  const STUDENT_TYPES = ["high-school", "hs-grad-no-college", "some-college", "associates", "bachelors-seeking-masters", "seeking-doctorate"];
+
+  const healthcareCountyMessages: Record<string, string> = {
+    butte: "El condado de Butte tiene excelentes programas de capacitacion en salud. Ahora cuentanos sobre ti: cual de estas opciones te describe mejor?",
+    glenn: "El condado de Glenn esta fortaleciendo su fuerza laboral en salud. Cuentanos sobre ti: cual de estas opciones te describe mejor?",
+    lassen: "El condado de Lassen necesita profesionales de salud como tu. Cual de estas opciones te describe mejor?",
+    modoc: "El condado de Modoc esta desarrollando su comunidad de salud. Cual de estas opciones te describe mejor?",
+    plumas: "El condado de Plumas tiene oportunidades en el area de salud. Cuentanos: cual de estas opciones te describe mejor?",
+    shasta: "El condado de Shasta es un centro de capacitacion en salud en el Norte del Estado. Cual de estas opciones te describe mejor?",
+    sierra: "El condado de Sierra forma parte de nuestra red de salud. Cual de estas opciones te describe mejor?",
+    siskiyou: "El condado de Siskiyou ofrece oportunidades unicas en salud. Cual de estas opciones te describe mejor?",
+    tehama: "El condado de Tehama esta creciendo en el sector de salud. Cual de estas opciones te describe mejor?",
+    trinity: "El condado de Trinity necesita profesionales de salud. Cuentanos: cual de estas opciones te describe mejor?",
+  };
+
+  const educationCountyMessages: Record<string, string> = {
+    butte: "El condado de Butte tiene excelentes programas de educacion. Ahora cuentanos sobre ti: cual de estas opciones te describe mejor?",
+    glenn: "Las escuelas del condado de Glenn buscan educadores dedicados. Cuentanos sobre ti: cual de estas opciones te describe mejor?",
+    lassen: "El condado de Lassen necesita educadores como tu. Cual de estas opciones te describe mejor?",
+    modoc: "El condado de Modoc busca educadores apasionados. Cual de estas opciones te describe mejor?",
+    plumas: "El condado de Plumas tiene oportunidades en educacion. Cual de estas opciones te describe mejor?",
+    shasta: "El condado de Shasta tiene solidas trayectorias educativas. Cual de estas opciones te describe mejor?",
+    sierra: "Las comunidades del condado de Sierra necesitan educadores. Cual de estas opciones te describe mejor?",
+    siskiyou: "El condado de Siskiyou ofrece oportunidades unicas en carreras educativas. Cual de estas opciones te describe mejor?",
+    tehama: "El condado de Tehama esta invirtiendo en educacion. Cual de estas opciones te describe mejor?",
+    trinity: "Las escuelas del condado de Trinity necesitan profesionales dedicados. Cuentanos: cual de estas opciones te describe mejor?",
+  };
+
+  const healthcareStudyLocation: Record<string, string> = {
+    "high-school": "Como estudiante de preparatoria, tienes una oportunidad maravillosa de comenzar temprano una carrera en salud. Donde quieres estudiar: cerca de casa o estas dispuesto a viajar?",
+    "hs-grad-no-college": "Como graduado de preparatoria, hay muchas trayectorias en salud abiertas para ti. Donde quieres estudiar: localmente o estas dispuesto a viajar?",
+    "some-college": "Con algo de experiencia universitaria, estas bien posicionado para programas de salud. Donde quieres estudiar: localmente o estas dispuesto a viajar?",
+    "associates": "Tener un titulo de asociado te abre muchas trayectorias profesionales en salud. Donde quieres estudiar: continuar localmente o viajar para tu educacion?",
+    "bachelors-seeking-masters": "Con una licenciatura, te esperan programas avanzados en salud. Donde quieres estudiar: un programa local o estas dispuesto a viajar?",
+    "seeking-doctorate": "Obtener un doctorado en salud es una meta increible. Donde quieres estudiar: cerca de casa o estas dispuesto a viajar?",
+  };
+
+  const educationStudyLocation: Record<string, string> = {
+    "high-school": "Comenzar tu camino hacia una carrera en educacion mientras estas en la preparatoria es maravilloso. Donde quieres estudiar: cerca de casa o estas dispuesto a viajar?",
+    "hs-grad-no-college": "Como graduado de preparatoria interesado en educacion, muchos caminos estan abiertos. Donde quieres estudiar: localmente o estas dispuesto a viajar?",
+    "some-college": "Con algo de experiencia universitaria, vas bien encaminado hacia una carrera en educacion. Donde quieres estudiar: localmente o prefieres viajar?",
+    "associates": "Tu titulo de asociado es una gran base para carreras en educacion. Donde quieres estudiar: localmente o estas dispuesto a viajar?",
+    "bachelors-seeking-masters": "Una maestria en educacion abre puertas a roles de liderazgo. Donde quieres estudiar: un programa local o estas dispuesto a viajar?",
+    "seeking-doctorate": "Un doctorado en educacion es una meta poderosa. Donde quieres estudiar: localmente o estas dispuesto a viajar?",
+  };
+
+  const studyLocationLabels: Record<string, string> = {
+    "high-school": "Estudiante de Preparatoria", "hs-grad-no-college": "Graduado de Preparatoria", "some-college": "Algo de Universidad",
+    "associates": "Titulo de Asociado", "bachelors-seeking-masters": "Buscando Maestria", "seeking-doctorate": "Buscando Doctorado",
+  };
+
+  const scripts: Array<{
+    pathwayId: number; step: string; contextKey: string | null;
+    title: string; scriptText: string; audioUrl: string | null; language: string;
+  }> = [];
+
+  for (const pw of [healthcare, education]) {
+    const isHealthcare = pw.id === healthcare.id;
+    const countyMessages = isHealthcare ? healthcareCountyMessages : educationCountyMessages;
+    const studyMessages = isHealthcare ? healthcareStudyLocation : educationStudyLocation;
+
+    scripts.push({
+      pathwayId: pw.id, step: "pathway", contextKey: null,
+      title: "Elige Tu Camino",
+      scriptText: isHealthcare
+        ? "Bienvenido a North State Pathways! Estamos aqui para ayudarte a explorar emocionantes oportunidades profesionales en el norte de California. Encontremos el camino correcto para ti: elige Salud o Educacion para comenzar."
+        : "Bienvenido a North State Pathways! Estamos aqui para ayudarte a descubrir oportunidades profesionales gratificantes en el norte de California. Encontremos el camino correcto para ti: elige Salud o Educacion para comenzar.",
+      audioUrl: null,
+      language: "es",
+    });
+
+    scripts.push({
+      pathwayId: pw.id, step: "county", contextKey: null,
+      title: "Selecciona Tu Condado",
+      scriptText: isHealthcare
+        ? "Excelente eleccion: Salud! Las carreras en salud tienen gran demanda en todo el Norte del Estado. Ahora, en que condado vives? Selecciona tu condado para que podamos encontrar programas cerca de ti."
+        : "Excelente eleccion: Educacion! Nuestras comunidades del Norte del Estado necesitan educadores dedicados. En que condado vives? Selecciona tu condado para que podamos encontrar programas cerca de ti.",
+      audioUrl: null,
+      language: "es",
+    });
+
+    for (const county of COUNTIES) {
+      const label = county.charAt(0).toUpperCase() + county.slice(1);
+      scripts.push({
+        pathwayId: pw.id, step: "student-type", contextKey: county,
+        title: `YO SOY... — ${label}`,
+        scriptText: countyMessages[county],
+        audioUrl: null,
+        language: "es",
+      });
+    }
+
+    for (const st of STUDENT_TYPES) {
+      scripts.push({
+        pathwayId: pw.id, step: "study-location", contextKey: st,
+        title: `Lugar de Estudio — ${studyLocationLabels[st]}`,
+        scriptText: studyMessages[st],
+        audioUrl: null,
+        language: "es",
+      });
+    }
+
+    scripts.push({
+      pathwayId: pw.id, step: "support-needs", contextKey: "local",
+      title: "Necesidades de Apoyo — Estudiar Localmente",
+      scriptText: isHealthcare
+        ? "Estudiar localmente es una gran eleccion: tendras apoyo comunitario cerca. Ya casi terminamos! En que mas podemos ayudarte? Selecciona los servicios de apoyo que te interesen."
+        : "Estudiar localmente te mantiene conectado con tu comunidad. Ya casi terminamos! En que mas podemos ayudarte? Selecciona los servicios de apoyo que te interesen.",
+      audioUrl: null,
+      language: "es",
+    });
+
+    scripts.push({
+      pathwayId: pw.id, step: "support-needs", contextKey: "travel",
+      title: "Necesidades de Apoyo — Dispuesto a Viajar",
+      scriptText: isHealthcare
+        ? "Estar dispuesto a viajar amplia tus opciones significativamente. Ya casi terminamos! En que mas podemos ayudarte? Selecciona los servicios de apoyo que te interesen."
+        : "Ser flexible con la ubicacion te da mas opciones de programas. Ya casi terminamos! En que mas podemos ayudarte? Selecciona los servicios de apoyo que te interesen.",
+      audioUrl: null,
+      language: "es",
+    });
+  }
+
+  await db.insert(onboardingScripts).values(scripts);
+  console.log(`Seeded ${scripts.length} Spanish onboarding scripts.`);
+}
+
 export async function seedDatabase() {
   console.log("Checking if database needs seeding...");
 
@@ -146,6 +291,7 @@ export async function seedDatabase() {
   if (existingPathways.length > 0) {
     console.log("Database already seeded, skipping main seed.");
     await seedOnboardingScripts();
+    await seedSpanishOnboardingScripts();
     return;
   }
 
@@ -234,6 +380,7 @@ export async function seedDatabase() {
   ]);
 
   await seedOnboardingScripts();
+  await seedSpanishOnboardingScripts();
   console.log("Seed data inserted successfully!");
 }
 

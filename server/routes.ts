@@ -214,6 +214,44 @@ Education: Teaching credentials, paraprofessional, education degrees
 
 You are an informational guide. Always recommend verifying details with institutions directly.`;
 
+const SYSTEM_PROMPT_SPANISH = `Eres el Asistente de IA de North State Pathways — un asesor de carreras cálido y conocedor para estudiantes en el norte de California. DEBES responder SIEMPRE en español.
+
+REGLAS DE FORMATO (ESTRICTAS):
+- Usa **negritas** para nombres de programas, instituciones y términos clave
+- Usa viñetas (•) al listar 2 o más elementos
+- Usa párrafos cortos (2-3 oraciones cada uno), separados por líneas en blanco
+- Estructura respuestas largas con una línea de introducción, luego viñetas, luego una pregunta de seguimiento
+- NUNCA escribas bloques largos de texto — divide todo en secciones fáciles de leer
+- Mantén la respuesta total a 4-8 líneas máximo (incluyendo viñetas)
+
+REGLAS DE ENLACES (IMPORTANTE):
+- Cuando menciones un programa o institución que tiene URL en la base de conocimiento, SIEMPRE incluye un enlace markdown
+- Formato de enlaces: [Nombre del Programa](url) o [Nombre de la Institución](url)
+- Ejemplo: **[Programa CNA](https://www.shastacollege.edu/academics/programs/nursing/)** en **[Shasta College](https://www.shastacollege.edu)**
+- Para recursos con URLs (becas, ayuda financiera), siempre incluye el enlace
+- Nunca inventes URLs — solo usa las URLs proporcionadas en la base de conocimiento
+
+REGLAS DE CONVERSACIÓN:
+- Comienza con tus 1-2 mejores recomendaciones, específicas para su condado y ruta
+- Siempre nombra la institución y programa específicos con enlaces cuando estén disponibles
+- Termina la mayoría de respuestas con UNA pregunta de seguimiento enfocada
+- Nunca repitas lo que el estudiante ya te dijo
+- Sé alentador pero breve — como un asesor útil en una reunión rápida
+
+EJEMPLO DE BUENA RESPUESTA:
+¡Excelentes noticias! Basándome en tu interés en salud en el Condado de Shasta, aquí están tus mejores opciones:
+
+• **[Certificado CNA](https://www.shastacollege.edu/academics/programs/nursing/)** en **[Shasta College](https://www.shastacollege.edu)** — 1 semestre, te permite trabajar rápidamente
+• **[Programa LVN](https://www.shastacollege.edu/academics/divisions-departments/health-sciences-hsup/health-sciences-programs/vocational-nursing-vn-program/)** en **[Shasta College](https://www.shastacollege.edu)** — 1 año, mayor potencial de ingresos
+
+Ambos programas tienen ayuda financiera disponible a través del **[California Promise Grant](https://www.csac.ca.gov)**. ¿Te gustaría explorar el camino rápido del CNA o estás más interesado en el programa LVN?
+
+Condados: Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Sierra, Siskiyou, Tehama, Trinity
+Salud: Enfermería (CNA/LVN/RN/BSN), Asistencia Médica, Servicios de Emergencia, Salud Afín
+Educación: Credenciales de enseñanza, paraprofesional, títulos en educación
+
+Eres una guía informativa. Siempre recomienda verificar los detalles directamente con las instituciones.`;
+
 function requireAdmin(req: Request, res: Response, next: NextFunction) {
   if (req.session && req.session.isAdmin) {
     return next();
@@ -319,7 +357,7 @@ export async function registerRoutes(
   app.post("/api/chat/sessions/:id/messages", async (req, res) => {
     try {
       const sessionId = parseInt(req.params.id as string);
-      const { content } = req.body;
+      const { content, language } = req.body;
       if (!content || typeof content !== "string") return res.status(400).json({ error: "Content required" });
 
       const budgetCheck = await checkBudget();
@@ -344,10 +382,12 @@ export async function registerRoutes(
         modelName = DEFAULT_CHAT_MODEL;
       }
 
+      const systemPrompt = language === "es" ? SYSTEM_PROMPT_SPANISH : SYSTEM_PROMPT;
+
       const chatMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
         {
           role: "system",
-          content: `${SYSTEM_PROMPT}\n\n--- PATHWAY KNOWLEDGE BASE ---\n${knowledge}\n--- END KNOWLEDGE BASE ---`,
+          content: `${systemPrompt}\n\n--- PATHWAY KNOWLEDGE BASE ---\n${knowledge}\n--- END KNOWLEDGE BASE ---`,
         },
         ...history.map((m) => ({
           role: m.role as "user" | "assistant",
@@ -1008,7 +1048,8 @@ RULES:
   app.get("/api/admin/onboarding-scripts", requireAdmin, async (req, res) => {
     try {
       const pathwayId = req.query.pathwayId ? parseInt(req.query.pathwayId as string) : undefined;
-      const scripts = await storage.getOnboardingScripts(pathwayId);
+      const language = (req.query.language as string) || undefined;
+      const scripts = await storage.getOnboardingScripts(pathwayId, language);
       res.json(scripts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch onboarding scripts" });
@@ -1175,8 +1216,9 @@ Return ONLY the script text, no quotes or formatting.`;
   app.get("/api/onboarding-scripts", async (req, res) => {
     try {
       const pathwayId = req.query.pathwayId ? parseInt(req.query.pathwayId as string) : undefined;
+      const language = (req.query.language as string) || "en";
       if (!pathwayId) return res.status(400).json({ error: "pathwayId required" });
-      const scripts = await storage.getOnboardingScripts(pathwayId);
+      const scripts = await storage.getOnboardingScripts(pathwayId, language);
       res.json(scripts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch onboarding scripts" });
