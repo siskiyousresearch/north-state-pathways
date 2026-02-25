@@ -78,16 +78,22 @@ async function checkBudget(): Promise<{ allowed: boolean; reason?: string }> {
   const monthlyBudget = await storage.getSetting("monthly_token_budget");
 
   if (dailyBudget) {
-    const dailyStats = await storage.getTokenUsageStats("day");
-    if (dailyStats.totalTokens >= parseInt(dailyBudget)) {
-      return { allowed: false, reason: `Daily token budget exceeded (${dailyStats.totalTokens.toLocaleString()} / ${parseInt(dailyBudget).toLocaleString()})` };
+    const budgetDollars = parseFloat(dailyBudget);
+    if (budgetDollars > 0) {
+      const dailyStats = await storage.getTokenUsageStats("day");
+      if (dailyStats.estimatedCost >= budgetDollars) {
+        return { allowed: false, reason: `Daily spending budget exceeded ($${dailyStats.estimatedCost.toFixed(4)} / $${budgetDollars.toFixed(2)})` };
+      }
     }
   }
 
   if (monthlyBudget) {
-    const monthlyStats = await storage.getTokenUsageStats("month");
-    if (monthlyStats.totalTokens >= parseInt(monthlyBudget)) {
-      return { allowed: false, reason: `Monthly token budget exceeded (${monthlyStats.totalTokens.toLocaleString()} / ${parseInt(monthlyBudget).toLocaleString()})` };
+    const budgetDollars = parseFloat(monthlyBudget);
+    if (budgetDollars > 0) {
+      const monthlyStats = await storage.getTokenUsageStats("month");
+      if (monthlyStats.estimatedCost >= budgetDollars) {
+        return { allowed: false, reason: `Monthly spending budget exceeded ($${monthlyStats.estimatedCost.toFixed(4)} / $${budgetDollars.toFixed(2)})` };
+      }
     }
   }
 
@@ -989,8 +995,8 @@ RULES:
         daily,
         monthly,
         budgets: {
-          daily: dailyBudget ? parseInt(dailyBudget) : null,
-          monthly: monthlyBudget ? parseInt(monthlyBudget) : null,
+          daily: dailyBudget ? parseFloat(dailyBudget) : null,
+          monthly: monthlyBudget ? parseFloat(monthlyBudget) : null,
         },
       });
     } catch (error) {

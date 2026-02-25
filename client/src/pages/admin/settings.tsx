@@ -433,34 +433,44 @@ export default function SettingsPage() {
         <Card className="p-5" data-testid="card-token-budget">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-4 h-4 text-primary" />
-            <h3 className="font-semibold">Token Budget</h3>
+            <h3 className="font-semibold">Spending Budget</h3>
           </div>
           <p className="text-sm text-muted-foreground mb-4">
-            Set daily and monthly token limits to control AI costs. Leave empty for unlimited usage.
+            Set daily and monthly dollar limits to control AI costs. Leave empty for unlimited usage.
           </p>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-xs font-medium">Daily Token Limit</Label>
-              <Input
-                type="number"
-                value={dailyBudget}
-                onChange={(e) => { setDailyBudget(e.target.value); setHasChanges(true); }}
-                placeholder="e.g., 500000"
-                className="mt-1"
-                data-testid="input-daily-budget"
-              />
+              <Label className="text-xs font-medium">Daily Budget ($)</Label>
+              <div className="relative mt-1">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={dailyBudget}
+                  onChange={(e) => { setDailyBudget(e.target.value); setHasChanges(true); }}
+                  placeholder="e.g., 5.00"
+                  className="pl-7"
+                  data-testid="input-daily-budget"
+                />
+              </div>
               <p className="text-[10px] text-muted-foreground mt-1">Resets at midnight</p>
             </div>
             <div>
-              <Label className="text-xs font-medium">Monthly Token Limit</Label>
-              <Input
-                type="number"
-                value={monthlyBudget}
-                onChange={(e) => { setMonthlyBudget(e.target.value); setHasChanges(true); }}
-                placeholder="e.g., 10000000"
-                className="mt-1"
-                data-testid="input-monthly-budget"
-              />
+              <Label className="text-xs font-medium">Monthly Budget ($)</Label>
+              <div className="relative mt-1">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={monthlyBudget}
+                  onChange={(e) => { setMonthlyBudget(e.target.value); setHasChanges(true); }}
+                  placeholder="e.g., 50.00"
+                  className="pl-7"
+                  data-testid="input-monthly-budget"
+                />
+              </div>
               <p className="text-[10px] text-muted-foreground mt-1">Resets on the 1st</p>
             </div>
           </div>
@@ -470,32 +480,30 @@ export default function SettingsPage() {
           <Card className="p-5" data-testid="card-token-usage">
             <div className="flex items-center gap-2 mb-4">
               <BarChart3 className="w-4 h-4 text-primary" />
-              <h3 className="font-semibold">Token Usage</h3>
+              <h3 className="font-semibold">Usage & Spending</h3>
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-5">
               <div className="p-3 rounded-md bg-muted/50">
                 <p className="text-xs font-medium text-muted-foreground mb-1">Today</p>
-                <p className="text-lg font-bold">{tokenUsage.daily.totalTokens.toLocaleString()}</p>
-                <p className="text-xs text-muted-foreground">tokens</p>
-                <p className="text-sm font-semibold text-primary mt-1">${tokenUsage.daily.estimatedCost.toFixed(4)}</p>
-                <p className="text-[10px] text-muted-foreground">estimated cost</p>
+                <p className="text-lg font-bold">${tokenUsage.daily.estimatedCost.toFixed(4)}</p>
+                <p className="text-xs text-muted-foreground">{tokenUsage.daily.totalTokens.toLocaleString()} tokens</p>
                 {tokenUsage.budgets.daily && (
                   <div className="mt-2">
                     <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-0.5">
-                      <span>Budget</span>
-                      <span>{Math.round((tokenUsage.daily.totalTokens / tokenUsage.budgets.daily) * 100)}%</span>
+                      <span>${tokenUsage.daily.estimatedCost.toFixed(2)} / ${tokenUsage.budgets.daily.toFixed(2)}</span>
+                      <span>{Math.min(100, Math.round((tokenUsage.daily.estimatedCost / tokenUsage.budgets.daily) * 100))}%</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-1.5">
                       <div
                         className={`h-1.5 rounded-full transition-all ${
-                          tokenUsage.daily.totalTokens / tokenUsage.budgets.daily > 0.9
+                          tokenUsage.daily.estimatedCost / tokenUsage.budgets.daily > 0.9
                             ? "bg-destructive"
-                            : tokenUsage.daily.totalTokens / tokenUsage.budgets.daily > 0.7
+                            : tokenUsage.daily.estimatedCost / tokenUsage.budgets.daily > 0.7
                             ? "bg-yellow-500"
                             : "bg-primary"
                         }`}
-                        style={{ width: `${Math.min(100, (tokenUsage.daily.totalTokens / tokenUsage.budgets.daily) * 100)}%` }}
+                        style={{ width: `${Math.min(100, (tokenUsage.daily.estimatedCost / tokenUsage.budgets.daily) * 100)}%` }}
                       />
                     </div>
                   </div>
@@ -503,26 +511,24 @@ export default function SettingsPage() {
               </div>
               <div className="p-3 rounded-md bg-muted/50">
                 <p className="text-xs font-medium text-muted-foreground mb-1">This Month</p>
-                <p className="text-lg font-bold">{tokenUsage.monthly.totalTokens.toLocaleString()}</p>
-                <p className="text-xs text-muted-foreground">tokens</p>
-                <p className="text-sm font-semibold text-primary mt-1">${tokenUsage.monthly.estimatedCost.toFixed(4)}</p>
-                <p className="text-[10px] text-muted-foreground">estimated cost</p>
+                <p className="text-lg font-bold">${tokenUsage.monthly.estimatedCost.toFixed(4)}</p>
+                <p className="text-xs text-muted-foreground">{tokenUsage.monthly.totalTokens.toLocaleString()} tokens</p>
                 {tokenUsage.budgets.monthly && (
                   <div className="mt-2">
                     <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-0.5">
-                      <span>Budget</span>
-                      <span>{Math.round((tokenUsage.monthly.totalTokens / tokenUsage.budgets.monthly) * 100)}%</span>
+                      <span>${tokenUsage.monthly.estimatedCost.toFixed(2)} / ${tokenUsage.budgets.monthly.toFixed(2)}</span>
+                      <span>{Math.min(100, Math.round((tokenUsage.monthly.estimatedCost / tokenUsage.budgets.monthly) * 100))}%</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-1.5">
                       <div
                         className={`h-1.5 rounded-full transition-all ${
-                          tokenUsage.monthly.totalTokens / tokenUsage.budgets.monthly > 0.9
+                          tokenUsage.monthly.estimatedCost / tokenUsage.budgets.monthly > 0.9
                             ? "bg-destructive"
-                            : tokenUsage.monthly.totalTokens / tokenUsage.budgets.monthly > 0.7
+                            : tokenUsage.monthly.estimatedCost / tokenUsage.budgets.monthly > 0.7
                             ? "bg-yellow-500"
                             : "bg-primary"
                         }`}
-                        style={{ width: `${Math.min(100, (tokenUsage.monthly.totalTokens / tokenUsage.budgets.monthly) * 100)}%` }}
+                        style={{ width: `${Math.min(100, (tokenUsage.monthly.estimatedCost / tokenUsage.budgets.monthly) * 100)}%` }}
                       />
                     </div>
                   </div>
