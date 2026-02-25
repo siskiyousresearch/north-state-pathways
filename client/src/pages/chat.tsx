@@ -203,7 +203,7 @@ export default function ChatPage() {
   }, [voiceEnabled, stopCurrentAudio]);
 
   useEffect(() => {
-    playStaticAudio("/audio/onboarding/welcome.mp3");
+    playStaticAudio(language === "es" ? "/audio/onboarding/es/welcome.mp3" : "/audio/onboarding/welcome.mp3");
     return () => {
       stopCurrentAudio();
     };
@@ -346,34 +346,54 @@ export default function ChatPage() {
     }
   };
 
-  const playStepAudio = useCallback((step: string, contextKey: string | undefined, fallbackUrl: string) => {
+  const playStepAudioAsync = useCallback(async (step: string, contextKey: string | undefined, pathwayId: number | null, fallbackUrl: string) => {
     const dbAudio = getScriptAudio(step, contextKey);
-    playStaticAudio(dbAudio || fallbackUrl);
-  }, [getScriptAudio, playStaticAudio]);
+    if (dbAudio) {
+      playStaticAudio(dbAudio);
+      return;
+    }
+    if (pathwayId) {
+      try {
+        const res = await fetch(`/api/onboarding-scripts?pathwayId=${pathwayId}&language=${language}`);
+        if (res.ok) {
+          const scripts: OnboardingScript[] = await res.json();
+          const match = scripts.find(s =>
+            s.step === step && (contextKey ? s.contextKey === contextKey : !s.contextKey)
+          );
+          if (match?.audioUrl) {
+            playStaticAudio(match.audioUrl);
+            return;
+          }
+        }
+      } catch {}
+    }
+    playStaticAudio(fallbackUrl);
+  }, [getScriptAudio, playStaticAudio, language]);
 
   const handlePathwaySelect = (pathway: string) => {
     setSelectedPathway(pathway);
     setOnboardingStep("county");
-    playStepAudio("county", undefined, getCountyAudio(pathway));
+    const pw = dbPathways.find(p => p.slug === pathway);
+    playStepAudioAsync("county", undefined, pw?.id ?? null, getCountyAudio(pathway));
   };
 
   const handleCountySelect = (county: string) => {
     setSelectedCounty(county);
     setOnboardingStep("student-type");
-    playStepAudio("student-type", county.toLowerCase(), getStudentTypeAudio(county));
+    playStepAudioAsync("student-type", county.toLowerCase(), selectedPathwayId, getStudentTypeAudio(county));
   };
 
   const handleStudentTypeSelect = (typeId: string) => {
     setSelectedStudentType(typeId);
     stopCurrentAudio();
     setOnboardingStep("study-location");
-    playStepAudio("study-location", typeId, getStudyLocationAudio(typeId));
+    playStepAudioAsync("study-location", typeId, selectedPathwayId, getStudyLocationAudio(typeId));
   };
 
   const handleStudyLocationSelect = (location: string) => {
     setStudyLocation(location);
     setOnboardingStep("support-needs");
-    playStepAudio("support-needs", location, getSupportNeedsAudio(location));
+    playStepAudioAsync("support-needs", location, selectedPathwayId, getSupportNeedsAudio(location));
   };
 
   const toggleSupport = (id: string) => {
@@ -413,22 +433,22 @@ export default function ChatPage() {
     if (onboardingStep === "county") {
       setSelectedPathway(null);
       setOnboardingStep("pathway");
-      playStepAudio("pathway", undefined, "/audio/onboarding/welcome.mp3");
+      playStaticAudio(language === "es" ? "/audio/onboarding/es/welcome.mp3" : "/audio/onboarding/welcome.mp3");
     } else if (onboardingStep === "student-type") {
       const pw = selectedPathway;
       setSelectedCounty(null);
       setOnboardingStep("county");
-      if (pw) playStepAudio("county", undefined, getCountyAudio(pw));
+      if (pw) playStepAudioAsync("county", undefined, selectedPathwayId, getCountyAudio(pw));
     } else if (onboardingStep === "study-location") {
       const county = selectedCounty;
       setSelectedStudentType(null);
       setOnboardingStep("student-type");
-      if (county) playStepAudio("student-type", county.toLowerCase(), getStudentTypeAudio(county));
+      if (county) playStepAudioAsync("student-type", county.toLowerCase(), selectedPathwayId, getStudentTypeAudio(county));
     } else if (onboardingStep === "support-needs") {
       const st = selectedStudentType;
       setStudyLocation(null);
       setOnboardingStep("study-location");
-      if (st) playStepAudio("study-location", st, getStudyLocationAudio(st));
+      if (st) playStepAudioAsync("study-location", st, selectedPathwayId, getStudyLocationAudio(st));
     }
   };
 
