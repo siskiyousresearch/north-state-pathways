@@ -318,6 +318,42 @@ export async function registerRoutes(
     }
   });
 
+  // ========== MAP API ==========
+  app.get("/api/map/institutions", async (req, res) => {
+    try {
+      const institutions = await storage.getInstitutions();
+      const programs = await storage.getPrograms();
+      const pathways = await storage.getPathways();
+
+      const result = institutions.map(inst => {
+        const instPrograms = programs
+          .filter(p => p.institutionId === inst.id)
+          .map(p => ({
+            id: p.id,
+            name: p.name,
+            level: p.level,
+            pathway: pathways.find(pw => pw.id === p.pathwayId)?.name || null,
+            pathwaySlug: pathways.find(pw => pw.id === p.pathwayId)?.slug || null,
+            url: p.url,
+          }));
+        return {
+          id: inst.id,
+          name: inst.name,
+          type: inst.type,
+          county: inst.county,
+          website: inst.website,
+          description: inst.description,
+          programs: instPrograms,
+        };
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching map institutions:", error);
+      res.status(500).json({ error: "Failed to fetch map data" });
+    }
+  });
+
   // ========== TTS API ==========
   app.post("/api/tts", async (req, res) => {
     try {

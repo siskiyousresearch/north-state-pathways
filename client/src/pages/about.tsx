@@ -41,6 +41,9 @@ export default function AboutPage() {
               <Globe className="w-4 h-4 mr-1" />
               {language === "en" ? "ES" : "EN"}
             </Button>
+            <Link href="/explore">
+              <Button variant="ghost" data-testid="button-explore-link-about">{t("nav.explore")}</Button>
+            </Link>
             <Link href="/chat">
               <Button data-testid="button-start-chat-about">{t("nav.startExploring")}</Button>
             </Link>

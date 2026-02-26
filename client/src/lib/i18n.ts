@@ -148,6 +148,24 @@ const translations: Record<string, Record<Language, string>> = {
   "support.financialDesc": { en: "Scholarships, grants, financial aid, and tuition assistance", es: "Becas, subvenciones, ayuda financiera y asistencia con matrícula" },
   "support.workExperience": { en: "Work Experience", es: "Experiencia Laboral" },
   "support.workExperienceDesc": { en: "Internships, clinical placements, apprenticeships, and job shadows", es: "Pasantías, prácticas clínicas, aprendizajes y observación laboral" },
+
+  "nav.explore": { en: "Explore Map", es: "Explorar Mapa" },
+  "explore.title": { en: "Explore North State Institutions", es: "Explorar Instituciones del Norte del Estado" },
+  "explore.subtitle": { en: "Discover colleges, universities, and education centers across Northern California's 10-county region", es: "Descubre colegios, universidades y centros educativos en la región de 10 condados del norte de California" },
+  "explore.filterAll": { en: "All Institutions", es: "Todas las Instituciones" },
+  "explore.filterHealthcare": { en: "Healthcare", es: "Salud" },
+  "explore.filterEducation": { en: "Education", es: "Educación" },
+  "explore.programs": { en: "Programs", es: "Programas" },
+  "explore.visitWebsite": { en: "Visit Website", es: "Visitar Sitio Web" },
+  "explore.county": { en: "County", es: "Condado" },
+  "explore.online": { en: "Online", es: "En Línea" },
+  "explore.outOfRegion": { en: "Outside Region", es: "Fuera de la Región" },
+  "explore.startChat": { en: "Chat with AI Assistant", es: "Chatear con Asistente IA" },
+  "explore.communityCollege": { en: "Community College", es: "Colegio Comunitario" },
+  "explore.university": { en: "University", es: "Universidad" },
+  "explore.countyOffice": { en: "County Office of Education", es: "Oficina de Educación del Condado" },
+  "explore.onlineUniversity": { en: "Online University", es: "Universidad en Línea" },
+  "explore.noPrograms": { en: "No programs match the current filter", es: "Ningún programa coincide con el filtro actual" },
 };
 
 export function getTranslation(key: string, language: Language): string {

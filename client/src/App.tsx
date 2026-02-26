@@ -10,6 +10,7 @@ import LandingPage from "@/pages/landing";
 import ChatPage from "@/pages/chat";
 import AboutPage from "@/pages/about";
 import AdminLayout from "@/pages/admin/layout";
+import ExplorePage from "@/pages/explore";
 
 function Router() {
   return (
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/" component={LandingPage} />
       <Route path="/chat" component={ChatPage} />
       <Route path="/about" component={AboutPage} />
+      <Route path="/explore" component={ExplorePage} />
       <Route path="/admin" component={AdminLayout} />
       <Route path="/admin/:rest*" component={AdminLayout} />
       <Route component={NotFound} />

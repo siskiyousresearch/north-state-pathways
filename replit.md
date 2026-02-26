@@ -146,6 +146,12 @@ shared/
 44. Spanish system prompt (`SYSTEM_PROMPT_SPANISH`) for AI chatbot responses in Spanish
 45. Admin Onboarding Scripts page: EN/ES filter tabs for managing scripts by language
 46. Chat messages accept `language` field to select Spanish AI responses
+47. Interactive Explore Map page (`/explore`) with AI-generated artistic illustration of North State CA
+48. Map markers for all 14 institutions with hover/click info cards showing programs
+49. Pathway filter (All/Healthcare/Education) on map sidebar
+50. Mobile-responsive: bottom card overlay on small screens, sidebar on desktop
+51. `GET /api/map/institutions` public endpoint returns institutions with programs and pathway data
+52. `client/src/lib/map-data.ts` defines institution/county positions on the illustrated map
 
 ## Running
 - `npm run dev` starts both frontend (Vite) and backend (Express) on port 5000
