@@ -16,6 +16,7 @@ interface QuizQuestion {
   id: string;
   category: string;
   question: { en: string; es: string };
+  gif: string;
   options: { value: string; label: { en: string; es: string } }[];
 }
 
@@ -27,6 +28,7 @@ const healthcareQuestions: QuizQuestion[] = [
       en: "What matters most to you in a career?",
       es: "¿Qué es lo que más te importa en una carrera?",
     },
+    gif: "https://media.tenor.com/74vAlO-QvWAAAAAd/black-guy-thinking.gif",
     options: [
       { value: "money", label: { en: "High earning potential — I want financial security", es: "Alto potencial de ingresos — quiero seguridad financiera" } },
       { value: "passion", label: { en: "Helping people — I want to make a difference", es: "Ayudar a las personas — quiero hacer la diferencia" } },
@@ -41,6 +43,7 @@ const healthcareQuestions: QuizQuestion[] = [
       en: "How much time are you willing to spend in school?",
       es: "¿Cuánto tiempo estás dispuesto/a a pasar estudiando?",
     },
+    gif: "https://media.tenor.com/lOgxwnWrxqYAAAAd/dog-cute.gif",
     options: [
       { value: "minimal", label: { en: "As little as possible — on-the-job training or a few months", es: "Lo menos posible — capacitación en el trabajo o unos meses" } },
       { value: "short", label: { en: "1-2 years — a certificate or associate degree", es: "1-2 años — un certificado o título de asociado" } },
@@ -55,6 +58,7 @@ const healthcareQuestions: QuizQuestion[] = [
       en: "How much do you want to work directly with patients?",
       es: "¿Cuánto deseas trabajar directamente con pacientes?",
     },
+    gif: "https://media.tenor.com/ZK1mkWw-65wAAAAd/hug-cute.gif",
     options: [
       { value: "all_the_time", label: { en: "All the time — I love working with people face-to-face", es: "Todo el tiempo — me encanta trabajar cara a cara con las personas" } },
       { value: "some", label: { en: "Some interaction is fine, but not all day", es: "Algo de interacción está bien, pero no todo el día" } },
@@ -68,6 +72,7 @@ const healthcareQuestions: QuizQuestion[] = [
       en: "How comfortable are you with medical procedures and blood?",
       es: "¿Qué tan cómodo/a te sientes con procedimientos médicos y sangre?",
     },
+    gif: "https://media.tenor.com/-EKVxmGt7UcAAAAd/nurse-dance.gif",
     options: [
       { value: "very", label: { en: "Very comfortable — I can handle anything", es: "Muy cómodo/a — puedo manejar cualquier cosa" } },
       { value: "somewhat", label: { en: "Somewhat comfortable — I can manage with training", es: "Algo cómodo/a — puedo manejarlo con capacitación" } },
@@ -81,6 +86,7 @@ const healthcareQuestions: QuizQuestion[] = [
       en: "What kind of work pace do you prefer?",
       es: "¿Qué tipo de ritmo de trabajo prefieres?",
     },
+    gif: "https://media.tenor.com/sfgjf1JnpFoAAAAd/running-firefighter.gif",
     options: [
       { value: "fast", label: { en: "Fast-paced and high-pressure — I thrive under stress", es: "Rápido y alta presión — me desempeño bien bajo estrés" } },
       { value: "moderate", label: { en: "Steady and structured — I like routine with some variety", es: "Estable y estructurado — me gusta la rutina con algo de variedad" } },
@@ -94,6 +100,7 @@ const healthcareQuestions: QuizQuestion[] = [
       en: "What age group are you most interested in working with?",
       es: "¿Con qué grupo de edad te interesa más trabajar?",
     },
+    gif: "https://media.tenor.com/E5MlxuCvJYMAAAAd/hugs-family.gif",
     options: [
       { value: "children", label: { en: "Children and teenagers", es: "Niños y adolescentes" } },
       { value: "adults", label: { en: "Adults", es: "Adultos" } },
@@ -111,6 +118,7 @@ const educationQuestions: QuizQuestion[] = [
       en: "Why are you interested in a career in education?",
       es: "¿Por qué te interesa una carrera en educación?",
     },
+    gif: "https://media.tenor.com/0awndc0411wAAAAd/happy-dance-excited.gif",
     options: [
       { value: "inspire", label: { en: "I want to inspire and shape young minds", es: "Quiero inspirar y formar mentes jóvenes" } },
       { value: "community", label: { en: "I want to strengthen my community through education", es: "Quiero fortalecer mi comunidad a través de la educación" } },
@@ -125,6 +133,7 @@ const educationQuestions: QuizQuestion[] = [
       en: "What age group would you most like to teach?",
       es: "¿A qué grupo de edad te gustaría enseñar más?",
     },
+    gif: "https://media.tenor.com/F4EfNZj7nCsAAAAd/alex-wolff-raising-hand.gif",
     options: [
       { value: "early_childhood", label: { en: "Young children (preschool to kindergarten)", es: "Niños pequeños (preescolar a kinder)" } },
       { value: "elementary", label: { en: "Elementary school (grades 1-6)", es: "Escuela primaria (grados 1-6)" } },
@@ -139,6 +148,7 @@ const educationQuestions: QuizQuestion[] = [
       en: "How much schooling are you willing to complete?",
       es: "¿Cuánta educación estás dispuesto/a a completar?",
     },
+    gif: "https://media.tenor.com/ICCkMEE3hKUAAAAd/graduation-celebration.gif",
     options: [
       { value: "certificate", label: { en: "A certificate program (less than 2 years)", es: "Un programa de certificado (menos de 2 años)" } },
       { value: "associates", label: { en: "An associate degree (2 years)", es: "Un título de asociado (2 años)" } },
@@ -153,6 +163,7 @@ const educationQuestions: QuizQuestion[] = [
       en: "What kind of role interests you most?",
       es: "¿Qué tipo de rol te interesa más?",
     },
+    gif: "https://media.tenor.com/UQ4bHLp78PYAAAAM/team-high-five-family-feud-canada.gif",
     options: [
       { value: "classroom", label: { en: "Lead teacher in a classroom", es: "Maestro/a principal en un salón de clases" } },
       { value: "support", label: { en: "Supporting role — helping teachers and students", es: "Rol de apoyo — ayudando a maestros y estudiantes" } },
@@ -167,6 +178,7 @@ const educationQuestions: QuizQuestion[] = [
       en: "What kind of work environment do you prefer?",
       es: "¿Qué tipo de ambiente de trabajo prefieres?",
     },
+    gif: "https://media.tenor.com/JChxs-yyayQAAAAd/cozy-aesthetic.gif",
     options: [
       { value: "structured", label: { en: "Structured and predictable — I like a set schedule", es: "Estructurado y predecible — me gusta un horario fijo" } },
       { value: "dynamic", label: { en: "Dynamic and creative — every day is different", es: "Dinámico y creativo — cada día es diferente" } },
@@ -180,6 +192,7 @@ const educationQuestions: QuizQuestion[] = [
       en: "Where would you prefer to study?",
       es: "¿Dónde preferirías estudiar?",
     },
+    gif: "https://media.tenor.com/PdIGGQsJAF4AAAAd/summer-road-trip.gif",
     options: [
       { value: "local", label: { en: "Locally in the North State — I want to stay close to home", es: "Localmente en el Norte del Estado — quiero quedarme cerca de casa" } },
       { value: "willing_travel", label: { en: "I'm willing to travel or relocate for the right program", es: "Estoy dispuesto/a a viajar o mudarme por el programa adecuado" } },
@@ -372,9 +385,19 @@ export default function AssessmentPage() {
                 <Progress value={progress} className="h-1.5" data-testid="progress-quiz" />
               </div>
 
-              <h2 className="text-xl font-bold" data-testid="text-question">
-                {currentQuestion.question[language]}
-              </h2>
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-32 h-32 rounded-2xl overflow-hidden bg-muted/50 shrink-0" data-testid="img-question-gif">
+                  <img
+                    src={currentQuestion.gif}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    loading="eager"
+                  />
+                </div>
+                <h2 className="text-xl font-bold text-center" data-testid="text-question">
+                  {currentQuestion.question[language]}
+                </h2>
+              </div>
 
               <div className="space-y-2.5">
                 {currentQuestion.options.map(opt => {
