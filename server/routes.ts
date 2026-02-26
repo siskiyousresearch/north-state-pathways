@@ -267,10 +267,12 @@ export async function registerRoutes(
   // ========== AUTH API ==========
   app.post("/api/auth/login", (req, res) => {
     const { username, password } = req.body;
-    const adminUser = process.env.ADMIN_USERNAME || "SCAILE";
-    const adminPass = process.env.ADMIN_PASSWORD || "";
+    const adminUser = (process.env.ADMIN_USERNAME || "SCAILE").trim();
+    const adminPass = (process.env.ADMIN_PASSWORD || "").trim();
+    const inputUser = (username || "").trim();
+    const inputPass = (password || "").trim();
 
-    if (username === adminUser && password === adminPass) {
+    if (inputUser === adminUser && inputPass === adminPass) {
       req.session.isAdmin = true;
       req.session.save((err) => {
         if (err) {
