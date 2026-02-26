@@ -353,6 +353,178 @@ export async function registerRoutes(
     }
   });
 
+  // ========== SELF-ASSESSMENT API ==========
+  app.post("/api/assessment/results", async (req, res) => {
+    try {
+      const { track, answers, language } = req.body;
+      if (!track || !answers || typeof answers !== "object") {
+        return res.status(400).json({ error: "Track and answers required" });
+      }
+
+      const programs = await storage.getPrograms();
+      const institutions = await storage.getInstitutions();
+      const pathways = await storage.getPathways();
+      const lang = language === "es" ? "es" : "en";
+
+      const pathwaySlug = track === "healthcare" ? "healthcare" : "education";
+      const pathway = pathways.find(p => p.slug === pathwaySlug);
+      const trackPrograms = programs.filter(p => p.pathwayId === pathway?.id);
+
+      interface ScoredProgram {
+        program: typeof programs[0];
+        score: number;
+      }
+
+      const scored: ScoredProgram[] = trackPrograms.map(prog => {
+        let score = 50;
+        const level = (prog.level || "").toLowerCase();
+        const name = (prog.name || "").toLowerCase();
+        const desc = (prog.description || "").toLowerCase();
+
+        if (track === "healthcare") {
+          const edu = answers.hc_education;
+          if (edu === "minimal" && (level.includes("certificate") || name.includes("cna") || name.includes("emt"))) score += 30;
+          if (edu === "short" && (level.includes("certificate") || level.includes("associate"))) score += 25;
+          if (edu === "medium" && level.includes("bachelor")) score += 25;
+          if (edu === "long" && (level.includes("master") || level.includes("bachelor"))) score += 20;
+
+          const patients = answers.hc_patients;
+          if (patients === "all_the_time" && (name.includes("nurs") || name.includes("emt") || name.includes("paramedic") || name.includes("medical assist"))) score += 20;
+          if (patients === "minimal" && (name.includes("health info") || name.includes("admin"))) score += 20;
+
+          const medical = answers.hc_medical;
+          if (medical === "very" && (name.includes("nurs") || name.includes("emt") || name.includes("paramedic"))) score += 15;
+          if (medical === "not_really" && (name.includes("health info") || name.includes("admin"))) score += 15;
+
+          const emergency = answers.hc_emergency;
+          if (emergency === "fast" && (name.includes("emt") || name.includes("paramedic") || name.includes("emergency"))) score += 15;
+          if (emergency === "moderate" && name.includes("nurs")) score += 10;
+          if (emergency === "calm" && (name.includes("health info") || name.includes("medical assist"))) score += 10;
+
+          const ageGroup = answers.hc_age_group;
+          if (ageGroup === "elderly" && (name.includes("cna") || name.includes("lvn") || name.includes("nurs"))) score += 10;
+          if (ageGroup === "children" && name.includes("nurs")) score += 5;
+        }
+
+        if (track === "education") {
+          const eduLevel = answers.ed_education_level;
+          if (eduLevel === "certificate" && level.includes("certificate")) score += 30;
+          if (eduLevel === "associates" && (level.includes("associate") || level.includes("certificate"))) score += 25;
+          if (eduLevel === "bachelors" && level.includes("bachelor")) score += 25;
+          if (eduLevel === "masters" && (level.includes("master") || level.includes("credential"))) score += 30;
+
+          const role = answers.ed_role;
+          if (role === "classroom" && (name.includes("teaching credential") || name.includes("liberal studies"))) score += 25;
+          if (role === "support" && (name.includes("paraprofessional") || name.includes("aide"))) score += 25;
+          if (role === "childcare" && name.includes("early childhood")) score += 30;
+          if (role === "specialist" && (name.includes("credential") || name.includes("mat"))) score += 20;
+
+          const ageGroup = answers.ed_age_group;
+          if (ageGroup === "early_childhood" && name.includes("early childhood")) score += 25;
+          if (ageGroup === "elementary" && (name.includes("elementary") || name.includes("liberal studies"))) score += 20;
+          if (ageGroup === "secondary" && name.includes("secondary")) score += 25;
+          if (ageGroup === "adult" && (name.includes("mat") || level.includes("master"))) score += 15;
+        }
+
+        return { program: prog, score };
+      });
+
+      scored.sort((a, b) => b.score - a.score);
+      const topPrograms = scored.slice(0, 5);
+
+      const resultPrograms = topPrograms.map(sp => {
+        const inst = institutions.find(i => i.id === sp.program.institutionId);
+        return {
+          name: sp.program.name,
+          institution: inst?.name || "Unknown",
+          level: sp.program.level || "Various",
+          url: sp.program.url || null,
+        };
+      });
+
+      let title: string;
+      let description: string;
+      let nextSteps: string[];
+
+      if (track === "healthcare") {
+        const topName = topPrograms[0]?.program.name || "";
+        if (lang === "es") {
+          title = topName.includes("Nurs") || topName.includes("nurs")
+            ? "Enfermería y Cuidado Directo del Paciente"
+            : topName.includes("EMT") || topName.includes("Paramedic")
+            ? "Servicios Médicos de Emergencia"
+            : topName.includes("Health Info")
+            ? "Administración e Informática de Salud"
+            : "Profesional de Salud";
+          description = "Según tus respuestas, estos programas de salud se alinean con tus intereses, tolerancia al entorno clínico y metas educativas.";
+          nextSteps = [
+            "Visita los sitios web de los programas para conocer requisitos de admisión y plazos",
+            "Contacta a los servicios de consejería de la institución para una orientación personalizada",
+            "Explora opciones de ayuda financiera y becas en nuestra sección de recursos",
+            "Chatea con nuestro asistente de IA para obtener más orientación personalizada",
+          ];
+        } else {
+          title = topName.includes("Nurs") || topName.includes("nurs")
+            ? "Nursing & Direct Patient Care"
+            : topName.includes("EMT") || topName.includes("Paramedic")
+            ? "Emergency Medical Services"
+            : topName.includes("Health Info")
+            ? "Health Administration & Informatics"
+            : "Healthcare Professional";
+          description = "Based on your responses, these healthcare programs align with your interests, clinical comfort level, and educational goals.";
+          nextSteps = [
+            "Visit the program websites to learn about admission requirements and deadlines",
+            "Contact the institution's counseling services for personalized guidance",
+            "Explore financial aid and scholarship options in our resources section",
+            "Chat with our AI assistant for more personalized career guidance",
+          ];
+        }
+      } else {
+        const topName = topPrograms[0]?.program.name || "";
+        if (lang === "es") {
+          title = topName.includes("Early Childhood")
+            ? "Educación Infantil Temprana"
+            : topName.includes("Elementary") || topName.includes("Liberal Studies")
+            ? "Enseñanza en Educación Primaria"
+            : topName.includes("Secondary")
+            ? "Enseñanza en Educación Secundaria"
+            : topName.includes("Paraprofessional")
+            ? "Apoyo Educativo y Asistencia"
+            : "Profesional de la Educación";
+          description = "Según tus respuestas, estos programas educativos coinciden con tu grupo de edad preferido, nivel de educación y estilo de trabajo.";
+          nextSteps = [
+            "Investiga los requisitos de credencial del estado de California para tu área de interés",
+            "Visita los sitios web de los programas para conocer requisitos y plazos",
+            "Explora opciones de ayuda financiera y becas disponibles para futuros educadores",
+            "Chatea con nuestro asistente de IA para obtener más orientación personalizada",
+          ];
+        } else {
+          title = topName.includes("Early Childhood")
+            ? "Early Childhood Education"
+            : topName.includes("Elementary") || topName.includes("Liberal Studies")
+            ? "Elementary Education Teaching"
+            : topName.includes("Secondary")
+            ? "Secondary Education Teaching"
+            : topName.includes("Paraprofessional")
+            ? "Educational Support & Assistance"
+            : "Education Professional";
+          description = "Based on your responses, these education programs match your preferred age group, education level, and work style.";
+          nextSteps = [
+            "Research California state credential requirements for your area of interest",
+            "Visit the program websites to learn about admission requirements and deadlines",
+            "Explore financial aid and scholarship options available for future educators",
+            "Chat with our AI assistant for more personalized career guidance",
+          ];
+        }
+      }
+
+      res.json({ title, description, programs: resultPrograms, nextSteps });
+    } catch (error) {
+      console.error("Assessment error:", error);
+      res.status(500).json({ error: "Failed to process assessment" });
+    }
+  });
+
   // ========== TTS API ==========
   app.post("/api/tts", async (req, res) => {
     try {

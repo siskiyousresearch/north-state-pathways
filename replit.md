@@ -30,6 +30,8 @@ client/src/
       settings.tsx    - AI model selection, API keys, research model config
       onboarding-scripts.tsx - Onboarding narration scripts (In Development)
       explore-map.tsx - Explore Map admin page (In Development)
+      self-assessment.tsx - Self-Assessment admin page (In Development)
+    assessment.tsx      - Career self-assessment quiz (Healthcare/Education tracks)
   components/
     admin-sidebar.tsx - Admin navigation sidebar (collapsible "In Development" section)
     ui/              - shadcn/ui components
@@ -71,6 +73,7 @@ shared/
 - `POST /api/admin/onboarding-scripts/:id/generate-audio` - Generate TTS audio (auth required)
 - `POST /api/admin/onboarding-scripts/auto-generate` - AI-generate script text (auth required)
 - `GET /api/onboarding-scripts?pathwayId=N` - Public: fetch scripts for a pathway
+- `POST /api/assessment/results` - Career quiz program matching (public)
 
 ## Database Tables
 - counties, institutions, pathways, programs, resources (knowledge base)
@@ -154,6 +157,10 @@ shared/
 50. Mobile-responsive: bottom card overlay on small screens, sidebar on desktop
 51. `GET /api/map/institutions` public endpoint returns institutions with programs and pathway data
 52. `client/src/lib/map-data.ts` defines institution/county positions on the illustrated map
+53. Career Self-Assessment quiz at `/assessment` with Healthcare (6 questions) and Education (6 questions) tracks
+54. Score-based program matching: quiz answers scored against database programs by level, name, and role keywords
+55. `POST /api/assessment/results` returns top 5 matched programs with institution info and next steps
+56. Self-Assessment admin page under "In Development" sidebar section
 
 ## Running
 - `npm run dev` starts both frontend (Vite) and backend (Express) on port 5000

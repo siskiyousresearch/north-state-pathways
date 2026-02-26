@@ -15,6 +15,7 @@ import ResearchPage from "./research";
 import SettingsPage from "./settings";
 import OnboardingScriptsPage from "./onboarding-scripts";
 import ExploreMapAdmin from "./explore-map";
+import SelfAssessmentAdmin from "./self-assessment";
 import AdminLogin from "./login";
 
 export default function AdminLayout() {
@@ -81,6 +82,7 @@ export default function AdminLayout() {
               <Route path="/admin/settings" component={SettingsPage} />
               <Route path="/admin/onboarding-scripts" component={OnboardingScriptsPage} />
               <Route path="/admin/explore-map" component={ExploreMapAdmin} />
+              <Route path="/admin/self-assessment" component={SelfAssessmentAdmin} />
             </Switch>
           </main>
         </div>
