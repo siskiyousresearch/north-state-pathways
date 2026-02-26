@@ -35,9 +35,6 @@ const chatModels: ModelOption[] = [
   { value: "anthropic/claude-sonnet-4-20250514", label: "Claude Sonnet 4", desc: "Great at nuanced conversation and writing", tier: "Mid-range", provider: "anthropic" },
   { value: "anthropic/claude-haiku-3-5-20241022", label: "Claude 3.5 Haiku", desc: "Fast and affordable, great for chat", tier: "Budget-friendly", provider: "anthropic" },
 
-  { value: "openrouter/deepseek/deepseek-chat-v3-0324", label: "DeepSeek V3", desc: "Very capable, extremely cheap Chinese model", tier: "Ultra-cheap", provider: "openrouter" },
-  { value: "openrouter/deepseek/deepseek-r1", label: "DeepSeek R1", desc: "Reasoning model — great for complex questions", tier: "Budget-friendly", provider: "openrouter" },
-  { value: "openrouter/qwen/qwen-2.5-72b-instruct", label: "Qwen 2.5 72B", desc: "Alibaba's powerful model, very affordable", tier: "Budget-friendly", provider: "openrouter" },
   { value: "openrouter/mistralai/mistral-small-3.1-24b-instruct", label: "Mistral Small 3.1", desc: "Fast European model, good for chat", tier: "Budget-friendly", provider: "openrouter" },
   { value: "openrouter/google/gemini-2.5-flash", label: "Gemini 2.5 Flash", desc: "Google's fast model, great price-performance", tier: "Budget-friendly", provider: "openrouter" },
   { value: "openrouter/google/gemini-2.5-pro-preview", label: "Gemini 2.5 Pro", desc: "Google's flagship — top-tier quality", tier: "Premium", provider: "openrouter" },
@@ -51,7 +48,6 @@ const profilingModels: ModelOption[] = [
   { value: "openai-direct/gpt-4.1-nano", label: "GPT-4.1 Nano", desc: "Ultra-cheap profiling", provider: "openai" },
   { value: "openai-direct/gpt-4o-mini", label: "GPT-4o Mini", desc: "Reliable and fast", provider: "openai" },
   { value: "anthropic/claude-haiku-3-5-20241022", label: "Claude 3.5 Haiku", desc: "Fast extraction", provider: "anthropic" },
-  { value: "openrouter/deepseek/deepseek-chat-v3-0324", label: "DeepSeek V3", desc: "Extremely cheap", provider: "openrouter" },
   { value: "openrouter/google/gemini-2.5-flash", label: "Gemini 2.5 Flash", desc: "Fast and cheap", provider: "openrouter" },
 ];
 
