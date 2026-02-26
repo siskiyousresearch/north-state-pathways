@@ -402,8 +402,10 @@ export async function registerRoutes(
           if (emergency === "calm" && (name.includes("health info") || name.includes("medical assist"))) score += 10;
 
           const ageGroup = answers.hc_age_group;
-          if (ageGroup === "elderly" && (name.includes("cna") || name.includes("lvn") || name.includes("nurs"))) score += 10;
-          if (ageGroup === "children" && name.includes("nurs")) score += 5;
+          const ageGroups = Array.isArray(ageGroup) ? ageGroup : (ageGroup ? [ageGroup] : []);
+          if (ageGroups.includes("elderly") && (name.includes("cna") || name.includes("lvn") || name.includes("nurs"))) score += 10;
+          if (ageGroups.includes("children") && name.includes("nurs")) score += 5;
+          if (ageGroups.includes("all")) score += 5;
         }
 
         if (track === "education") {
@@ -420,10 +422,11 @@ export async function registerRoutes(
           if (role === "specialist" && (name.includes("credential") || name.includes("mat"))) score += 20;
 
           const ageGroup = answers.ed_age_group;
-          if (ageGroup === "early_childhood" && name.includes("early childhood")) score += 25;
-          if (ageGroup === "elementary" && (name.includes("elementary") || name.includes("liberal studies"))) score += 20;
-          if (ageGroup === "secondary" && name.includes("secondary")) score += 25;
-          if (ageGroup === "adult" && (name.includes("mat") || level.includes("master"))) score += 15;
+          const edAgeGroups = Array.isArray(ageGroup) ? ageGroup : (ageGroup ? [ageGroup] : []);
+          if (edAgeGroups.includes("early_childhood") && name.includes("early childhood")) score += 25;
+          if (edAgeGroups.includes("elementary") && (name.includes("elementary") || name.includes("liberal studies"))) score += 20;
+          if (edAgeGroups.includes("secondary") && name.includes("secondary")) score += 25;
+          if (edAgeGroups.includes("adult") && (name.includes("mat") || level.includes("master"))) score += 15;
         }
 
         return { program: prog, score };

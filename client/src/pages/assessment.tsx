@@ -17,6 +17,7 @@ interface QuizQuestion {
   category: string;
   question: { en: string; es: string };
   gif: string;
+  multiSelect?: boolean;
   options: { value: string; label: { en: string; es: string } }[];
 }
 
@@ -28,7 +29,7 @@ const healthcareQuestions: QuizQuestion[] = [
       en: "What matters most to you in a career?",
       es: "¿Qué es lo que más te importa en una carrera?",
     },
-    gif: "https://media.tenor.com/74vAlO-QvWAAAAAd/black-guy-thinking.gif",
+    gif: "https://media.tenor.com/a-4zC1uY0HYAAAAd/dream-big-big-dreams.gif",
     options: [
       { value: "money", label: { en: "High earning potential — I want financial security", es: "Alto potencial de ingresos — quiero seguridad financiera" } },
       { value: "passion", label: { en: "Helping people — I want to make a difference", es: "Ayudar a las personas — quiero hacer la diferencia" } },
@@ -97,10 +98,11 @@ const healthcareQuestions: QuizQuestion[] = [
     id: "hc_age_group",
     category: "Population",
     question: {
-      en: "What age group are you most interested in working with?",
-      es: "¿Con qué grupo de edad te interesa más trabajar?",
+      en: "What age groups are you interested in working with?",
+      es: "¿Con qué grupos de edad te interesa trabajar?",
     },
     gif: "https://media.tenor.com/E5MlxuCvJYMAAAAd/hugs-family.gif",
+    multiSelect: true,
     options: [
       { value: "children", label: { en: "Children and teenagers", es: "Niños y adolescentes" } },
       { value: "adults", label: { en: "Adults", es: "Adultos" } },
@@ -130,10 +132,11 @@ const educationQuestions: QuizQuestion[] = [
     id: "ed_age_group",
     category: "Age Group",
     question: {
-      en: "What age group would you most like to teach?",
-      es: "¿A qué grupo de edad te gustaría enseñar más?",
+      en: "What age groups would you like to teach?",
+      es: "¿A qué grupos de edad te gustaría enseñar?",
     },
     gif: "https://media.tenor.com/F4EfNZj7nCsAAAAd/alex-wolff-raising-hand.gif",
+    multiSelect: true,
     options: [
       { value: "early_childhood", label: { en: "Young children (preschool to kindergarten)", es: "Niños pequeños (preescolar a kinder)" } },
       { value: "elementary", label: { en: "Elementary school (grades 1-6)", es: "Escuela primaria (grados 1-6)" } },
@@ -219,16 +222,33 @@ export default function AssessmentPage() {
   const { language, setLanguage, t } = useLanguage();
   const [track, setTrack] = useState<Track | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [result, setResult] = useState<AssessmentResult | null>(null);
   const [loadingResult, setLoadingResult] = useState(false);
 
   const questions = track === "healthcare" ? healthcareQuestions : educationQuestions;
   const currentQuestion = questions[currentStep];
-  const progress = track ? ((currentStep + (answers[currentQuestion?.id] ? 1 : 0)) / questions.length) * 100 : 0;
+
+  const hasAnswer = (id: string) => {
+    const a = answers[id];
+    return a && (Array.isArray(a) ? a.length > 0 : a.length > 0);
+  };
+  const progress = track ? ((currentStep + (hasAnswer(currentQuestion?.id) ? 1 : 0)) / questions.length) * 100 : 0;
 
   const handleSelectOption = (value: string) => {
-    setAnswers(prev => ({ ...prev, [currentQuestion.id]: value }));
+    if (currentQuestion.multiSelect) {
+      setAnswers(prev => {
+        const current = (prev[currentQuestion.id] as string[]) || [];
+        if (value === "all") {
+          return { ...prev, [currentQuestion.id]: current.includes("all") ? [] : ["all"] };
+        }
+        const withoutAll = current.filter(v => v !== "all");
+        const updated = withoutAll.includes(value) ? withoutAll.filter(v => v !== value) : [...withoutAll, value];
+        return { ...prev, [currentQuestion.id]: updated };
+      });
+    } else {
+      setAnswers(prev => ({ ...prev, [currentQuestion.id]: value }));
+    }
   };
 
   const handleNext = () => {
@@ -385,8 +405,8 @@ export default function AssessmentPage() {
                 <Progress value={progress} className="h-1.5" data-testid="progress-quiz" />
               </div>
 
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-32 h-32 rounded-2xl overflow-hidden bg-muted/50 shrink-0" data-testid="img-question-gif">
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-full max-w-sm aspect-[4/3] rounded-2xl overflow-hidden bg-muted/30 border" data-testid="img-question-gif">
                   <img
                     src={currentQuestion.gif}
                     alt=""
@@ -399,9 +419,18 @@ export default function AssessmentPage() {
                 </h2>
               </div>
 
+              {currentQuestion.multiSelect && (
+                <p className="text-xs text-muted-foreground text-center" data-testid="text-multi-select-hint">
+                  {language === "en" ? "Select all that apply" : "Selecciona todas las que apliquen"}
+                </p>
+              )}
+
               <div className="space-y-2.5">
                 {currentQuestion.options.map(opt => {
-                  const isSelected = answers[currentQuestion.id] === opt.value;
+                  const answerVal = answers[currentQuestion.id];
+                  const isSelected = currentQuestion.multiSelect
+                    ? Array.isArray(answerVal) && answerVal.includes(opt.value)
+                    : answerVal === opt.value;
                   return (
                     <Card
                       key={opt.value}
@@ -414,11 +443,19 @@ export default function AssessmentPage() {
                       data-testid={`option-${opt.value}`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                          isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
-                        }`}>
-                          {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-primary-foreground" />}
-                        </div>
+                        {currentQuestion.multiSelect ? (
+                          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                            isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
+                          }`}>
+                            {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-primary-foreground" />}
+                          </div>
+                        ) : (
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                            isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
+                          }`}>
+                            {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-primary-foreground" />}
+                          </div>
+                        )}
                         <span className="text-sm">{opt.label[language]}</span>
                       </div>
                     </Card>
@@ -433,7 +470,7 @@ export default function AssessmentPage() {
                 </Button>
                 <Button
                   onClick={handleNext}
-                  disabled={!answers[currentQuestion.id]}
+                  disabled={!hasAnswer(currentQuestion.id)}
                   data-testid="button-quiz-next"
                 >
                   {currentStep === questions.length - 1
