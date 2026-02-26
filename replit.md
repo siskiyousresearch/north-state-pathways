@@ -158,9 +158,10 @@ shared/
 51. `GET /api/map/institutions` public endpoint returns institutions with programs and pathway data
 52. `client/src/lib/map-data.ts` defines institution/county positions on the illustrated map
 53. Career Self-Assessment quiz at `/assessment` with Healthcare (6 questions) and Education (6 questions) tracks
-54. Score-based program matching: quiz answers scored against database programs by level, name, and role keywords
-55. `POST /api/assessment/results` returns top 5 matched programs with institution info and next steps
-56. Self-Assessment admin page under "In Development" sidebar section
+54. Career-profile scoring: 7 healthcare careers (RN, LVN, CNA, EMT, Medical Assistant, Health Info Tech, Community Health Worker) and 6 education careers (Elementary Teacher, Secondary Teacher, Early Childhood Educator, Paraprofessional, School Counselor, Special Ed Teacher) with scoring matrices per question/answer
+55. `POST /api/assessment/results` returns top 3 career matches with matchPercent, salary, education, outlook, plus AI-generated personalized insight (gpt-4o-mini, 10s timeout)
+56. Career match cards with rank icons (Trophy/Award/Medal), salary/education/outlook info blocks, and percentage badges
+57. Self-Assessment admin page under "In Development" sidebar section
 
 ## Running
 - `npm run dev` starts both frontend (Vite) and backend (Express) on port 5000

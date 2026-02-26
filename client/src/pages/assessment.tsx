@@ -8,8 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   ArrowLeft, ArrowRight, Globe, MessageCircle,
-  Stethoscope, GraduationCap, CheckCircle2, ExternalLink,
-  RotateCcw, Sparkles, Heart, BookOpen
+  Stethoscope, GraduationCap, CheckCircle2,
+  RotateCcw, Sparkles, Heart, BookOpen,
+  DollarSign, Clock, TrendingUp, Trophy, Award, Medal
 } from "lucide-react";
 
 interface QuizQuestion {
@@ -204,15 +205,19 @@ const educationQuestions: QuizQuestion[] = [
   },
 ];
 
-interface AssessmentResult {
+interface CareerMatch {
+  id: string;
   title: string;
   description: string;
-  programs: {
-    name: string;
-    institution: string;
-    level: string;
-    url: string | null;
-  }[];
+  salary: string;
+  education: string;
+  outlook: string;
+  matchPercent: number;
+}
+
+interface AssessmentResult {
+  careers: CareerMatch[];
+  aiInsight: string;
   nextSteps: string[];
 }
 
@@ -406,7 +411,7 @@ export default function AssessmentPage() {
               </div>
 
               <div className="flex flex-col items-center gap-4">
-                <div className="w-full max-w-sm aspect-[4/3] rounded-2xl overflow-hidden bg-muted/30 border" data-testid="img-question-gif">
+                <div className="w-full max-w-md aspect-video rounded-2xl overflow-hidden bg-muted/30 border" data-testid="img-question-gif">
                   <img
                     src={currentQuestion.gif}
                     alt=""
@@ -499,43 +504,83 @@ export default function AssessmentPage() {
                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
                   {track === "healthcare" ? <Stethoscope className="w-7 h-7 text-primary" /> : <GraduationCap className="w-7 h-7 text-primary" />}
                 </div>
-                <h2 className="text-2xl font-bold" data-testid="text-result-title">{result.title}</h2>
-                <p className="text-muted-foreground max-w-lg mx-auto">{result.description}</p>
+                <h2 className="text-2xl font-bold" data-testid="text-result-title">
+                  {language === "en" ? "Your Career Matches" : "Tus Carreras Compatibles"}
+                </h2>
+                <p className="text-muted-foreground max-w-lg mx-auto text-sm">
+                  {language === "en"
+                    ? "Based on your answers, here are the careers that best match your interests, skills, and goals."
+                    : "Según tus respuestas, estas son las carreras que mejor se alinean con tus intereses, habilidades y metas."}
+                </p>
               </div>
 
-              {result.programs.length > 0 && (
-                <Card className="p-5">
-                  <h3 className="text-sm font-bold mb-3">
-                    {language === "en" ? "Recommended Programs in the North State" : "Programas Recomendados en el Norte del Estado"}
-                  </h3>
-                  <div className="space-y-2">
-                    {result.programs.map((prog, i) => (
-                      <div key={i} className="flex items-center justify-between gap-2 py-2 px-3 rounded-lg bg-muted/50">
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">{prog.name}</p>
-                          <p className="text-xs text-muted-foreground">{prog.institution} — {prog.level}</p>
-                        </div>
-                        {prog.url && (
-                          <a href={prog.url} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                            <Button variant="ghost" size="icon" className="h-7 w-7" data-testid={`link-program-${i}`}>
-                              <ExternalLink className="w-3.5 h-3.5" />
-                            </Button>
-                          </a>
-                        )}
-                      </div>
-                    ))}
+              {result.aiInsight && (
+                <Card className="p-5 bg-primary/5 border-primary/20" data-testid="card-ai-insight">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold mb-1" data-testid="text-ai-insight-heading">
+                        {language === "en" ? "Personalized Insight" : "Perspectiva Personalizada"}
+                      </h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed" data-testid="text-ai-insight">
+                        {result.aiInsight}
+                      </p>
+                    </div>
                   </div>
                 </Card>
               )}
 
+              {result.careers.length > 0 && (
+                <div className="space-y-3">
+                  {result.careers.map((career, i) => {
+                    const RankIcon = i === 0 ? Trophy : i === 1 ? Award : Medal;
+                    const rankColor = i === 0 ? "text-amber-500" : i === 1 ? "text-slate-400" : "text-amber-700";
+                    return (
+                      <Card key={career.id} className={`p-5 ${i === 0 ? "border-primary/30 shadow-sm" : ""}`} data-testid={`card-career-${i}`}>
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3 min-w-0">
+                              <RankIcon className={`w-5 h-5 shrink-0 mt-0.5 ${rankColor}`} />
+                              <div className="min-w-0">
+                                <h3 className="font-bold text-base" data-testid={`text-career-title-${i}`}>{career.title}</h3>
+                                <p className="text-sm text-muted-foreground mt-0.5">{career.description}</p>
+                              </div>
+                            </div>
+                            <Badge variant={i === 0 ? "default" : "secondary"} className="shrink-0 text-xs" data-testid={`badge-match-${i}`}>
+                              {career.matchPercent}%
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2" data-testid={`text-salary-${i}`}>
+                              <DollarSign className="w-3.5 h-3.5 text-green-600 shrink-0" />
+                              <span>{career.salary}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2" data-testid={`text-education-${i}`}>
+                              <Clock className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                              <span>{career.education}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2" data-testid={`text-outlook-${i}`}>
+                              <TrendingUp className="w-3.5 h-3.5 text-primary shrink-0" />
+                              <span>{career.outlook}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+
               {result.nextSteps.length > 0 && (
                 <Card className="p-5">
-                  <h3 className="text-sm font-bold mb-3">
+                  <h3 className="text-sm font-bold mb-3" data-testid="text-next-steps-heading">
                     {language === "en" ? "Your Next Steps" : "Tus Próximos Pasos"}
                   </h3>
                   <div className="space-y-2">
                     {result.nextSteps.map((step, i) => (
-                      <div key={i} className="flex items-start gap-2.5">
+                      <div key={i} className="flex items-start gap-2.5" data-testid={`text-next-step-${i}`}>
                         <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
                         <p className="text-sm">{step}</p>
                       </div>

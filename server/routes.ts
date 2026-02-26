@@ -354,6 +354,231 @@ export async function registerRoutes(
   });
 
   // ========== SELF-ASSESSMENT API ==========
+
+  interface CareerProfile {
+    id: string;
+    title: { en: string; es: string };
+    description: { en: string; es: string };
+    salary: { en: string; es: string };
+    education: { en: string; es: string };
+    outlook: { en: string; es: string };
+    scoring: Record<string, Record<string, number>>;
+  }
+
+  const healthcareCareers: CareerProfile[] = [
+    {
+      id: "registered_nurse",
+      title: { en: "Registered Nurse (RN)", es: "Enfermero/a Registrado/a (RN)" },
+      description: { en: "Provide direct patient care in hospitals, clinics, and community health settings. RNs assess patients, administer treatments, and coordinate care plans.", es: "Brinda atención directa al paciente en hospitales, clínicas y entornos de salud comunitaria." },
+      salary: { en: "$80,000 – $120,000/year", es: "$80,000 – $120,000/año" },
+      education: { en: "Associate or Bachelor's Degree in Nursing (2–4 years)", es: "Título de asociado o licenciatura en enfermería (2-4 años)" },
+      outlook: { en: "High demand — 6% growth expected through 2032", es: "Alta demanda — se espera un crecimiento del 6% hasta 2032" },
+      scoring: {
+        hc_motivation: { passion: 15, growth: 10, money: 5, balance: 0 },
+        hc_education: { medium: 15, short: 10, long: 5, minimal: 0 },
+        hc_patients: { all_the_time: 15, some: 5, minimal: 0 },
+        hc_medical: { very: 15, somewhat: 10, not_really: 0 },
+        hc_emergency: { moderate: 10, fast: 10, calm: 0 },
+        hc_age_group: { all: 10, elderly: 10, adults: 8, children: 8 },
+      },
+    },
+    {
+      id: "licensed_vocational_nurse",
+      title: { en: "Licensed Vocational Nurse (LVN)", es: "Enfermero/a Vocacional con Licencia (LVN)" },
+      description: { en: "Provide basic nursing care under the supervision of RNs and doctors. LVNs work in long-term care, clinics, and home health settings.", es: "Brinda cuidados básicos de enfermería bajo la supervisión de RNs y médicos." },
+      salary: { en: "$50,000 – $65,000/year", es: "$50,000 – $65,000/año" },
+      education: { en: "Certificate or Diploma (12–18 months)", es: "Certificado o diploma (12-18 meses)" },
+      outlook: { en: "Steady demand — especially in rural and long-term care", es: "Demanda constante — especialmente en áreas rurales y cuidado a largo plazo" },
+      scoring: {
+        hc_motivation: { passion: 15, balance: 10, money: 5, growth: 5 },
+        hc_education: { short: 15, minimal: 10, medium: 0, long: 0 },
+        hc_patients: { all_the_time: 15, some: 10, minimal: 0 },
+        hc_medical: { somewhat: 15, very: 10, not_really: 0 },
+        hc_emergency: { calm: 10, moderate: 10, fast: 0 },
+        hc_age_group: { elderly: 15, all: 8, adults: 5, children: 5 },
+      },
+    },
+    {
+      id: "certified_nursing_assistant",
+      title: { en: "Certified Nursing Assistant (CNA)", es: "Asistente de Enfermería Certificado (CNA)" },
+      description: { en: "Help patients with daily activities like bathing, dressing, and eating. CNAs work closely with patients in nursing homes, hospitals, and home care.", es: "Ayuda a los pacientes con actividades diarias como bañarse, vestirse y comer." },
+      salary: { en: "$32,000 – $42,000/year", es: "$32,000 – $42,000/año" },
+      education: { en: "Certificate program (4–12 weeks)", es: "Programa de certificado (4-12 semanas)" },
+      outlook: { en: "Very high demand — great entry point into healthcare", es: "Muy alta demanda — excelente punto de entrada al sector salud" },
+      scoring: {
+        hc_motivation: { passion: 15, balance: 10, money: 0, growth: 5 },
+        hc_education: { minimal: 15, short: 10, medium: 0, long: 0 },
+        hc_patients: { all_the_time: 15, some: 5, minimal: 0 },
+        hc_medical: { somewhat: 10, very: 5, not_really: 5 },
+        hc_emergency: { calm: 15, moderate: 5, fast: 0 },
+        hc_age_group: { elderly: 15, all: 8, adults: 5, children: 3 },
+      },
+    },
+    {
+      id: "emt_paramedic",
+      title: { en: "EMT / Paramedic", es: "Técnico de Emergencias Médicas / Paramédico" },
+      description: { en: "Respond to emergency calls, provide pre-hospital care, and transport patients. Work in ambulances, fire departments, and emergency rooms.", es: "Responde a llamadas de emergencia, brinda atención prehospitalaria y transporta pacientes." },
+      salary: { en: "$38,000 – $65,000/year", es: "$38,000 – $65,000/año" },
+      education: { en: "Certificate to Associate Degree (6 months – 2 years)", es: "Certificado a título de asociado (6 meses – 2 años)" },
+      outlook: { en: "Growing demand — especially in rural communities", es: "Demanda creciente — especialmente en comunidades rurales" },
+      scoring: {
+        hc_motivation: { passion: 15, growth: 10, money: 5, balance: 0 },
+        hc_education: { minimal: 10, short: 15, medium: 0, long: 0 },
+        hc_patients: { all_the_time: 15, some: 5, minimal: 0 },
+        hc_medical: { very: 15, somewhat: 5, not_really: 0 },
+        hc_emergency: { fast: 15, moderate: 0, calm: 0 },
+        hc_age_group: { all: 15, adults: 8, children: 5, elderly: 5 },
+      },
+    },
+    {
+      id: "medical_assistant",
+      title: { en: "Medical Assistant", es: "Asistente Médico" },
+      description: { en: "Support physicians in clinics by taking vitals, preparing patients, scheduling appointments, and managing records.", es: "Apoya a los médicos en clínicas tomando signos vitales, preparando pacientes y gestionando registros." },
+      salary: { en: "$35,000 – $45,000/year", es: "$35,000 – $45,000/año" },
+      education: { en: "Certificate or Associate Degree (9 months – 2 years)", es: "Certificado o título de asociado (9 meses – 2 años)" },
+      outlook: { en: "Very high demand — 14% growth expected", es: "Muy alta demanda — se espera un crecimiento del 14%" },
+      scoring: {
+        hc_motivation: { balance: 15, passion: 10, money: 5, growth: 5 },
+        hc_education: { short: 15, minimal: 10, medium: 0, long: 0 },
+        hc_patients: { some: 15, all_the_time: 10, minimal: 0 },
+        hc_medical: { somewhat: 15, very: 5, not_really: 5 },
+        hc_emergency: { moderate: 15, calm: 10, fast: 0 },
+        hc_age_group: { all: 10, adults: 10, children: 5, elderly: 5 },
+      },
+    },
+    {
+      id: "health_info_tech",
+      title: { en: "Health Information Technician", es: "Técnico en Información de Salud" },
+      description: { en: "Manage patient records, medical coding, and healthcare data systems. Work behind the scenes to keep healthcare organizations running efficiently.", es: "Gestiona registros de pacientes, codificación médica y sistemas de datos de salud." },
+      salary: { en: "$42,000 – $58,000/year", es: "$42,000 – $58,000/año" },
+      education: { en: "Associate Degree (2 years)", es: "Título de asociado (2 años)" },
+      outlook: { en: "Strong demand — healthcare digitization driving growth", es: "Fuerte demanda — la digitalización impulsa el crecimiento" },
+      scoring: {
+        hc_motivation: { money: 10, balance: 15, growth: 10, passion: 0 },
+        hc_education: { short: 15, medium: 10, minimal: 5, long: 0 },
+        hc_patients: { minimal: 15, some: 5, all_the_time: 0 },
+        hc_medical: { not_really: 15, somewhat: 5, very: 0 },
+        hc_emergency: { calm: 15, moderate: 5, fast: 0 },
+        hc_age_group: { all: 10, adults: 5, elderly: 3, children: 3 },
+      },
+    },
+    {
+      id: "public_health_worker",
+      title: { en: "Community Health Worker", es: "Trabajador de Salud Comunitaria" },
+      description: { en: "Connect communities with health services, conduct outreach, and promote wellness education in underserved populations.", es: "Conecta comunidades con servicios de salud, realiza difusión y promueve educación sobre bienestar." },
+      salary: { en: "$35,000 – $50,000/year", es: "$35,000 – $50,000/año" },
+      education: { en: "Certificate to Bachelor's Degree (varies)", es: "Certificado a licenciatura (varía)" },
+      outlook: { en: "Fast growing — 14% growth, critical in rural areas", es: "Crecimiento rápido — 14%, crucial en áreas rurales" },
+      scoring: {
+        hc_motivation: { passion: 15, growth: 5, balance: 10, money: 0 },
+        hc_education: { minimal: 10, short: 15, medium: 10, long: 0 },
+        hc_patients: { some: 15, all_the_time: 10, minimal: 0 },
+        hc_medical: { not_really: 10, somewhat: 10, very: 0 },
+        hc_emergency: { calm: 15, moderate: 10, fast: 0 },
+        hc_age_group: { all: 15, elderly: 8, children: 8, adults: 8 },
+      },
+    },
+  ];
+
+  const educationCareers: CareerProfile[] = [
+    {
+      id: "elementary_teacher",
+      title: { en: "Elementary School Teacher (K-6)", es: "Maestro/a de Escuela Primaria (K-6)" },
+      description: { en: "Teach core subjects to young students, foster curiosity, and create engaging learning environments in elementary schools.", es: "Enseña materias básicas a estudiantes jóvenes y crea ambientes de aprendizaje atractivos." },
+      salary: { en: "$55,000 – $85,000/year", es: "$55,000 – $85,000/año" },
+      education: { en: "Bachelor's Degree + Teaching Credential (4–5 years)", es: "Licenciatura + Credencial de enseñanza (4-5 años)" },
+      outlook: { en: "Steady demand — especially in rural districts", es: "Demanda constante — especialmente en distritos rurales" },
+      scoring: {
+        ed_motivation: { inspire: 15, community: 10, subject: 5, stability: 5 },
+        ed_age_group: { elementary: 15, early_childhood: 5, secondary: 0, adult: 0 },
+        ed_education_level: { bachelors: 15, masters: 10, associates: 0, certificate: 0 },
+        ed_role: { classroom: 15, specialist: 5, support: 0, childcare: 0 },
+        ed_environment: { structured: 15, dynamic: 10, flexible: 0 },
+        ed_location: { local: 10, willing_travel: 5, online: 0 },
+      },
+    },
+    {
+      id: "secondary_teacher",
+      title: { en: "Middle/High School Teacher (7-12)", es: "Maestro/a de Secundaria/Preparatoria (7-12)" },
+      description: { en: "Teach specialized subjects to teenagers, prepare students for college and careers, and serve as a mentor during formative years.", es: "Enseña materias especializadas a adolescentes y prepara estudiantes para la universidad y carreras." },
+      salary: { en: "$58,000 – $90,000/year", es: "$58,000 – $90,000/año" },
+      education: { en: "Bachelor's Degree + Teaching Credential (4–5 years)", es: "Licenciatura + Credencial de enseñanza (4-5 años)" },
+      outlook: { en: "Good demand — especially in STEM and special education", es: "Buena demanda — especialmente en STEM y educación especial" },
+      scoring: {
+        ed_motivation: { subject: 15, inspire: 10, community: 5, stability: 5 },
+        ed_age_group: { secondary: 15, adult: 5, elementary: 0, early_childhood: 0 },
+        ed_education_level: { bachelors: 15, masters: 10, associates: 0, certificate: 0 },
+        ed_role: { classroom: 15, specialist: 10, support: 0, childcare: 0 },
+        ed_environment: { dynamic: 15, structured: 10, flexible: 0 },
+        ed_location: { local: 10, willing_travel: 10, online: 0 },
+      },
+    },
+    {
+      id: "early_childhood_educator",
+      title: { en: "Early Childhood Educator", es: "Educador/a de Primera Infancia" },
+      description: { en: "Nurture and teach young children (ages 0-5) in preschools, childcare centers, and Head Start programs. Focus on developmental milestones.", es: "Cuida y enseña a niños pequeños (0-5 años) en preescolares y centros de cuidado infantil." },
+      salary: { en: "$30,000 – $48,000/year", es: "$30,000 – $48,000/año" },
+      education: { en: "Certificate to Associate Degree (6 months – 2 years)", es: "Certificado a título de asociado (6 meses – 2 años)" },
+      outlook: { en: "High demand — critical need in North State communities", es: "Alta demanda — necesidad crítica en comunidades del Norte del Estado" },
+      scoring: {
+        ed_motivation: { inspire: 15, community: 10, stability: 5, subject: 0 },
+        ed_age_group: { early_childhood: 15, elementary: 5, secondary: 0, adult: 0 },
+        ed_education_level: { certificate: 15, associates: 15, bachelors: 5, masters: 0 },
+        ed_role: { childcare: 15, classroom: 10, support: 5, specialist: 0 },
+        ed_environment: { dynamic: 15, flexible: 10, structured: 5 },
+        ed_location: { local: 15, online: 0, willing_travel: 5 },
+      },
+    },
+    {
+      id: "paraprofessional",
+      title: { en: "Paraprofessional / Teacher's Aide", es: "Paraprofesional / Asistente de Maestro" },
+      description: { en: "Support lead teachers in the classroom by helping students one-on-one, managing activities, and assisting with special needs students.", es: "Apoya a los maestros en el aula ayudando a estudiantes individualmente y asistiendo con necesidades especiales." },
+      salary: { en: "$28,000 – $38,000/year", es: "$28,000 – $38,000/año" },
+      education: { en: "High school diploma + some college (certificate preferred)", es: "Diploma de preparatoria + algo de universidad (certificado preferido)" },
+      outlook: { en: "Consistent demand — great stepping stone to teaching", es: "Demanda constante — excelente paso hacia la enseñanza" },
+      scoring: {
+        ed_motivation: { community: 15, inspire: 10, stability: 10, subject: 0 },
+        ed_age_group: { elementary: 10, early_childhood: 10, secondary: 5, adult: 0 },
+        ed_education_level: { certificate: 15, associates: 10, bachelors: 0, masters: 0 },
+        ed_role: { support: 15, childcare: 10, classroom: 5, specialist: 0 },
+        ed_environment: { structured: 15, dynamic: 5, flexible: 5 },
+        ed_location: { local: 15, willing_travel: 5, online: 0 },
+      },
+    },
+    {
+      id: "school_counselor",
+      title: { en: "School Counselor", es: "Consejero/a Escolar" },
+      description: { en: "Guide students through academic planning, social-emotional challenges, and career exploration. Work in K-12 schools or college settings.", es: "Guía a estudiantes en planificación académica, desafíos socioemocionales y exploración de carreras." },
+      salary: { en: "$55,000 – $80,000/year", es: "$55,000 – $80,000/año" },
+      education: { en: "Master's Degree + Pupil Personnel Services (PPS) Credential", es: "Maestría + Credencial de Servicios de Personal Estudiantil (PPS)" },
+      outlook: { en: "Growing demand — increased focus on student mental health", es: "Demanda creciente — mayor enfoque en salud mental estudiantil" },
+      scoring: {
+        ed_motivation: { inspire: 10, community: 15, stability: 10, subject: 0 },
+        ed_age_group: { secondary: 10, elementary: 10, adult: 5, early_childhood: 0 },
+        ed_education_level: { masters: 15, bachelors: 5, associates: 0, certificate: 0 },
+        ed_role: { specialist: 15, support: 10, classroom: 0, childcare: 0 },
+        ed_environment: { flexible: 15, structured: 5, dynamic: 5 },
+        ed_location: { local: 10, willing_travel: 10, online: 5 },
+      },
+    },
+    {
+      id: "special_education_teacher",
+      title: { en: "Special Education Teacher", es: "Maestro/a de Educación Especial" },
+      description: { en: "Work with students who have learning disabilities, autism, or other special needs. Develop individualized education plans (IEPs) and adapt curriculum.", es: "Trabaja con estudiantes con discapacidades de aprendizaje, autismo u otras necesidades especiales." },
+      salary: { en: "$55,000 – $85,000/year", es: "$55,000 – $85,000/año" },
+      education: { en: "Bachelor's Degree + Education Specialist Credential", es: "Licenciatura + Credencial de Especialista en Educación" },
+      outlook: { en: "Very high demand — critical shortage in California", es: "Muy alta demanda — escasez crítica en California" },
+      scoring: {
+        ed_motivation: { inspire: 15, community: 10, stability: 5, subject: 0 },
+        ed_age_group: { elementary: 10, secondary: 10, early_childhood: 5, adult: 0 },
+        ed_education_level: { bachelors: 10, masters: 15, associates: 0, certificate: 0 },
+        ed_role: { specialist: 15, classroom: 10, support: 5, childcare: 0 },
+        ed_environment: { dynamic: 15, structured: 10, flexible: 5 },
+        ed_location: { local: 10, willing_travel: 10, online: 0 },
+      },
+    },
+  ];
+
   app.post("/api/assessment/results", async (req, res) => {
     try {
       const { track, answers, language } = req.body;
@@ -361,167 +586,79 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Track and answers required" });
       }
 
-      const programs = await storage.getPrograms();
-      const institutions = await storage.getInstitutions();
-      const pathways = await storage.getPathways();
       const lang = language === "es" ? "es" : "en";
+      const careers = track === "healthcare" ? healthcareCareers : educationCareers;
 
-      const pathwaySlug = track === "healthcare" ? "healthcare" : "education";
-      const pathway = pathways.find(p => p.slug === pathwaySlug);
-      const trackPrograms = programs.filter(p => p.pathwayId === pathway?.id);
-
-      interface ScoredProgram {
-        program: typeof programs[0];
-        score: number;
-      }
-
-      const scored: ScoredProgram[] = trackPrograms.map(prog => {
-        let score = 50;
-        const level = (prog.level || "").toLowerCase();
-        const name = (prog.name || "").toLowerCase();
-        const desc = (prog.description || "").toLowerCase();
-
-        if (track === "healthcare") {
-          const edu = answers.hc_education;
-          if (edu === "minimal" && (level.includes("certificate") || name.includes("cna") || name.includes("emt"))) score += 30;
-          if (edu === "short" && (level.includes("certificate") || level.includes("associate"))) score += 25;
-          if (edu === "medium" && level.includes("bachelor")) score += 25;
-          if (edu === "long" && (level.includes("master") || level.includes("bachelor"))) score += 20;
-
-          const patients = answers.hc_patients;
-          if (patients === "all_the_time" && (name.includes("nurs") || name.includes("emt") || name.includes("paramedic") || name.includes("medical assist"))) score += 20;
-          if (patients === "minimal" && (name.includes("health info") || name.includes("admin"))) score += 20;
-
-          const medical = answers.hc_medical;
-          if (medical === "very" && (name.includes("nurs") || name.includes("emt") || name.includes("paramedic"))) score += 15;
-          if (medical === "not_really" && (name.includes("health info") || name.includes("admin"))) score += 15;
-
-          const emergency = answers.hc_emergency;
-          if (emergency === "fast" && (name.includes("emt") || name.includes("paramedic") || name.includes("emergency"))) score += 15;
-          if (emergency === "moderate" && name.includes("nurs")) score += 10;
-          if (emergency === "calm" && (name.includes("health info") || name.includes("medical assist"))) score += 10;
-
-          const ageGroup = answers.hc_age_group;
-          const ageGroups = Array.isArray(ageGroup) ? ageGroup : (ageGroup ? [ageGroup] : []);
-          if (ageGroups.includes("elderly") && (name.includes("cna") || name.includes("lvn") || name.includes("nurs"))) score += 10;
-          if (ageGroups.includes("children") && name.includes("nurs")) score += 5;
-          if (ageGroups.includes("all")) score += 5;
+      const scored = careers.map(career => {
+        let score = 0;
+        for (const [questionId, weights] of Object.entries(career.scoring)) {
+          const answer = answers[questionId];
+          if (Array.isArray(answer)) {
+            for (const val of answer) {
+              score += (weights as Record<string, number>)[val] || 0;
+            }
+          } else if (answer && typeof answer === "string") {
+            score += (weights as Record<string, number>)[answer] || 0;
+          }
         }
-
-        if (track === "education") {
-          const eduLevel = answers.ed_education_level;
-          if (eduLevel === "certificate" && level.includes("certificate")) score += 30;
-          if (eduLevel === "associates" && (level.includes("associate") || level.includes("certificate"))) score += 25;
-          if (eduLevel === "bachelors" && level.includes("bachelor")) score += 25;
-          if (eduLevel === "masters" && (level.includes("master") || level.includes("credential"))) score += 30;
-
-          const role = answers.ed_role;
-          if (role === "classroom" && (name.includes("teaching credential") || name.includes("liberal studies"))) score += 25;
-          if (role === "support" && (name.includes("paraprofessional") || name.includes("aide"))) score += 25;
-          if (role === "childcare" && name.includes("early childhood")) score += 30;
-          if (role === "specialist" && (name.includes("credential") || name.includes("mat"))) score += 20;
-
-          const ageGroup = answers.ed_age_group;
-          const edAgeGroups = Array.isArray(ageGroup) ? ageGroup : (ageGroup ? [ageGroup] : []);
-          if (edAgeGroups.includes("early_childhood") && name.includes("early childhood")) score += 25;
-          if (edAgeGroups.includes("elementary") && (name.includes("elementary") || name.includes("liberal studies"))) score += 20;
-          if (edAgeGroups.includes("secondary") && name.includes("secondary")) score += 25;
-          if (edAgeGroups.includes("adult") && (name.includes("mat") || level.includes("master"))) score += 15;
-        }
-
-        return { program: prog, score };
+        return { career, score };
       });
 
       scored.sort((a, b) => b.score - a.score);
-      const topPrograms = scored.slice(0, 5);
+      const topCareers = scored.slice(0, 3);
+      const maxScore = scored[0]?.score || 1;
 
-      const resultPrograms = topPrograms.map(sp => {
-        const inst = institutions.find(i => i.id === sp.program.institutionId);
-        return {
-          name: sp.program.name,
-          institution: inst?.name || "Unknown",
-          level: sp.program.level || "Various",
-          url: sp.program.url || null,
-        };
-      });
+      const careerResults = topCareers.map(sc => ({
+        id: sc.career.id,
+        title: sc.career.title[lang],
+        description: sc.career.description[lang],
+        salary: sc.career.salary[lang],
+        education: sc.career.education[lang],
+        outlook: sc.career.outlook[lang],
+        matchPercent: Math.round((sc.score / maxScore) * 100),
+      }));
 
-      let title: string;
-      let description: string;
-      let nextSteps: string[];
+      const answerSummary = Object.entries(answers)
+        .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
+        .join("; ");
 
-      if (track === "healthcare") {
-        const topName = topPrograms[0]?.program.name || "";
-        if (lang === "es") {
-          title = topName.includes("Nurs") || topName.includes("nurs")
-            ? "Enfermería y Cuidado Directo del Paciente"
-            : topName.includes("EMT") || topName.includes("Paramedic")
-            ? "Servicios Médicos de Emergencia"
-            : topName.includes("Health Info")
-            ? "Administración e Informática de Salud"
-            : "Profesional de Salud";
-          description = "Según tus respuestas, estos programas de salud se alinean con tus intereses, tolerancia al entorno clínico y metas educativas.";
-          nextSteps = [
-            "Visita los sitios web de los programas para conocer requisitos de admisión y plazos",
-            "Contacta a los servicios de consejería de la institución para una orientación personalizada",
-            "Explora opciones de ayuda financiera y becas en nuestra sección de recursos",
-            "Chatea con nuestro asistente de IA para obtener más orientación personalizada",
-          ];
-        } else {
-          title = topName.includes("Nurs") || topName.includes("nurs")
-            ? "Nursing & Direct Patient Care"
-            : topName.includes("EMT") || topName.includes("Paramedic")
-            ? "Emergency Medical Services"
-            : topName.includes("Health Info")
-            ? "Health Administration & Informatics"
-            : "Healthcare Professional";
-          description = "Based on your responses, these healthcare programs align with your interests, clinical comfort level, and educational goals.";
-          nextSteps = [
-            "Visit the program websites to learn about admission requirements and deadlines",
-            "Contact the institution's counseling services for personalized guidance",
-            "Explore financial aid and scholarship options in our resources section",
-            "Chat with our AI assistant for more personalized career guidance",
-          ];
+      let aiInsight = "";
+      try {
+        const topCareerNames = topCareers.map(c => c.career.title[lang]).join(", ");
+        const prompt = lang === "es"
+          ? `Eres un orientador de carreras amigable para el programa North State Pathways en el norte de California rural. Un estudiante potencial tomó un cuestionario de autoevaluación de ${track === "healthcare" ? "salud" : "educación"}. Sus respuestas: ${answerSummary}. Sus carreras más compatibles son: ${topCareerNames}. Escribe un párrafo corto (3-4 oraciones) personalizado y motivador sobre por qué estas carreras encajan bien según sus respuestas. Sé cálido, específico a sus respuestas, y menciona oportunidades en la región del Norte del Estado de California. No uses viñetas.`
+          : `You are a friendly career counselor for the North State Pathways program in rural Northern California. A prospective student took a ${track} career self-assessment quiz. Their answers: ${answerSummary}. Their top career matches are: ${topCareerNames}. Write a short paragraph (3-4 sentences) that is personalized and encouraging about why these careers are a good fit based on their specific answers. Be warm, specific to their responses, and mention opportunities in the North State region of California. Do not use bullet points.`;
+
+        const aiPromise = replitOpenai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 250,
+          temperature: 0.8,
+        });
+        const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 10000));
+        const completion = await Promise.race([aiPromise, timeout]);
+        if (completion && "choices" in completion) {
+          aiInsight = completion.choices[0]?.message?.content?.trim() || "";
         }
-      } else {
-        const topName = topPrograms[0]?.program.name || "";
-        if (lang === "es") {
-          title = topName.includes("Early Childhood")
-            ? "Educación Infantil Temprana"
-            : topName.includes("Elementary") || topName.includes("Liberal Studies")
-            ? "Enseñanza en Educación Primaria"
-            : topName.includes("Secondary")
-            ? "Enseñanza en Educación Secundaria"
-            : topName.includes("Paraprofessional")
-            ? "Apoyo Educativo y Asistencia"
-            : "Profesional de la Educación";
-          description = "Según tus respuestas, estos programas educativos coinciden con tu grupo de edad preferido, nivel de educación y estilo de trabajo.";
-          nextSteps = [
-            "Investiga los requisitos de credencial del estado de California para tu área de interés",
-            "Visita los sitios web de los programas para conocer requisitos y plazos",
-            "Explora opciones de ayuda financiera y becas disponibles para futuros educadores",
-            "Chatea con nuestro asistente de IA para obtener más orientación personalizada",
-          ];
-        } else {
-          title = topName.includes("Early Childhood")
-            ? "Early Childhood Education"
-            : topName.includes("Elementary") || topName.includes("Liberal Studies")
-            ? "Elementary Education Teaching"
-            : topName.includes("Secondary")
-            ? "Secondary Education Teaching"
-            : topName.includes("Paraprofessional")
-            ? "Educational Support & Assistance"
-            : "Education Professional";
-          description = "Based on your responses, these education programs match your preferred age group, education level, and work style.";
-          nextSteps = [
-            "Research California state credential requirements for your area of interest",
-            "Visit the program websites to learn about admission requirements and deadlines",
-            "Explore financial aid and scholarship options available for future educators",
-            "Chat with our AI assistant for more personalized career guidance",
-          ];
-        }
+      } catch (aiErr) {
+        console.error("AI insight generation failed (non-blocking):", aiErr);
       }
 
-      res.json({ title, description, programs: resultPrograms, nextSteps });
+      const nextSteps = lang === "es"
+        ? [
+            "Explora los detalles de cada carrera — requisitos, salarios y perspectivas",
+            "Chatea con nuestro asistente de IA para obtener orientación personalizada sobre programas locales",
+            "Visita nuestra sección de recursos para becas y ayuda financiera",
+            "Conecta con instituciones del Norte del Estado que ofrecen estos programas",
+          ]
+        : [
+            "Explore each career's details — requirements, salary, and outlook",
+            "Chat with our AI assistant for personalized guidance on local programs",
+            "Visit our resources section for scholarships and financial aid",
+            "Connect with North State institutions offering these programs",
+          ];
+
+      res.json({ careers: careerResults, aiInsight, nextSteps });
     } catch (error) {
       console.error("Assessment error:", error);
       res.status(500).json({ error: "Failed to process assessment" });
