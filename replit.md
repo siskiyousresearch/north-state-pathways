@@ -20,7 +20,7 @@ client/src/
     about.tsx         - About Us page with mission, values, pathways info
     chat.tsx          - Student-facing AI chat interface with streaming
     admin/
-      login.tsx       - Admin login page
+      login.tsx       - Admin login page (with password reveal toggle)
       layout.tsx      - Admin layout with sidebar + auth gate
       dashboard.tsx   - Analytics overview
       conversations.tsx - Review student chat sessions (rich markdown)
@@ -28,8 +28,10 @@ client/src/
       resources.tsx   - Manage scholarships/financial aid
       research.tsx    - AI research tasks with human-in-the-loop
       settings.tsx    - AI model selection, API keys, research model config
+      onboarding-scripts.tsx - Onboarding narration scripts (In Development)
+      explore-map.tsx - Explore Map admin page (In Development)
   components/
-    admin-sidebar.tsx - Admin navigation sidebar
+    admin-sidebar.tsx - Admin navigation sidebar (collapsible "In Development" section)
     ui/              - shadcn/ui components
   lib/
     queryClient.ts   - TanStack Query configuration

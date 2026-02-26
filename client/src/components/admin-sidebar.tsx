@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import {
   Sidebar,
@@ -8,11 +9,19 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   LayoutDashboard, MessageSquare, Route, BookOpen,
-  FlaskConical, Sparkles, ArrowLeft, Settings, Mic
+  FlaskConical, Sparkles, ArrowLeft, Settings, Mic, Map, ChevronRight, Construction
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -22,12 +31,18 @@ const navItems = [
   { title: "Pathways & Programs", url: "/admin/pathways", icon: Route },
   { title: "Resources", url: "/admin/resources", icon: BookOpen },
   { title: "Research Tasks", url: "/admin/research", icon: FlaskConical },
-  { title: "Onboarding Scripts", url: "/admin/onboarding-scripts", icon: Mic },
   { title: "Settings", url: "/admin/settings", icon: Settings },
+];
+
+const devItems = [
+  { title: "Onboarding Scripts", url: "/admin/onboarding-scripts", icon: Mic },
+  { title: "Explore Map", url: "/admin/explore-map", icon: Map },
 ];
 
 export function AdminSidebar() {
   const [location] = useLocation();
+  const isDevSectionActive = devItems.some(item => location.startsWith(item.url));
+  const [devOpen, setDevOpen] = useState(isDevSectionActive);
 
   return (
     <Sidebar>
@@ -66,6 +81,41 @@ export function AdminSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <Collapsible open={devOpen} onOpenChange={setDevOpen}>
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton data-testid="button-in-development-toggle">
+                      <Construction className="w-4 h-4" />
+                      <span>In Development</span>
+                      <ChevronRight className={`ml-auto w-4 h-4 transition-transform duration-200 ${devOpen ? "rotate-90" : ""}`} />
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {devItems.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton
+                            asChild
+                            isActive={location.startsWith(item.url)}
+                          >
+                            <Link href={item.url}>
+                              <item.icon className="w-3.5 h-3.5" />
+                              <span>{item.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
