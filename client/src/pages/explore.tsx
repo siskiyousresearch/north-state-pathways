@@ -1,28 +1,28 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useLanguage } from "@/lib/i18n";
-import { mapCounties, mapInstitutions } from "@/lib/map-data";
+import { countyPaths, mapInstitutions, offMapInstitutions, SVG_WIDTH, SVG_HEIGHT } from "@/lib/map-data";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Sparkles, ArrowLeft, MapPin, ExternalLink, GraduationCap,
-  Globe, MessageCircle, School, Building2, Wifi, X, Filter
+  ArrowLeft, MapPin, ExternalLink, GraduationCap,
+  Globe, MessageCircle, School, Building2, Wifi, X, Filter, Trees
 } from "lucide-react";
-
-const markerImages: Record<string, string> = {
-  college: "/images/marker-college.png",
-  university: "/images/marker-university.png",
-  "county-office": "/images/marker-county-office.png",
-  online: "/images/marker-online.png",
-};
 
 const markerIcons: Record<string, typeof School> = {
   college: School,
   university: GraduationCap,
   "county-office": Building2,
   online: Wifi,
+};
+
+const markerColors: Record<string, string> = {
+  college: "#f59e0b",
+  university: "#3b82f6",
+  "county-office": "#8b5cf6",
+  online: "#06b6d4",
 };
 
 interface ApiInstitution {
@@ -49,31 +49,42 @@ export default function ExplorePage() {
   const [activeFilter, setActiveFilter] = useState<PathwayFilter>("all");
   const [selectedInstitution, setSelectedInstitution] = useState<string | null>(null);
   const [hoveredInstitution, setHoveredInstitution] = useState<string | null>(null);
+  const [hoveredCounty, setHoveredCounty] = useState<string | null>(null);
 
   const { data: apiInstitutions = [] } = useQuery<ApiInstitution[]>({
     queryKey: ["/api/map/institutions"],
   });
 
+  const allMapInstitutions = useMemo(() => [...mapInstitutions, ...offMapInstitutions], []);
+
   const filteredInstitutions = useMemo(() => {
-    return mapInstitutions.filter(inst => {
+    return allMapInstitutions.filter(inst => {
       if (activeFilter === "all") return true;
       const apiInst = apiInstitutions.find(a => a.name === inst.name);
       if (!apiInst) return true;
       return apiInst.programs.some(p => p.pathwaySlug === activeFilter);
     });
-  }, [activeFilter, apiInstitutions]);
+  }, [activeFilter, apiInstitutions, allMapInstitutions]);
 
-  const getApiData = (name: string) => apiInstitutions.find(a => a.name === name);
+  const onMapInstitutions = useMemo(() => {
+    return filteredInstitutions.filter(inst => mapInstitutions.some(m => m.name === inst.name));
+  }, [filteredInstitutions]);
+
+  const getApiData = useCallback((name: string) => apiInstitutions.find(a => a.name === name), [apiInstitutions]);
 
   const activeInst = selectedInstitution || hoveredInstitution;
   const activeApiData = activeInst ? getApiData(activeInst) : null;
-  const activeMapData = activeInst ? mapInstitutions.find(m => m.name === activeInst) : null;
+  const activeMapData = activeInst ? allMapInstitutions.find(m => m.name === activeInst) : null;
 
   const filteredPrograms = useMemo(() => {
     if (!activeApiData) return [];
     if (activeFilter === "all") return activeApiData.programs;
     return activeApiData.programs.filter(p => p.pathwaySlug === activeFilter);
   }, [activeApiData, activeFilter]);
+
+  const getCountyInstitutionCount = useCallback((countyName: string) => {
+    return onMapInstitutions.filter(inst => inst.county === countyName).length;
+  }, [onMapInstitutions]);
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
@@ -86,7 +97,7 @@ export default function ExplorePage() {
           </Link>
           <div className="flex items-center gap-2">
             <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary">
-              <Sparkles className="w-4 h-4 text-primary-foreground" />
+              <Trees className="w-4 h-4 text-primary-foreground" />
             </div>
             <div>
               <h1 className="text-sm font-bold leading-tight" data-testid="text-explore-title">{t("explore.title")}</h1>
@@ -119,7 +130,7 @@ export default function ExplorePage() {
           <div className="p-3 border-b space-y-2">
             <div className="flex items-center gap-1.5">
               <Filter className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-xs font-medium text-muted-foreground">{t("explore.filterAll").split(" ")[0]}</span>
+              <span className="text-xs font-medium text-muted-foreground">{language === "en" ? "Filter by Pathway" : "Filtrar por Carrera"}</span>
             </div>
             <div className="flex gap-1.5">
               {(["all", "healthcare", "education"] as PathwayFilter[]).map(f => (
@@ -142,6 +153,7 @@ export default function ExplorePage() {
               const api = getApiData(inst.name);
               const isActive = activeInst === inst.name;
               const Icon = markerIcons[inst.marker];
+              const color = markerColors[inst.marker];
               const programCount = api ? (activeFilter === "all" ? api.programs.length : api.programs.filter(p => p.pathwaySlug === activeFilter).length) : 0;
 
               return (
@@ -156,9 +168,10 @@ export default function ExplorePage() {
                   data-testid={`card-institution-${inst.name.toLowerCase().replace(/\s+/g, "-")}`}
                 >
                   <div className="flex items-start gap-2.5">
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-full shrink-0 transition-colors ${
-                      isActive ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
-                    }`}>
+                    <div
+                      className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 transition-colors"
+                      style={{ backgroundColor: isActive ? color : `${color}20`, color: isActive ? "white" : color }}
+                    >
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -232,91 +245,275 @@ export default function ExplorePage() {
           </div>
         </div>
 
-        <div className="flex-1 relative overflow-hidden">
-          <div className="absolute inset-0">
-            <img
-              src="/images/map-background.png"
-              alt="North State California illustrated map"
-              className="w-full h-full object-cover"
-              data-testid="img-map-background"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/20" />
-          </div>
-
-          {mapCounties.map(county => (
-            <div
-              key={county.name}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none"
-              style={{ left: `${county.x}%`, top: `${county.y}%` }}
+        <div className="flex-1 relative overflow-hidden bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/30 dark:via-teal-950/30 dark:to-cyan-950/30">
+          <div className="absolute inset-0 opacity-[0.03]" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }} />
+          
+          <div className="absolute inset-0 flex items-center justify-center p-4 md:p-8">
+            <svg
+              viewBox={`-10 -5 ${SVG_WIDTH + 20} ${SVG_HEIGHT + 15}`}
+              className="w-full h-full max-w-[700px] max-h-full"
+              style={{ filter: "drop-shadow(0 8px 30px rgba(0,0,0,0.12))" }}
+              data-testid="svg-map"
+              role="img"
+              aria-label={language === "en" ? "Interactive map of North State California counties and educational institutions" : "Mapa interactivo de los condados del norte de California e instituciones educativas"}
             >
-              <span className="text-[10px] sm:text-xs font-bold text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wide uppercase">
-                {county.name}
-              </span>
-            </div>
-          ))}
+              <defs>
+                <linearGradient id="mapGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="hsl(152, 40%, 40%)" />
+                  <stop offset="50%" stopColor="hsl(152, 45%, 32%)" />
+                  <stop offset="100%" stopColor="hsl(155, 40%, 28%)" />
+                </linearGradient>
+                <linearGradient id="mapGradHover" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="hsl(152, 45%, 48%)" />
+                  <stop offset="100%" stopColor="hsl(152, 45%, 38%)" />
+                </linearGradient>
+                <linearGradient id="mapGradActive" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="hsl(152, 50%, 52%)" />
+                  <stop offset="100%" stopColor="hsl(152, 50%, 42%)" />
+                </linearGradient>
+                <filter id="countyGlow">
+                  <feGaussianBlur stdDeviation="4" result="blur" />
+                  <feFlood floodColor="hsl(152, 50%, 50%)" floodOpacity="0.3" result="color" />
+                  <feComposite in="color" in2="blur" operator="in" result="glow" />
+                  <feMerge>
+                    <feMergeNode in="glow" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+                <filter id="markerShadow">
+                  <feDropShadow dx="0" dy="1" stdDeviation="2" floodOpacity="0.3" />
+                </filter>
+                <filter id="tooltipShadow">
+                  <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.15" />
+                </filter>
+              </defs>
 
-          {filteredInstitutions.map(inst => {
-            const isActive = activeInst === inst.name;
-            const isHovered = hoveredInstitution === inst.name;
-            const api = getApiData(inst.name);
+              {countyPaths.map(county => {
+                const isHovered = hoveredCounty === county.name;
+                const hasActiveInst = activeInst
+                  ? allMapInstitutions.find(m => m.name === activeInst)?.county === county.name
+                  : false;
+                const instCount = getCountyInstitutionCount(county.name);
+                const isHighlighted = isHovered || hasActiveInst;
 
-            return (
-              <div
-                key={inst.name}
-                className="absolute transform -translate-x-1/2 -translate-y-full group"
-                style={{
-                  left: `${inst.x}%`,
-                  top: `${inst.y}%`,
-                  zIndex: isActive ? 40 : isHovered ? 30 : 20,
-                }}
-              >
-                <div
-                  className={`relative cursor-pointer transition-all duration-300 ${
-                    isActive ? "scale-150" : isHovered ? "scale-125" : "scale-100 hover:scale-125"
-                  }`}
-                  onClick={() => setSelectedInstitution(isActive ? null : inst.name)}
-                  onMouseEnter={() => setHoveredInstitution(inst.name)}
-                  onMouseLeave={() => setHoveredInstitution(null)}
-                  data-testid={`marker-${inst.name.toLowerCase().replace(/\s+/g, "-")}`}
-                >
-                  <img
-                    src={markerImages[inst.marker]}
-                    alt={inst.name}
-                    className={`w-8 h-8 sm:w-10 sm:h-10 drop-shadow-lg transition-all duration-300 ${
-                      isActive ? "drop-shadow-[0_0_12px_rgba(34,197,94,0.6)]" : ""
-                    }`}
-                  />
+                return (
+                  <g key={county.name}
+                    onMouseEnter={() => setHoveredCounty(county.name)}
+                    onMouseLeave={() => setHoveredCounty(null)}
+                    onFocus={() => setHoveredCounty(county.name)}
+                    onBlur={() => setHoveredCounty(null)}
+                    className="cursor-pointer"
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`${county.name} County, ${instCount} ${instCount === 1 ? "institution" : "institutions"}`}
+                  >
+                    <path
+                      d={county.path}
+                      fill={hasActiveInst ? "url(#mapGradActive)" : isHovered ? "url(#mapGradHover)" : "url(#mapGrad)"}
+                      stroke="hsl(152, 25%, 75%)"
+                      strokeWidth="1"
+                      strokeLinejoin="round"
+                      className="transition-all duration-300"
+                      filter={isHighlighted ? "url(#countyGlow)" : undefined}
+                      data-testid={`county-path-${county.name.toLowerCase()}`}
+                    />
+                    <text
+                      x={county.labelX}
+                      y={county.labelY}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      className="pointer-events-none select-none"
+                      fill="white"
+                      fontSize="11"
+                      fontWeight="700"
+                      letterSpacing="2"
+                      opacity={isHighlighted ? 1 : 0.55}
+                      style={{ textShadow: "0 1px 3px rgba(0,0,0,0.3)", transition: "opacity 0.3s" }}
+                    >
+                      {county.name.toUpperCase()}
+                    </text>
+                    {isHovered && instCount > 0 && (
+                      <text
+                        x={county.labelX}
+                        y={county.labelY + 15}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        className="pointer-events-none select-none animate-in fade-in duration-200"
+                        fill="hsl(152, 30%, 85%)"
+                        fontSize="8"
+                      >
+                        {instCount} {instCount === 1
+                          ? (language === "en" ? "institution" : "institucion")
+                          : (language === "en" ? "institutions" : "instituciones")}
+                      </text>
+                    )}
+                  </g>
+                );
+              })}
 
-                  <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-1 whitespace-nowrap transition-all duration-200 ${
-                    isActive || isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1 pointer-events-none"
-                  }`}>
-                    <div className="bg-background/95 backdrop-blur-sm border rounded-md shadow-lg px-2.5 py-1.5 text-center">
-                      <p className="text-xs font-bold">{inst.name}</p>
-                      {inst.county && (
-                        <p className="text-[10px] text-muted-foreground flex items-center justify-center gap-0.5">
-                          <MapPin className="w-2.5 h-2.5" />{inst.county} {t("explore.county")}
-                        </p>
-                      )}
-                      {api && api.programs.length > 0 && (
-                        <p className="text-[10px] text-primary font-medium">{api.programs.length} {t("explore.programs").toLowerCase()}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
+              {onMapInstitutions.map(inst => {
+                const isActive = activeInst === inst.name;
+                const isHovered = hoveredInstitution === inst.name;
+                const api = getApiData(inst.name);
+                const color = markerColors[inst.marker];
+                const highlighted = isActive || isHovered;
 
-                {isActive && (
-                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-primary/40 animate-ping" />
-                )}
-              </div>
-            );
-          })}
+                const tooltipW = 160;
+                const tooltipH = api && api.programs.length > 0 ? 46 : 32;
+                let tooltipX = inst.x - tooltipW / 2;
+                let tooltipY = inst.y - tooltipH - 14;
+                if (tooltipX < 5) tooltipX = 5;
+                if (tooltipX + tooltipW > SVG_WIDTH - 5) tooltipX = SVG_WIDTH - tooltipW - 5;
+                if (tooltipY < 5) tooltipY = inst.y + 14;
+
+                return (
+                  <g
+                    key={inst.name}
+                    className="cursor-pointer"
+                    onClick={() => setSelectedInstitution(isActive ? null : inst.name)}
+                    onMouseEnter={() => setHoveredInstitution(inst.name)}
+                    onMouseLeave={() => setHoveredInstitution(null)}
+                    onFocus={() => setHoveredInstitution(inst.name)}
+                    onBlur={() => setHoveredInstitution(null)}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedInstitution(isActive ? null : inst.name); } }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`${inst.name}, ${inst.type}${inst.county ? `, ${inst.county} County` : ""}${api ? `, ${api.programs.length} programs` : ""}`}
+                    data-testid={`marker-${inst.name.toLowerCase().replace(/\s+/g, "-")}`}
+                  >
+                    {isActive && (
+                      <>
+                        <circle cx={inst.x} cy={inst.y} r="16" fill={color} opacity="0.15">
+                          <animate attributeName="r" values="12;20;12" dur="2s" repeatCount="indefinite" />
+                          <animate attributeName="opacity" values="0.2;0.05;0.2" dur="2s" repeatCount="indefinite" />
+                        </circle>
+                      </>
+                    )}
+
+                    <circle
+                      cx={inst.x}
+                      cy={inst.y}
+                      r={highlighted ? 7 : 5}
+                      fill={color}
+                      stroke="white"
+                      strokeWidth={highlighted ? 2.5 : 2}
+                      className="transition-all duration-200"
+                      filter="url(#markerShadow)"
+                    />
+
+                    {highlighted && (
+                      <g className="animate-in fade-in zoom-in-95 duration-150">
+                        <rect
+                          x={tooltipX}
+                          y={tooltipY}
+                          width={tooltipW}
+                          height={tooltipH}
+                          rx="6"
+                          fill="white"
+                          filter="url(#tooltipShadow)"
+                          opacity="0.97"
+                        />
+                        <rect
+                          x={tooltipX}
+                          y={tooltipY}
+                          width={tooltipW}
+                          height={tooltipH}
+                          rx="6"
+                          fill="none"
+                          stroke="hsl(152, 30%, 85%)"
+                          strokeWidth="0.5"
+                        />
+                        <circle
+                          cx={tooltipX + 14}
+                          cy={tooltipY + 14}
+                          r="5"
+                          fill={`${color}20`}
+                        />
+                        <circle
+                          cx={tooltipX + 14}
+                          cy={tooltipY + 14}
+                          r="2.5"
+                          fill={color}
+                        />
+                        <text
+                          x={tooltipX + 24}
+                          y={tooltipY + 12}
+                          dominantBaseline="central"
+                          fill="hsl(152, 40%, 15%)"
+                          fontSize="7"
+                          fontWeight="700"
+                        >
+                          {inst.name.length > 20 ? inst.name.slice(0, 20) + "..." : inst.name}
+                        </text>
+                        <text
+                          x={tooltipX + 24}
+                          y={tooltipY + 22}
+                          dominantBaseline="central"
+                          fill="hsl(152, 20%, 50%)"
+                          fontSize="5.5"
+                        >
+                          {inst.type} {inst.county ? `\u2022 ${inst.county} County` : ""}
+                        </text>
+                        {api && api.programs.length > 0 && (
+                          <text
+                            x={tooltipX + 14}
+                            y={tooltipY + 36}
+                            dominantBaseline="central"
+                            fill={color}
+                            fontSize="6"
+                            fontWeight="600"
+                          >
+                            {api.programs.length} {t("explore.programs").toLowerCase()} {language === "en" ? "available" : "disponibles"}
+                          </text>
+                        )}
+                      </g>
+                    )}
+                  </g>
+                );
+              })}
+
+              <g transform="translate(12, 10)">
+                <text x="0" y="0" fontSize="13" fontWeight="800" fill="hsl(152, 40%, 20%)" letterSpacing="0.5" dominantBaseline="hanging">
+                  {language === "en" ? "North State California" : "Norte de California"}
+                </text>
+                <text x="0" y="18" fontSize="8" fill="hsl(152, 25%, 45%)" dominantBaseline="hanging">
+                  {language === "en" ? `10 Counties \u2022 ${onMapInstitutions.length} Institutions` : `10 Condados \u2022 ${onMapInstitutions.length} Instituciones`}
+                </text>
+              </g>
+
+              <g transform={`translate(${SVG_WIDTH - 115}, 15)`}>
+                <rect x="0" y="0" width="100" height="72" rx="6" fill="white" opacity="0.9" />
+                <rect x="0" y="0" width="100" height="72" rx="6" fill="none" stroke="hsl(152, 20%, 80%)" strokeWidth="0.5" />
+                <text x="10" y="14" fontSize="6" fontWeight="700" fill="hsl(152, 30%, 30%)" dominantBaseline="central">
+                  {language === "en" ? "LEGEND" : "LEYENDA"}
+                </text>
+
+                <circle cx="14" cy="28" r="4" fill="#f59e0b" stroke="white" strokeWidth="1.5" />
+                <text x="22" y="29" fontSize="6" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
+                  {language === "en" ? "Community College" : "Colegio Comunitario"}
+                </text>
+
+                <circle cx="14" cy="42" r="4" fill="#3b82f6" stroke="white" strokeWidth="1.5" />
+                <text x="22" y="43" fontSize="6" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
+                  {language === "en" ? "University" : "Universidad"}
+                </text>
+
+                <circle cx="14" cy="56" r="4" fill="#8b5cf6" stroke="white" strokeWidth="1.5" />
+                <text x="22" y="57" fontSize="6" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
+                  {language === "en" ? "County Office of Ed." : "Oficina de Ed."}
+                </text>
+              </g>
+            </svg>
+          </div>
 
           <div className="absolute bottom-4 left-4 right-4 md:hidden z-30">
             {activeInst && activeApiData ? (
               <Card className="p-4 bg-background/95 backdrop-blur-md shadow-xl animate-in slide-in-from-bottom-2 duration-300">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div>
-                    <h3 className="text-sm font-bold">{activeInst}</h3>
+                    <h3 className="text-sm font-bold" data-testid="text-mobile-inst-name">{activeInst}</h3>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       {activeMapData?.county ? (
                         <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
@@ -359,6 +556,7 @@ export default function ExplorePage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    data-testid="link-mobile-visit-website"
                   >
                     <ExternalLink className="w-3 h-3" /> {t("explore.visitWebsite")}
                   </a>
