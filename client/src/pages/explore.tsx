@@ -501,26 +501,26 @@ export default function ExplorePage() {
                 </text>
               </g>
 
-              <g transform={`translate(${SVG_WIDTH - 165}, -50)`}>
-                <rect x="0" y="0" width="150" height="50" rx="8" fill="white" opacity="0.92" />
-                <rect x="0" y="0" width="150" height="50" rx="8" fill="none" stroke="hsl(152, 20%, 80%)" strokeWidth="0.5" />
-                <text x="12" y="13" fontSize="9" fontWeight="700" fill="hsl(152, 30%, 30%)" dominantBaseline="central">
+              <g transform={`translate(${SVG_WIDTH - 170}, -55)`}>
+                <rect x="0" y="0" width="155" height="68" rx="8" fill="white" opacity="0.92" />
+                <rect x="0" y="0" width="155" height="68" rx="8" fill="none" stroke="hsl(152, 20%, 80%)" strokeWidth="0.5" />
+                <text x="12" y="14" fontSize="9" fontWeight="700" fill="hsl(152, 30%, 30%)" dominantBaseline="central">
                   {language === "en" ? "LEGEND" : "LEYENDA"}
                 </text>
 
-                <circle cx="16" cy="27" r="5" fill="#f59e0b" stroke="white" strokeWidth="1.5" />
-                <text x="28" y="28" fontSize="9" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
+                <circle cx="16" cy="30" r="5" fill="#f59e0b" stroke="white" strokeWidth="1.5" />
+                <text x="28" y="31" fontSize="9" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
                   {language === "en" ? "Community College" : "Colegio Comunitario"}
                 </text>
 
-                <circle cx="82" cy="41" r="5" fill="#3b82f6" stroke="white" strokeWidth="1.5" />
-                <text x="94" y="42" fontSize="9" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
+                <circle cx="16" cy="44" r="5" fill="#3b82f6" stroke="white" strokeWidth="1.5" />
+                <text x="28" y="45" fontSize="9" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
                   {language === "en" ? "University" : "Universidad"}
                 </text>
 
-                <circle cx="16" cy="41" r="5" fill="#8b5cf6" stroke="white" strokeWidth="1.5" />
-                <text x="28" y="42" fontSize="9" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
-                  {language === "en" ? "Co. Office of Ed." : "Oficina de Ed."}
+                <circle cx="16" cy="58" r="5" fill="#8b5cf6" stroke="white" strokeWidth="1.5" />
+                <text x="28" y="59" fontSize="9" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
+                  {language === "en" ? "County Office of Ed." : "Oficina de Ed."}
                 </text>
               </g>
             </svg>
