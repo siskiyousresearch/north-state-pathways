@@ -30,7 +30,7 @@ const healthcareQuestions: QuizQuestion[] = [
       en: "What matters most to you in a career?",
       es: "¿Qué es lo que más te importa en una carrera?",
     },
-    gif: "https://media.tenor.com/If4vGj7MRKgAAAAd/motivation-you-can-do-it.gif",
+    gif: "https://media.tenor.com/nBnOmPbsjNkAAAAd/the-office-michael-scott.gif",
     options: [
       { value: "money", label: { en: "High earning potential — I want financial security", es: "Alto potencial de ingresos — quiero seguridad financiera" } },
       { value: "passion", label: { en: "Helping people — I want to make a difference", es: "Ayudar a las personas — quiero hacer la diferencia" } },
