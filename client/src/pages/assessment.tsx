@@ -111,6 +111,36 @@ const healthcareQuestions: QuizQuestion[] = [
       { value: "all", label: { en: "All ages — I don't have a preference", es: "Todas las edades — no tengo preferencia" } },
     ],
   },
+  {
+    id: "hc_setting",
+    category: "Work Setting",
+    question: {
+      en: "What kind of work setting sounds best to you?",
+      es: "¿Qué tipo de entorno de trabajo te suena mejor?",
+    },
+    gif: "https://media.tenor.com/2roX3uxz_68AAAAd/hospital-doctor.gif",
+    options: [
+      { value: "hospital", label: { en: "Hospital — I want to be in the action", es: "Hospital — quiero estar en la acción" } },
+      { value: "clinic", label: { en: "Clinic or doctor's office — steady and personal", es: "Clínica o consultorio — estable y personal" } },
+      { value: "community", label: { en: "Community or home-based — out in the field", es: "Comunidad o a domicilio — en el campo" } },
+      { value: "office", label: { en: "Office or lab — behind the scenes", es: "Oficina o laboratorio — detrás de escena" } },
+    ],
+  },
+  {
+    id: "hc_tasks",
+    category: "Daily Tasks",
+    question: {
+      en: "What kind of daily tasks appeal to you most?",
+      es: "¿Qué tipo de tareas diarias te atraen más?",
+    },
+    gif: "https://media.tenor.com/DHFPyO_f6x0AAAAd/working-hard-typing.gif",
+    options: [
+      { value: "hands_on", label: { en: "Hands-on care — procedures, wound care, injections", es: "Cuidado práctico — procedimientos, cuidado de heridas, inyecciones" } },
+      { value: "technology", label: { en: "Technology & equipment — imaging, lab work, machines", es: "Tecnología y equipos — imágenes, laboratorio, máquinas" } },
+      { value: "counseling", label: { en: "Talking & teaching — counseling, education, outreach", es: "Hablar y enseñar — consejería, educación, difusión" } },
+      { value: "administrative", label: { en: "Organizing & managing — records, billing, administration", es: "Organizar y gestionar — registros, facturación, administración" } },
+    ],
+  },
 ];
 
 const educationQuestions: QuizQuestion[] = [
@@ -201,6 +231,35 @@ const educationQuestions: QuizQuestion[] = [
       { value: "local", label: { en: "Locally in the North State — I want to stay close to home", es: "Localmente en el Norte del Estado — quiero quedarme cerca de casa" } },
       { value: "willing_travel", label: { en: "I'm willing to travel or relocate for the right program", es: "Estoy dispuesto/a a viajar o mudarme por el programa adecuado" } },
       { value: "online", label: { en: "Online — I need the flexibility of remote learning", es: "En línea — necesito la flexibilidad del aprendizaje remoto" } },
+    ],
+  },
+  {
+    id: "ed_focus",
+    category: "Focus Area",
+    question: {
+      en: "What part of working in education excites you most?",
+      es: "¿Qué parte de trabajar en educación te emociona más?",
+    },
+    gif: "https://media.tenor.com/8wYnJIc6mWoAAAAd/light-bulb-idea.gif",
+    options: [
+      { value: "teaching", label: { en: "Teaching & curriculum — creating lessons, leading a classroom", es: "Enseñanza y currículo — crear lecciones, dirigir un salón" } },
+      { value: "wellbeing", label: { en: "Student wellbeing — counseling, social-emotional support", es: "Bienestar estudiantil — consejería, apoyo socioemocional" } },
+      { value: "leadership", label: { en: "Leadership & administration — managing schools or programs", es: "Liderazgo y administración — gestionar escuelas o programas" } },
+      { value: "resources", label: { en: "Resources & research — libraries, media, instructional design", es: "Recursos e investigación — bibliotecas, medios, diseño instruccional" } },
+    ],
+  },
+  {
+    id: "ed_special_needs",
+    category: "Special Needs",
+    question: {
+      en: "How do you feel about working with students with special needs?",
+      es: "¿Cómo te sientes acerca de trabajar con estudiantes con necesidades especiales?",
+    },
+    gif: "https://media.tenor.com/ZK1mkWw-65wAAAAd/hug-cute.gif",
+    options: [
+      { value: "love_it", label: { en: "I'd love it — that's exactly what I want to do", es: "Me encantaría — eso es exactamente lo que quiero hacer" } },
+      { value: "open", label: { en: "I'm open to it — I'd be happy to include it in my work", es: "Estoy abierto/a — me gustaría incluirlo en mi trabajo" } },
+      { value: "general", label: { en: "I prefer general education — mainstream classrooms", es: "Prefiero educación general — aulas regulares" } },
     ],
   },
 ];

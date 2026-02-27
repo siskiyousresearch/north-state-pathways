@@ -373,7 +373,7 @@ export async function registerRoutes(
       salary: { en: "$80,000 – $120,000/year", es: "$80,000 – $120,000/año" },
       education: { en: "Associate or Bachelor's Degree in Nursing (2–4 years)", es: "Título de asociado o licenciatura en enfermería (2-4 años)" },
       outlook: { en: "High demand — 6% growth expected through 2032", es: "Alta demanda — crecimiento del 6% esperado hasta 2032" },
-      scoring: { hc_motivation: { passion: 15, growth: 10, money: 5, balance: 0 }, hc_education: { medium: 15, short: 10, long: 5, minimal: 0 }, hc_patients: { all_the_time: 15, some: 5, minimal: 0 }, hc_medical: { very: 15, somewhat: 10, not_really: 0 }, hc_emergency: { moderate: 10, fast: 10, calm: 0 }, hc_age_group: { all: 10, elderly: 10, adults: 8, children: 8 } },
+      scoring: { hc_motivation: { passion: 15, growth: 10, money: 5, balance: 0 }, hc_education: { medium: 15, short: 10, long: 5, minimal: 0 }, hc_patients: { all_the_time: 15, some: 5, minimal: 0 }, hc_medical: { very: 15, somewhat: 10, not_really: 0 }, hc_emergency: { moderate: 10, fast: 10, calm: 0 }, hc_age_group: { all: 10, elderly: 10, adults: 8, children: 8 }, hc_setting: { hospital: 15, clinic: 10, community: 5, office: 0 }, hc_tasks: { hands_on: 15, technology: 5, counseling: 5, administrative: 0 } },
     },
     {
       id: "licensed_vocational_nurse",
@@ -382,7 +382,7 @@ export async function registerRoutes(
       salary: { en: "$50,000 – $65,000/year", es: "$50,000 – $65,000/año" },
       education: { en: "Certificate or Diploma (12–18 months)", es: "Certificado o diploma (12-18 meses)" },
       outlook: { en: "Steady demand — especially in rural and long-term care", es: "Demanda constante — especialmente en áreas rurales" },
-      scoring: { hc_motivation: { passion: 15, balance: 10, money: 5, growth: 5 }, hc_education: { short: 15, minimal: 10, medium: 0, long: 0 }, hc_patients: { all_the_time: 15, some: 10, minimal: 0 }, hc_medical: { somewhat: 15, very: 10, not_really: 0 }, hc_emergency: { calm: 10, moderate: 10, fast: 0 }, hc_age_group: { elderly: 15, all: 8, adults: 5, children: 5 } },
+      scoring: { hc_motivation: { passion: 15, balance: 10, money: 5, growth: 5 }, hc_education: { short: 15, minimal: 10, medium: 0, long: 0 }, hc_patients: { all_the_time: 15, some: 10, minimal: 0 }, hc_medical: { somewhat: 15, very: 10, not_really: 0 }, hc_emergency: { calm: 10, moderate: 10, fast: 0 }, hc_age_group: { elderly: 15, all: 8, adults: 5, children: 5 }, hc_setting: { clinic: 15, community: 10, hospital: 5, office: 0 }, hc_tasks: { hands_on: 15, counseling: 5, technology: 0, administrative: 0 } },
     },
     {
       id: "certified_nursing_assistant",
@@ -391,7 +391,7 @@ export async function registerRoutes(
       salary: { en: "$32,000 – $42,000/year", es: "$32,000 – $42,000/año" },
       education: { en: "Certificate program (4–12 weeks)", es: "Programa de certificado (4-12 semanas)" },
       outlook: { en: "Very high demand — great entry point into healthcare", es: "Muy alta demanda — excelente punto de entrada al sector salud" },
-      scoring: { hc_motivation: { passion: 15, balance: 10, money: 0, growth: 5 }, hc_education: { minimal: 15, short: 10, medium: 0, long: 0 }, hc_patients: { all_the_time: 15, some: 5, minimal: 0 }, hc_medical: { somewhat: 10, very: 5, not_really: 5 }, hc_emergency: { calm: 15, moderate: 5, fast: 0 }, hc_age_group: { elderly: 15, all: 8, adults: 5, children: 3 } },
+      scoring: { hc_motivation: { passion: 15, balance: 10, money: 0, growth: 5 }, hc_education: { minimal: 15, short: 10, medium: 0, long: 0 }, hc_patients: { all_the_time: 15, some: 5, minimal: 0 }, hc_medical: { somewhat: 10, very: 5, not_really: 5 }, hc_emergency: { calm: 15, moderate: 5, fast: 0 }, hc_age_group: { elderly: 15, all: 8, adults: 5, children: 3 }, hc_setting: { community: 15, hospital: 10, clinic: 5, office: 0 }, hc_tasks: { hands_on: 15, counseling: 5, technology: 0, administrative: 0 } },
     },
     {
       id: "emt_paramedic",
@@ -400,7 +400,7 @@ export async function registerRoutes(
       salary: { en: "$38,000 – $65,000/year", es: "$38,000 – $65,000/año" },
       education: { en: "Certificate to Associate Degree (6 months – 2 years)", es: "Certificado a título de asociado (6 meses – 2 años)" },
       outlook: { en: "Growing demand — especially in rural communities", es: "Demanda creciente — especialmente en comunidades rurales" },
-      scoring: { hc_motivation: { passion: 15, growth: 10, money: 5, balance: 0 }, hc_education: { minimal: 10, short: 15, medium: 0, long: 0 }, hc_patients: { all_the_time: 15, some: 5, minimal: 0 }, hc_medical: { very: 15, somewhat: 5, not_really: 0 }, hc_emergency: { fast: 15, moderate: 0, calm: 0 }, hc_age_group: { all: 15, adults: 8, children: 5, elderly: 5 } },
+      scoring: { hc_motivation: { passion: 15, growth: 10, money: 5, balance: 0 }, hc_education: { minimal: 10, short: 15, medium: 0, long: 0 }, hc_patients: { all_the_time: 15, some: 5, minimal: 0 }, hc_medical: { very: 15, somewhat: 5, not_really: 0 }, hc_emergency: { fast: 15, moderate: 0, calm: 0 }, hc_age_group: { all: 15, adults: 8, children: 5, elderly: 5 }, hc_setting: { hospital: 15, community: 10, clinic: 0, office: 0 }, hc_tasks: { hands_on: 15, technology: 10, counseling: 0, administrative: 0 } },
     },
     {
       id: "medical_assistant",
@@ -409,7 +409,7 @@ export async function registerRoutes(
       salary: { en: "$35,000 – $45,000/year", es: "$35,000 – $45,000/año" },
       education: { en: "Certificate or Associate Degree (9 months – 2 years)", es: "Certificado o título de asociado (9 meses – 2 años)" },
       outlook: { en: "Very high demand — 14% growth expected", es: "Muy alta demanda — crecimiento del 14% esperado" },
-      scoring: { hc_motivation: { balance: 15, passion: 10, money: 5, growth: 5 }, hc_education: { short: 15, minimal: 10, medium: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 10, minimal: 0 }, hc_medical: { somewhat: 15, very: 5, not_really: 5 }, hc_emergency: { moderate: 15, calm: 10, fast: 0 }, hc_age_group: { all: 10, adults: 10, children: 5, elderly: 5 } },
+      scoring: { hc_motivation: { balance: 15, passion: 10, money: 5, growth: 5 }, hc_education: { short: 15, minimal: 10, medium: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 10, minimal: 0 }, hc_medical: { somewhat: 15, very: 5, not_really: 5 }, hc_emergency: { moderate: 15, calm: 10, fast: 0 }, hc_age_group: { all: 10, adults: 10, children: 5, elderly: 5 }, hc_setting: { clinic: 15, hospital: 5, community: 0, office: 5 }, hc_tasks: { hands_on: 10, administrative: 10, technology: 5, counseling: 0 } },
     },
     {
       id: "phlebotomist",
@@ -418,7 +418,7 @@ export async function registerRoutes(
       salary: { en: "$30,000 – $40,000/year", es: "$30,000 – $40,000/año" },
       education: { en: "Certificate program (4–8 months)", es: "Programa de certificado (4-8 meses)" },
       outlook: { en: "High demand — 8% growth, quick entry into healthcare", es: "Alta demanda — crecimiento del 8%, entrada rápida al sector salud" },
-      scoring: { hc_motivation: { passion: 10, balance: 15, money: 5, growth: 5 }, hc_education: { minimal: 15, short: 10, medium: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 10, minimal: 0 }, hc_medical: { very: 15, somewhat: 10, not_really: 0 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 12, adults: 10, elderly: 8, children: 5 } },
+      scoring: { hc_motivation: { passion: 10, balance: 15, money: 5, growth: 5 }, hc_education: { minimal: 15, short: 10, medium: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 10, minimal: 0 }, hc_medical: { very: 15, somewhat: 10, not_really: 0 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 12, adults: 10, elderly: 8, children: 5 }, hc_setting: { clinic: 15, hospital: 15, community: 0, office: 0 }, hc_tasks: { hands_on: 15, technology: 10, counseling: 0, administrative: 0 } },
     },
     {
       id: "pharmacy_technician",
@@ -427,7 +427,7 @@ export async function registerRoutes(
       salary: { en: "$33,000 – $44,000/year", es: "$33,000 – $44,000/año" },
       education: { en: "Certificate program (6–12 months)", es: "Programa de certificado (6-12 meses)" },
       outlook: { en: "Steady demand — essential in every community", es: "Demanda constante — esencial en cada comunidad" },
-      scoring: { hc_motivation: { balance: 15, money: 10, passion: 5, growth: 5 }, hc_education: { minimal: 10, short: 15, medium: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 5, minimal: 10 }, hc_medical: { somewhat: 10, not_really: 15, very: 0 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 12, adults: 10, elderly: 10, children: 5 } },
+      scoring: { hc_motivation: { balance: 15, money: 10, passion: 5, growth: 5 }, hc_education: { minimal: 10, short: 15, medium: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 5, minimal: 10 }, hc_medical: { somewhat: 10, not_really: 15, very: 0 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 12, adults: 10, elderly: 10, children: 5 }, hc_setting: { clinic: 10, hospital: 10, community: 5, office: 5 }, hc_tasks: { administrative: 10, technology: 10, hands_on: 5, counseling: 5 } },
     },
     {
       id: "dental_assistant",
@@ -436,7 +436,7 @@ export async function registerRoutes(
       salary: { en: "$34,000 – $46,000/year", es: "$34,000 – $46,000/año" },
       education: { en: "Certificate program (9–12 months)", es: "Programa de certificado (9-12 meses)" },
       outlook: { en: "Growing demand — 7% growth expected", es: "Demanda creciente — crecimiento del 7% esperado" },
-      scoring: { hc_motivation: { balance: 15, passion: 10, money: 5, growth: 5 }, hc_education: { minimal: 10, short: 15, medium: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 10, minimal: 0 }, hc_medical: { somewhat: 15, very: 5, not_really: 5 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 12, children: 10, adults: 8, elderly: 5 } },
+      scoring: { hc_motivation: { balance: 15, passion: 10, money: 5, growth: 5 }, hc_education: { minimal: 10, short: 15, medium: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 10, minimal: 0 }, hc_medical: { somewhat: 15, very: 5, not_really: 5 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 12, children: 10, adults: 8, elderly: 5 }, hc_setting: { clinic: 15, hospital: 0, community: 0, office: 5 }, hc_tasks: { hands_on: 15, technology: 10, administrative: 5, counseling: 0 } },
     },
     {
       id: "home_health_aide",
@@ -445,7 +445,7 @@ export async function registerRoutes(
       salary: { en: "$28,000 – $36,000/year", es: "$28,000 – $36,000/año" },
       education: { en: "Certificate program (75–120 hours)", es: "Programa de certificado (75-120 horas)" },
       outlook: { en: "Very high demand — 22% growth, fastest in healthcare", es: "Muy alta demanda — crecimiento del 22%, el más rápido en salud" },
-      scoring: { hc_motivation: { passion: 15, balance: 10, money: 0, growth: 0 }, hc_education: { minimal: 15, short: 10, medium: 0, long: 0 }, hc_patients: { all_the_time: 15, some: 5, minimal: 0 }, hc_medical: { not_really: 10, somewhat: 10, very: 0 }, hc_emergency: { calm: 15, moderate: 5, fast: 0 }, hc_age_group: { elderly: 15, adults: 5, all: 5, children: 0 } },
+      scoring: { hc_motivation: { passion: 15, balance: 10, money: 0, growth: 0 }, hc_education: { minimal: 15, short: 10, medium: 0, long: 0 }, hc_patients: { all_the_time: 15, some: 5, minimal: 0 }, hc_medical: { not_really: 10, somewhat: 10, very: 0 }, hc_emergency: { calm: 15, moderate: 5, fast: 0 }, hc_age_group: { elderly: 15, adults: 5, all: 5, children: 0 }, hc_setting: { community: 15, clinic: 0, hospital: 0, office: 0 }, hc_tasks: { hands_on: 15, counseling: 10, technology: 0, administrative: 0 } },
     },
     {
       id: "medical_biller_coder",
@@ -454,7 +454,7 @@ export async function registerRoutes(
       salary: { en: "$38,000 – $52,000/year", es: "$38,000 – $52,000/año" },
       education: { en: "Certificate program (6–12 months)", es: "Programa de certificado (6-12 meses)" },
       outlook: { en: "Strong demand — critical role in every healthcare facility", es: "Fuerte demanda — rol crítico en cada centro de salud" },
-      scoring: { hc_motivation: { money: 10, balance: 15, growth: 10, passion: 0 }, hc_education: { minimal: 10, short: 15, medium: 0, long: 0 }, hc_patients: { minimal: 15, some: 5, all_the_time: 0 }, hc_medical: { not_really: 15, somewhat: 5, very: 0 }, hc_emergency: { calm: 15, moderate: 5, fast: 0 }, hc_age_group: { all: 10, adults: 5, elderly: 3, children: 3 } },
+      scoring: { hc_motivation: { money: 10, balance: 15, growth: 10, passion: 0 }, hc_education: { minimal: 10, short: 15, medium: 0, long: 0 }, hc_patients: { minimal: 15, some: 5, all_the_time: 0 }, hc_medical: { not_really: 15, somewhat: 5, very: 0 }, hc_emergency: { calm: 15, moderate: 5, fast: 0 }, hc_age_group: { all: 10, adults: 5, elderly: 3, children: 3 }, hc_setting: { office: 15, clinic: 5, hospital: 5, community: 0 }, hc_tasks: { administrative: 15, technology: 10, counseling: 0, hands_on: 0 } },
     },
     {
       id: "health_info_tech",
@@ -463,7 +463,7 @@ export async function registerRoutes(
       salary: { en: "$42,000 – $58,000/year", es: "$42,000 – $58,000/año" },
       education: { en: "Associate Degree (2 years)", es: "Título de asociado (2 años)" },
       outlook: { en: "Strong demand — healthcare digitization driving growth", es: "Fuerte demanda — la digitalización impulsa el crecimiento" },
-      scoring: { hc_motivation: { money: 10, balance: 15, growth: 10, passion: 0 }, hc_education: { short: 15, medium: 10, minimal: 5, long: 0 }, hc_patients: { minimal: 15, some: 5, all_the_time: 0 }, hc_medical: { not_really: 15, somewhat: 5, very: 0 }, hc_emergency: { calm: 15, moderate: 5, fast: 0 }, hc_age_group: { all: 10, adults: 5, elderly: 3, children: 3 } },
+      scoring: { hc_motivation: { money: 10, balance: 15, growth: 10, passion: 0 }, hc_education: { short: 15, medium: 10, minimal: 5, long: 0 }, hc_patients: { minimal: 15, some: 5, all_the_time: 0 }, hc_medical: { not_really: 15, somewhat: 5, very: 0 }, hc_emergency: { calm: 15, moderate: 5, fast: 0 }, hc_age_group: { all: 10, adults: 5, elderly: 3, children: 3 }, hc_setting: { office: 15, hospital: 5, clinic: 5, community: 0 }, hc_tasks: { administrative: 15, technology: 15, counseling: 0, hands_on: 0 } },
     },
     {
       id: "dental_hygienist",
@@ -472,7 +472,7 @@ export async function registerRoutes(
       salary: { en: "$65,000 – $90,000/year", es: "$65,000 – $90,000/año" },
       education: { en: "Associate Degree (2–3 years)", es: "Título de asociado (2-3 años)" },
       outlook: { en: "High demand — 7% growth expected", es: "Alta demanda — crecimiento del 7% esperado" },
-      scoring: { hc_motivation: { balance: 15, money: 15, passion: 5, growth: 5 }, hc_education: { short: 15, medium: 10, minimal: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 10, minimal: 0 }, hc_medical: { somewhat: 15, very: 5, not_really: 5 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 12, children: 10, adults: 8, elderly: 8 } },
+      scoring: { hc_motivation: { balance: 15, money: 15, passion: 5, growth: 5 }, hc_education: { short: 15, medium: 10, minimal: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 10, minimal: 0 }, hc_medical: { somewhat: 15, very: 5, not_really: 5 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 12, children: 10, adults: 8, elderly: 8 }, hc_setting: { clinic: 15, hospital: 0, community: 0, office: 0 }, hc_tasks: { hands_on: 15, counseling: 10, technology: 5, administrative: 0 } },
     },
     {
       id: "respiratory_therapist",
@@ -481,7 +481,7 @@ export async function registerRoutes(
       salary: { en: "$55,000 – $80,000/year", es: "$55,000 – $80,000/año" },
       education: { en: "Associate Degree (2 years)", es: "Título de asociado (2 años)" },
       outlook: { en: "High demand — 13% growth, critical in hospitals", es: "Alta demanda — crecimiento del 13%, crítico en hospitales" },
-      scoring: { hc_motivation: { passion: 15, growth: 10, money: 5, balance: 0 }, hc_education: { short: 15, medium: 10, minimal: 0, long: 0 }, hc_patients: { all_the_time: 15, some: 5, minimal: 0 }, hc_medical: { very: 15, somewhat: 10, not_really: 0 }, hc_emergency: { fast: 15, moderate: 10, calm: 0 }, hc_age_group: { all: 12, elderly: 10, adults: 8, children: 8 } },
+      scoring: { hc_motivation: { passion: 15, growth: 10, money: 5, balance: 0 }, hc_education: { short: 15, medium: 10, minimal: 0, long: 0 }, hc_patients: { all_the_time: 15, some: 5, minimal: 0 }, hc_medical: { very: 15, somewhat: 10, not_really: 0 }, hc_emergency: { fast: 15, moderate: 10, calm: 0 }, hc_age_group: { all: 12, elderly: 10, adults: 8, children: 8 }, hc_setting: { hospital: 15, clinic: 5, community: 0, office: 0 }, hc_tasks: { hands_on: 10, technology: 15, counseling: 5, administrative: 0 } },
     },
     {
       id: "radiologic_technologist",
@@ -490,7 +490,7 @@ export async function registerRoutes(
       salary: { en: "$55,000 – $78,000/year", es: "$55,000 – $78,000/año" },
       education: { en: "Associate Degree (2 years)", es: "Título de asociado (2 años)" },
       outlook: { en: "Growing demand — 6% growth, essential diagnostic role", es: "Demanda creciente — crecimiento del 6%, rol diagnóstico esencial" },
-      scoring: { hc_motivation: { growth: 15, money: 10, passion: 5, balance: 5 }, hc_education: { short: 15, medium: 10, minimal: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 5, minimal: 5 }, hc_medical: { very: 10, somewhat: 15, not_really: 0 }, hc_emergency: { moderate: 15, calm: 10, fast: 5 }, hc_age_group: { all: 12, adults: 10, elderly: 8, children: 5 } },
+      scoring: { hc_motivation: { growth: 15, money: 10, passion: 5, balance: 5 }, hc_education: { short: 15, medium: 10, minimal: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 5, minimal: 5 }, hc_medical: { very: 10, somewhat: 15, not_really: 0 }, hc_emergency: { moderate: 15, calm: 10, fast: 5 }, hc_age_group: { all: 12, adults: 10, elderly: 8, children: 5 }, hc_setting: { hospital: 15, clinic: 10, community: 0, office: 0 }, hc_tasks: { technology: 15, hands_on: 10, administrative: 0, counseling: 0 } },
     },
     {
       id: "surgical_technician",
@@ -499,7 +499,7 @@ export async function registerRoutes(
       salary: { en: "$45,000 – $62,000/year", es: "$45,000 – $62,000/año" },
       education: { en: "Associate Degree or Certificate (1–2 years)", es: "Título de asociado o certificado (1-2 años)" },
       outlook: { en: "Growing demand — 5% growth expected", es: "Demanda creciente — crecimiento del 5% esperado" },
-      scoring: { hc_motivation: { passion: 10, growth: 15, money: 5, balance: 0 }, hc_education: { short: 15, minimal: 5, medium: 0, long: 0 }, hc_patients: { some: 10, all_the_time: 10, minimal: 5 }, hc_medical: { very: 15, somewhat: 5, not_really: 0 }, hc_emergency: { fast: 15, moderate: 10, calm: 0 }, hc_age_group: { all: 12, adults: 10, elderly: 8, children: 5 } },
+      scoring: { hc_motivation: { passion: 10, growth: 15, money: 5, balance: 0 }, hc_education: { short: 15, minimal: 5, medium: 0, long: 0 }, hc_patients: { some: 10, all_the_time: 10, minimal: 5 }, hc_medical: { very: 15, somewhat: 5, not_really: 0 }, hc_emergency: { fast: 15, moderate: 10, calm: 0 }, hc_age_group: { all: 12, adults: 10, elderly: 8, children: 5 }, hc_setting: { hospital: 15, clinic: 0, community: 0, office: 0 }, hc_tasks: { hands_on: 15, technology: 10, administrative: 0, counseling: 0 } },
     },
     {
       id: "physical_therapist_assistant",
@@ -508,7 +508,7 @@ export async function registerRoutes(
       salary: { en: "$50,000 – $68,000/year", es: "$50,000 – $68,000/año" },
       education: { en: "Associate Degree (2 years)", es: "Título de asociado (2 años)" },
       outlook: { en: "High demand — 24% growth, excellent outlook", es: "Alta demanda — crecimiento del 24%, excelente perspectiva" },
-      scoring: { hc_motivation: { passion: 15, growth: 10, balance: 5, money: 5 }, hc_education: { short: 15, medium: 5, minimal: 0, long: 0 }, hc_patients: { all_the_time: 15, some: 10, minimal: 0 }, hc_medical: { somewhat: 15, very: 5, not_really: 5 }, hc_emergency: { calm: 10, moderate: 15, fast: 0 }, hc_age_group: { elderly: 12, adults: 12, all: 10, children: 8 } },
+      scoring: { hc_motivation: { passion: 15, growth: 10, balance: 5, money: 5 }, hc_education: { short: 15, medium: 5, minimal: 0, long: 0 }, hc_patients: { all_the_time: 15, some: 10, minimal: 0 }, hc_medical: { somewhat: 15, very: 5, not_really: 5 }, hc_emergency: { calm: 10, moderate: 15, fast: 0 }, hc_age_group: { elderly: 12, adults: 12, all: 10, children: 8 }, hc_setting: { clinic: 15, hospital: 10, community: 5, office: 0 }, hc_tasks: { hands_on: 15, counseling: 10, technology: 0, administrative: 0 } },
     },
     {
       id: "diagnostic_ultrasound_tech",
@@ -517,7 +517,7 @@ export async function registerRoutes(
       salary: { en: "$58,000 – $82,000/year", es: "$58,000 – $82,000/año" },
       education: { en: "Associate Degree (2 years)", es: "Título de asociado (2 años)" },
       outlook: { en: "High demand — 10% growth expected", es: "Alta demanda — crecimiento del 10% esperado" },
-      scoring: { hc_motivation: { growth: 15, money: 10, passion: 5, balance: 5 }, hc_education: { short: 15, medium: 10, minimal: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 5, minimal: 5 }, hc_medical: { somewhat: 15, very: 10, not_really: 0 }, hc_emergency: { moderate: 15, calm: 10, fast: 0 }, hc_age_group: { all: 12, adults: 10, elderly: 8, children: 8 } },
+      scoring: { hc_motivation: { growth: 15, money: 10, passion: 5, balance: 5 }, hc_education: { short: 15, medium: 10, minimal: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 5, minimal: 5 }, hc_medical: { somewhat: 15, very: 10, not_really: 0 }, hc_emergency: { moderate: 15, calm: 10, fast: 0 }, hc_age_group: { all: 12, adults: 10, elderly: 8, children: 8 }, hc_setting: { hospital: 15, clinic: 10, community: 0, office: 0 }, hc_tasks: { technology: 15, hands_on: 10, administrative: 0, counseling: 0 } },
     },
     {
       id: "patient_health_navigator",
@@ -526,7 +526,7 @@ export async function registerRoutes(
       salary: { en: "$36,000 – $50,000/year", es: "$36,000 – $50,000/año" },
       education: { en: "Associate Degree or Certificate (1–2 years)", es: "Título de asociado o certificado (1-2 años)" },
       outlook: { en: "Growing demand — essential in community health", es: "Demanda creciente — esencial en salud comunitaria" },
-      scoring: { hc_motivation: { passion: 15, balance: 10, growth: 5, money: 0 }, hc_education: { short: 15, minimal: 10, medium: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 10, minimal: 0 }, hc_medical: { not_really: 15, somewhat: 10, very: 0 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 15, elderly: 10, adults: 8, children: 5 } },
+      scoring: { hc_motivation: { passion: 15, balance: 10, growth: 5, money: 0 }, hc_education: { short: 15, minimal: 10, medium: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 10, minimal: 0 }, hc_medical: { not_really: 15, somewhat: 10, very: 0 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 15, elderly: 10, adults: 8, children: 5 }, hc_setting: { community: 15, clinic: 10, hospital: 5, office: 5 }, hc_tasks: { counseling: 15, administrative: 10, hands_on: 0, technology: 0 } },
     },
     {
       id: "community_health_worker",
@@ -535,7 +535,7 @@ export async function registerRoutes(
       salary: { en: "$35,000 – $50,000/year", es: "$35,000 – $50,000/año" },
       education: { en: "Certificate to Bachelor's Degree (varies)", es: "Certificado a licenciatura (varía)" },
       outlook: { en: "Fast growing — 14% growth, critical in rural areas", es: "Crecimiento rápido — 14%, crucial en áreas rurales" },
-      scoring: { hc_motivation: { passion: 15, growth: 5, balance: 10, money: 0 }, hc_education: { minimal: 10, short: 15, medium: 10, long: 0 }, hc_patients: { some: 15, all_the_time: 10, minimal: 0 }, hc_medical: { not_really: 10, somewhat: 10, very: 0 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 15, elderly: 8, children: 8, adults: 8 } },
+      scoring: { hc_motivation: { passion: 15, growth: 5, balance: 10, money: 0 }, hc_education: { minimal: 10, short: 15, medium: 10, long: 0 }, hc_patients: { some: 15, all_the_time: 10, minimal: 0 }, hc_medical: { not_really: 10, somewhat: 10, very: 0 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 15, elderly: 8, children: 8, adults: 8 }, hc_setting: { community: 15, clinic: 5, hospital: 0, office: 0 }, hc_tasks: { counseling: 15, administrative: 5, hands_on: 5, technology: 0 } },
     },
     {
       id: "health_education_specialist",
@@ -544,7 +544,7 @@ export async function registerRoutes(
       salary: { en: "$48,000 – $65,000/year", es: "$48,000 – $65,000/año" },
       education: { en: "Associate to Bachelor's Degree (2–4 years)", es: "Título de asociado a licenciatura (2-4 años)" },
       outlook: { en: "Growing demand — 7% growth, increasing public health focus", es: "Demanda creciente — crecimiento del 7%, mayor enfoque en salud pública" },
-      scoring: { hc_motivation: { passion: 15, growth: 10, balance: 5, money: 0 }, hc_education: { short: 10, medium: 15, minimal: 0, long: 5 }, hc_patients: { some: 15, minimal: 10, all_the_time: 0 }, hc_medical: { not_really: 15, somewhat: 10, very: 0 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 15, adults: 10, children: 8, elderly: 8 } },
+      scoring: { hc_motivation: { passion: 15, growth: 10, balance: 5, money: 0 }, hc_education: { short: 10, medium: 15, minimal: 0, long: 5 }, hc_patients: { some: 15, minimal: 10, all_the_time: 0 }, hc_medical: { not_really: 15, somewhat: 10, very: 0 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 15, adults: 10, children: 8, elderly: 8 }, hc_setting: { community: 15, office: 10, clinic: 5, hospital: 0 }, hc_tasks: { counseling: 15, administrative: 10, hands_on: 0, technology: 0 } },
     },
     {
       id: "substance_abuse_counselor",
@@ -553,7 +553,7 @@ export async function registerRoutes(
       salary: { en: "$42,000 – $60,000/year", es: "$42,000 – $60,000/año" },
       education: { en: "Bachelor's Degree (4 years)", es: "Licenciatura (4 años)" },
       outlook: { en: "High demand — 18% growth, critical need in rural areas", es: "Alta demanda — crecimiento del 18%, necesidad crítica en áreas rurales" },
-      scoring: { hc_motivation: { passion: 15, growth: 10, balance: 0, money: 0 }, hc_education: { medium: 15, long: 10, short: 5, minimal: 0 }, hc_patients: { all_the_time: 15, some: 10, minimal: 0 }, hc_medical: { not_really: 10, somewhat: 15, very: 0 }, hc_emergency: { moderate: 10, calm: 15, fast: 0 }, hc_age_group: { adults: 15, all: 10, elderly: 5, children: 5 } },
+      scoring: { hc_motivation: { passion: 15, growth: 10, balance: 0, money: 0 }, hc_education: { medium: 15, long: 10, short: 5, minimal: 0 }, hc_patients: { all_the_time: 15, some: 10, minimal: 0 }, hc_medical: { not_really: 10, somewhat: 15, very: 0 }, hc_emergency: { moderate: 10, calm: 15, fast: 0 }, hc_age_group: { adults: 15, all: 10, elderly: 5, children: 5 }, hc_setting: { community: 15, clinic: 10, hospital: 5, office: 5 }, hc_tasks: { counseling: 15, administrative: 5, hands_on: 0, technology: 0 } },
     },
     {
       id: "healthcare_administrator",
@@ -562,7 +562,7 @@ export async function registerRoutes(
       salary: { en: "$65,000 – $115,000/year", es: "$65,000 – $115,000/año" },
       education: { en: "Bachelor's or Master's Degree (4–6 years)", es: "Licenciatura o maestría (4-6 años)" },
       outlook: { en: "Strong demand — 28% growth, one of the fastest growing", es: "Fuerte demanda — crecimiento del 28%, uno de los de mayor crecimiento" },
-      scoring: { hc_motivation: { money: 15, growth: 15, balance: 5, passion: 0 }, hc_education: { medium: 15, long: 15, short: 0, minimal: 0 }, hc_patients: { minimal: 15, some: 10, all_the_time: 0 }, hc_medical: { not_really: 15, somewhat: 5, very: 0 }, hc_emergency: { moderate: 15, calm: 10, fast: 0 }, hc_age_group: { all: 10, adults: 8, elderly: 5, children: 5 } },
+      scoring: { hc_motivation: { money: 15, growth: 15, balance: 5, passion: 0 }, hc_education: { medium: 15, long: 15, short: 0, minimal: 0 }, hc_patients: { minimal: 15, some: 10, all_the_time: 0 }, hc_medical: { not_really: 15, somewhat: 5, very: 0 }, hc_emergency: { moderate: 15, calm: 10, fast: 0 }, hc_age_group: { all: 10, adults: 8, elderly: 5, children: 5 }, hc_setting: { office: 15, hospital: 10, clinic: 10, community: 0 }, hc_tasks: { administrative: 15, counseling: 5, technology: 5, hands_on: 0 } },
     },
     {
       id: "clinical_research_coordinator",
@@ -571,7 +571,7 @@ export async function registerRoutes(
       salary: { en: "$50,000 – $72,000/year", es: "$50,000 – $72,000/año" },
       education: { en: "Bachelor's Degree (4 years)", es: "Licenciatura (4 años)" },
       outlook: { en: "Growing demand — expanding research needs in healthcare", es: "Demanda creciente — necesidades de investigación en expansión" },
-      scoring: { hc_motivation: { growth: 15, money: 10, passion: 5, balance: 5 }, hc_education: { medium: 15, long: 10, short: 0, minimal: 0 }, hc_patients: { some: 10, minimal: 15, all_the_time: 0 }, hc_medical: { somewhat: 15, not_really: 10, very: 0 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 10, adults: 10, elderly: 5, children: 5 } },
+      scoring: { hc_motivation: { growth: 15, money: 10, passion: 5, balance: 5 }, hc_education: { medium: 15, long: 10, short: 0, minimal: 0 }, hc_patients: { some: 10, minimal: 15, all_the_time: 0 }, hc_medical: { somewhat: 15, not_really: 10, very: 0 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 10, adults: 10, elderly: 5, children: 5 }, hc_setting: { office: 15, hospital: 10, clinic: 5, community: 0 }, hc_tasks: { administrative: 15, technology: 10, counseling: 0, hands_on: 0 } },
     },
     {
       id: "nutritionist",
@@ -580,7 +580,7 @@ export async function registerRoutes(
       salary: { en: "$45,000 – $68,000/year", es: "$45,000 – $68,000/año" },
       education: { en: "Associate to Bachelor's Degree (2–4 years)", es: "Título de asociado a licenciatura (2-4 años)" },
       outlook: { en: "Growing demand — 7% growth, increasing health awareness", es: "Demanda creciente — crecimiento del 7%, mayor conciencia sobre salud" },
-      scoring: { hc_motivation: { passion: 15, balance: 10, growth: 5, money: 0 }, hc_education: { short: 10, medium: 15, minimal: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 5, minimal: 5 }, hc_medical: { not_really: 15, somewhat: 10, very: 0 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 12, elderly: 10, adults: 10, children: 8 } },
+      scoring: { hc_motivation: { passion: 15, balance: 10, growth: 5, money: 0 }, hc_education: { short: 10, medium: 15, minimal: 0, long: 0 }, hc_patients: { some: 15, all_the_time: 5, minimal: 5 }, hc_medical: { not_really: 15, somewhat: 10, very: 0 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 12, elderly: 10, adults: 10, children: 8 }, hc_setting: { clinic: 15, community: 10, hospital: 5, office: 5 }, hc_tasks: { counseling: 15, administrative: 5, hands_on: 0, technology: 0 } },
     },
     {
       id: "speech_language_pathologist",
@@ -589,7 +589,7 @@ export async function registerRoutes(
       salary: { en: "$70,000 – $100,000/year", es: "$70,000 – $100,000/año" },
       education: { en: "Master's Degree (6 years total)", es: "Maestría (6 años en total)" },
       outlook: { en: "High demand — 19% growth, critical shortage in schools", es: "Alta demanda — crecimiento del 19%, escasez crítica en escuelas" },
-      scoring: { hc_motivation: { passion: 15, growth: 10, money: 5, balance: 5 }, hc_education: { long: 15, medium: 10, short: 0, minimal: 0 }, hc_patients: { all_the_time: 15, some: 10, minimal: 0 }, hc_medical: { somewhat: 15, not_really: 5, very: 5 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { children: 15, all: 10, elderly: 8, adults: 8 } },
+      scoring: { hc_motivation: { passion: 15, growth: 10, money: 5, balance: 5 }, hc_education: { long: 15, medium: 10, short: 0, minimal: 0 }, hc_patients: { all_the_time: 15, some: 10, minimal: 0 }, hc_medical: { somewhat: 15, not_really: 5, very: 5 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { children: 15, all: 10, elderly: 8, adults: 8 }, hc_setting: { clinic: 15, hospital: 5, community: 10, office: 0 }, hc_tasks: { counseling: 15, hands_on: 10, technology: 0, administrative: 0 } },
     },
     {
       id: "occupational_therapist",
@@ -598,7 +598,7 @@ export async function registerRoutes(
       salary: { en: "$75,000 – $100,000/year", es: "$75,000 – $100,000/año" },
       education: { en: "Master's or Doctoral Degree (5–7 years)", es: "Maestría o doctorado (5-7 años)" },
       outlook: { en: "High demand — 12% growth expected", es: "Alta demanda — crecimiento del 12% esperado" },
-      scoring: { hc_motivation: { passion: 15, growth: 10, money: 5, balance: 0 }, hc_education: { long: 15, medium: 10, short: 0, minimal: 0 }, hc_patients: { all_the_time: 15, some: 10, minimal: 0 }, hc_medical: { somewhat: 15, very: 5, not_really: 5 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 12, children: 10, elderly: 10, adults: 8 } },
+      scoring: { hc_motivation: { passion: 15, growth: 10, money: 5, balance: 0 }, hc_education: { long: 15, medium: 10, short: 0, minimal: 0 }, hc_patients: { all_the_time: 15, some: 10, minimal: 0 }, hc_medical: { somewhat: 15, very: 5, not_really: 5 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 12, children: 10, elderly: 10, adults: 8 }, hc_setting: { clinic: 15, hospital: 10, community: 5, office: 0 }, hc_tasks: { hands_on: 15, counseling: 10, technology: 0, administrative: 0 } },
     },
     {
       id: "physician_assistant",
@@ -607,7 +607,7 @@ export async function registerRoutes(
       salary: { en: "$105,000 – $145,000/year", es: "$105,000 – $145,000/año" },
       education: { en: "Master's Degree (6–7 years total)", es: "Maestría (6-7 años en total)" },
       outlook: { en: "Very high demand — 27% growth, critical in rural areas", es: "Muy alta demanda — crecimiento del 27%, crítico en áreas rurales" },
-      scoring: { hc_motivation: { money: 15, growth: 15, passion: 10, balance: 0 }, hc_education: { long: 15, medium: 5, short: 0, minimal: 0 }, hc_patients: { all_the_time: 15, some: 10, minimal: 0 }, hc_medical: { very: 15, somewhat: 5, not_really: 0 }, hc_emergency: { fast: 10, moderate: 15, calm: 0 }, hc_age_group: { all: 15, adults: 10, elderly: 8, children: 8 } },
+      scoring: { hc_motivation: { money: 15, growth: 15, passion: 10, balance: 0 }, hc_education: { long: 15, medium: 5, short: 0, minimal: 0 }, hc_patients: { all_the_time: 15, some: 10, minimal: 0 }, hc_medical: { very: 15, somewhat: 5, not_really: 0 }, hc_emergency: { fast: 10, moderate: 15, calm: 0 }, hc_age_group: { all: 15, adults: 10, elderly: 8, children: 8 }, hc_setting: { clinic: 15, hospital: 15, community: 5, office: 0 }, hc_tasks: { hands_on: 15, technology: 5, counseling: 5, administrative: 0 } },
     },
     {
       id: "nurse_practitioner",
@@ -616,7 +616,7 @@ export async function registerRoutes(
       salary: { en: "$100,000 – $140,000/year", es: "$100,000 – $140,000/año" },
       education: { en: "Master's or Doctoral Degree in Nursing (6–8 years)", es: "Maestría o doctorado en enfermería (6-8 años)" },
       outlook: { en: "Very high demand — 40% growth, fastest in healthcare", es: "Muy alta demanda — crecimiento del 40%, el más rápido en salud" },
-      scoring: { hc_motivation: { passion: 15, money: 10, growth: 10, balance: 0 }, hc_education: { long: 15, medium: 5, short: 0, minimal: 0 }, hc_patients: { all_the_time: 15, some: 10, minimal: 0 }, hc_medical: { very: 15, somewhat: 5, not_really: 0 }, hc_emergency: { moderate: 15, fast: 10, calm: 0 }, hc_age_group: { all: 15, elderly: 10, adults: 8, children: 8 } },
+      scoring: { hc_motivation: { passion: 15, money: 10, growth: 10, balance: 0 }, hc_education: { long: 15, medium: 5, short: 0, minimal: 0 }, hc_patients: { all_the_time: 15, some: 10, minimal: 0 }, hc_medical: { very: 15, somewhat: 5, not_really: 0 }, hc_emergency: { moderate: 15, fast: 10, calm: 0 }, hc_age_group: { all: 15, elderly: 10, adults: 8, children: 8 }, hc_setting: { clinic: 15, hospital: 10, community: 10, office: 0 }, hc_tasks: { hands_on: 15, counseling: 10, technology: 0, administrative: 0 } },
     },
     {
       id: "pharmacist",
@@ -625,7 +625,7 @@ export async function registerRoutes(
       salary: { en: "$120,000 – $160,000/year", es: "$120,000 – $160,000/año" },
       education: { en: "Doctor of Pharmacy (PharmD) (6–8 years)", es: "Doctorado en Farmacia (PharmD) (6-8 años)" },
       outlook: { en: "Steady demand — essential community role", es: "Demanda constante — rol esencial en la comunidad" },
-      scoring: { hc_motivation: { money: 15, growth: 10, balance: 10, passion: 5 }, hc_education: { long: 15, medium: 0, short: 0, minimal: 0 }, hc_patients: { some: 15, all_the_time: 5, minimal: 5 }, hc_medical: { very: 10, somewhat: 15, not_really: 0 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 12, elderly: 10, adults: 10, children: 5 } },
+      scoring: { hc_motivation: { money: 15, growth: 10, balance: 10, passion: 5 }, hc_education: { long: 15, medium: 0, short: 0, minimal: 0 }, hc_patients: { some: 15, all_the_time: 5, minimal: 5 }, hc_medical: { very: 10, somewhat: 15, not_really: 0 }, hc_emergency: { calm: 15, moderate: 10, fast: 0 }, hc_age_group: { all: 12, elderly: 10, adults: 10, children: 5 }, hc_setting: { clinic: 10, hospital: 10, community: 5, office: 5 }, hc_tasks: { counseling: 10, technology: 10, administrative: 10, hands_on: 5 } },
     },
     {
       id: "physical_therapist",
@@ -634,7 +634,7 @@ export async function registerRoutes(
       salary: { en: "$80,000 – $110,000/year", es: "$80,000 – $110,000/año" },
       education: { en: "Doctor of Physical Therapy (DPT) (6–7 years)", es: "Doctorado en Terapia Física (DPT) (6-7 años)" },
       outlook: { en: "High demand — 15% growth expected", es: "Alta demanda — crecimiento del 15% esperado" },
-      scoring: { hc_motivation: { passion: 15, growth: 10, money: 10, balance: 0 }, hc_education: { long: 15, medium: 5, short: 0, minimal: 0 }, hc_patients: { all_the_time: 15, some: 10, minimal: 0 }, hc_medical: { somewhat: 15, very: 5, not_really: 0 }, hc_emergency: { calm: 10, moderate: 15, fast: 0 }, hc_age_group: { all: 12, elderly: 12, adults: 10, children: 8 } },
+      scoring: { hc_motivation: { passion: 15, growth: 10, money: 10, balance: 0 }, hc_education: { long: 15, medium: 5, short: 0, minimal: 0 }, hc_patients: { all_the_time: 15, some: 10, minimal: 0 }, hc_medical: { somewhat: 15, very: 5, not_really: 0 }, hc_emergency: { calm: 10, moderate: 15, fast: 0 }, hc_age_group: { all: 12, elderly: 12, adults: 10, children: 8 }, hc_setting: { clinic: 15, hospital: 10, community: 5, office: 0 }, hc_tasks: { hands_on: 15, counseling: 10, technology: 0, administrative: 0 } },
     },
   ];
 
@@ -646,7 +646,7 @@ export async function registerRoutes(
       salary: { en: "$28,000 – $38,000/year", es: "$28,000 – $38,000/año" },
       education: { en: "Certificate or Permit (varies)", es: "Certificado o permiso (varía)" },
       outlook: { en: "Consistent demand — great stepping stone to teaching", es: "Demanda constante — excelente paso hacia la enseñanza" },
-      scoring: { ed_motivation: { community: 15, inspire: 10, stability: 10, subject: 0 }, ed_age_group: { elementary: 12, early_childhood: 10, secondary: 5, adult: 0 }, ed_education_level: { certificate: 15, associates: 10, bachelors: 0, masters: 0 }, ed_role: { support: 15, childcare: 10, classroom: 5, specialist: 0 }, ed_environment: { structured: 15, dynamic: 5, flexible: 5 }, ed_location: { local: 15, willing_travel: 5, online: 0 } },
+      scoring: { ed_motivation: { community: 15, inspire: 10, stability: 10, subject: 0 }, ed_age_group: { elementary: 12, early_childhood: 10, secondary: 5, adult: 0 }, ed_education_level: { certificate: 15, associates: 10, bachelors: 0, masters: 0 }, ed_role: { support: 15, childcare: 10, classroom: 5, specialist: 0 }, ed_environment: { structured: 15, dynamic: 5, flexible: 5 }, ed_location: { local: 15, willing_travel: 5, online: 0 }, ed_focus: { teaching: 10, wellbeing: 10, leadership: 0, resources: 0 }, ed_special_needs: { open: 15, love_it: 10, general: 5 } },
     },
     {
       id: "child_development_assistant",
@@ -655,7 +655,7 @@ export async function registerRoutes(
       salary: { en: "$26,000 – $34,000/year", es: "$26,000 – $34,000/año" },
       education: { en: "Certificate or Permit (6 units minimum)", es: "Certificado o permiso (6 unidades mínimo)" },
       outlook: { en: "Steady demand — entry point into early childhood education", es: "Demanda constante — punto de entrada a educación infantil" },
-      scoring: { ed_motivation: { inspire: 15, community: 10, stability: 5, subject: 0 }, ed_age_group: { early_childhood: 15, elementary: 5, secondary: 0, adult: 0 }, ed_education_level: { certificate: 15, associates: 10, bachelors: 0, masters: 0 }, ed_role: { childcare: 15, support: 15, classroom: 5, specialist: 0 }, ed_environment: { dynamic: 15, flexible: 10, structured: 5 }, ed_location: { local: 15, online: 0, willing_travel: 0 } },
+      scoring: { ed_motivation: { inspire: 15, community: 10, stability: 5, subject: 0 }, ed_age_group: { early_childhood: 15, elementary: 5, secondary: 0, adult: 0 }, ed_education_level: { certificate: 15, associates: 10, bachelors: 0, masters: 0 }, ed_role: { childcare: 15, support: 15, classroom: 5, specialist: 0 }, ed_environment: { dynamic: 15, flexible: 10, structured: 5 }, ed_location: { local: 15, online: 0, willing_travel: 0 }, ed_focus: { teaching: 15, wellbeing: 10, leadership: 0, resources: 0 }, ed_special_needs: { open: 10, general: 10, love_it: 5 } },
     },
     {
       id: "bilingual_assistant",
@@ -664,7 +664,7 @@ export async function registerRoutes(
       salary: { en: "$30,000 – $42,000/year", es: "$30,000 – $42,000/año" },
       education: { en: "Certificate or Permit + Bilingual proficiency", es: "Certificado o permiso + dominio bilingüe" },
       outlook: { en: "Growing demand — essential in diverse North State communities", es: "Demanda creciente — esencial en comunidades diversas del Norte del Estado" },
-      scoring: { ed_motivation: { community: 15, inspire: 10, stability: 5, subject: 5 }, ed_age_group: { elementary: 10, early_childhood: 10, secondary: 10, adult: 5 }, ed_education_level: { certificate: 15, associates: 10, bachelors: 5, masters: 0 }, ed_role: { support: 15, specialist: 10, classroom: 5, childcare: 0 }, ed_environment: { flexible: 15, dynamic: 10, structured: 5 }, ed_location: { local: 15, willing_travel: 5, online: 0 } },
+      scoring: { ed_motivation: { community: 15, inspire: 10, stability: 5, subject: 5 }, ed_age_group: { elementary: 10, early_childhood: 10, secondary: 10, adult: 5 }, ed_education_level: { certificate: 15, associates: 10, bachelors: 5, masters: 0 }, ed_role: { support: 15, specialist: 10, classroom: 5, childcare: 0 }, ed_environment: { flexible: 15, dynamic: 10, structured: 5 }, ed_location: { local: 15, willing_travel: 5, online: 0 }, ed_focus: { teaching: 10, wellbeing: 10, resources: 10, leadership: 0 }, ed_special_needs: { open: 15, general: 10, love_it: 5 } },
     },
     {
       id: "bus_driver",
@@ -673,7 +673,7 @@ export async function registerRoutes(
       salary: { en: "$28,000 – $40,000/year", es: "$28,000 – $40,000/año" },
       education: { en: "Commercial Driver's License (CDL) + training", es: "Licencia de conducir comercial (CDL) + capacitación" },
       outlook: { en: "High demand — critical shortage in rural districts", es: "Alta demanda — escasez crítica en distritos rurales" },
-      scoring: { ed_motivation: { community: 15, stability: 15, inspire: 0, subject: 0 }, ed_age_group: { elementary: 10, secondary: 10, early_childhood: 5, adult: 0 }, ed_education_level: { certificate: 15, associates: 5, bachelors: 0, masters: 0 }, ed_role: { support: 15, childcare: 5, classroom: 0, specialist: 0 }, ed_environment: { structured: 15, flexible: 10, dynamic: 0 }, ed_location: { local: 15, willing_travel: 10, online: 0 } },
+      scoring: { ed_motivation: { community: 15, stability: 15, inspire: 0, subject: 0 }, ed_age_group: { elementary: 10, secondary: 10, early_childhood: 5, adult: 0 }, ed_education_level: { certificate: 15, associates: 5, bachelors: 0, masters: 0 }, ed_role: { support: 15, childcare: 5, classroom: 0, specialist: 0 }, ed_environment: { structured: 15, flexible: 10, dynamic: 0 }, ed_location: { local: 15, willing_travel: 10, online: 0 }, ed_focus: { wellbeing: 5, teaching: 0, leadership: 0, resources: 0 }, ed_special_needs: { general: 15, open: 10, love_it: 0 } },
     },
     {
       id: "instructional_assistant",
@@ -682,7 +682,7 @@ export async function registerRoutes(
       salary: { en: "$30,000 – $40,000/year", es: "$30,000 – $40,000/año" },
       education: { en: "Associate Degree or equivalent (2 years)", es: "Título de asociado o equivalente (2 años)" },
       outlook: { en: "Steady demand — valued support role in schools", es: "Demanda constante — rol de apoyo valorado en escuelas" },
-      scoring: { ed_motivation: { inspire: 15, community: 10, stability: 10, subject: 0 }, ed_age_group: { elementary: 12, secondary: 10, early_childhood: 5, adult: 0 }, ed_education_level: { associates: 15, certificate: 10, bachelors: 5, masters: 0 }, ed_role: { support: 15, classroom: 10, childcare: 5, specialist: 0 }, ed_environment: { structured: 15, dynamic: 10, flexible: 0 }, ed_location: { local: 15, willing_travel: 5, online: 0 } },
+      scoring: { ed_motivation: { inspire: 15, community: 10, stability: 10, subject: 0 }, ed_age_group: { elementary: 12, secondary: 10, early_childhood: 5, adult: 0 }, ed_education_level: { associates: 15, certificate: 10, bachelors: 5, masters: 0 }, ed_role: { support: 15, classroom: 10, childcare: 5, specialist: 0 }, ed_environment: { structured: 15, dynamic: 10, flexible: 0 }, ed_location: { local: 15, willing_travel: 5, online: 0 }, ed_focus: { teaching: 15, wellbeing: 5, leadership: 0, resources: 5 }, ed_special_needs: { open: 15, love_it: 10, general: 5 } },
     },
     {
       id: "special_education_assistant",
@@ -691,7 +691,7 @@ export async function registerRoutes(
       salary: { en: "$30,000 – $42,000/year", es: "$30,000 – $42,000/año" },
       education: { en: "Associate Degree (2 years)", es: "Título de asociado (2 años)" },
       outlook: { en: "High demand — critical need in all school districts", es: "Alta demanda — necesidad crítica en todos los distritos escolares" },
-      scoring: { ed_motivation: { inspire: 15, community: 15, stability: 5, subject: 0 }, ed_age_group: { elementary: 12, secondary: 10, early_childhood: 10, adult: 0 }, ed_education_level: { associates: 15, certificate: 10, bachelors: 5, masters: 0 }, ed_role: { support: 15, specialist: 10, classroom: 5, childcare: 0 }, ed_environment: { dynamic: 15, structured: 10, flexible: 5 }, ed_location: { local: 15, willing_travel: 5, online: 0 } },
+      scoring: { ed_motivation: { inspire: 15, community: 15, stability: 5, subject: 0 }, ed_age_group: { elementary: 12, secondary: 10, early_childhood: 10, adult: 0 }, ed_education_level: { associates: 15, certificate: 10, bachelors: 5, masters: 0 }, ed_role: { support: 15, specialist: 10, classroom: 5, childcare: 0 }, ed_environment: { dynamic: 15, structured: 10, flexible: 5 }, ed_location: { local: 15, willing_travel: 5, online: 0 }, ed_focus: { wellbeing: 15, teaching: 10, leadership: 0, resources: 0 }, ed_special_needs: { love_it: 15, open: 10, general: 0 } },
     },
     {
       id: "afterschool_site_manager",
@@ -700,7 +700,7 @@ export async function registerRoutes(
       salary: { en: "$32,000 – $45,000/year", es: "$32,000 – $45,000/año" },
       education: { en: "Associate Degree (2 years)", es: "Título de asociado (2 años)" },
       outlook: { en: "Growing demand — expanding afterschool programs", es: "Demanda creciente — programas extraescolares en expansión" },
-      scoring: { ed_motivation: { community: 15, inspire: 10, stability: 10, subject: 0 }, ed_age_group: { elementary: 12, secondary: 12, early_childhood: 5, adult: 0 }, ed_education_level: { associates: 15, certificate: 10, bachelors: 5, masters: 0 }, ed_role: { support: 10, childcare: 15, classroom: 5, specialist: 0 }, ed_environment: { dynamic: 15, flexible: 10, structured: 5 }, ed_location: { local: 15, willing_travel: 5, online: 0 } },
+      scoring: { ed_motivation: { community: 15, inspire: 10, stability: 10, subject: 0 }, ed_age_group: { elementary: 12, secondary: 12, early_childhood: 5, adult: 0 }, ed_education_level: { associates: 15, certificate: 10, bachelors: 5, masters: 0 }, ed_role: { support: 10, childcare: 15, classroom: 5, specialist: 0 }, ed_environment: { dynamic: 15, flexible: 10, structured: 5 }, ed_location: { local: 15, willing_travel: 5, online: 0 }, ed_focus: { leadership: 15, teaching: 5, wellbeing: 10, resources: 0 }, ed_special_needs: { open: 10, general: 10, love_it: 5 } },
     },
     {
       id: "library_technician",
@@ -709,7 +709,7 @@ export async function registerRoutes(
       salary: { en: "$30,000 – $42,000/year", es: "$30,000 – $42,000/año" },
       education: { en: "Associate Degree (2 years)", es: "Título de asociado (2 años)" },
       outlook: { en: "Steady demand — valued support role in schools", es: "Demanda constante — rol de apoyo valorado en escuelas" },
-      scoring: { ed_motivation: { subject: 15, stability: 10, community: 5, inspire: 5 }, ed_age_group: { elementary: 10, secondary: 10, adult: 5, early_childhood: 0 }, ed_education_level: { associates: 15, certificate: 10, bachelors: 5, masters: 0 }, ed_role: { support: 15, specialist: 10, classroom: 0, childcare: 0 }, ed_environment: { structured: 15, flexible: 10, dynamic: 0 }, ed_location: { local: 15, online: 5, willing_travel: 0 } },
+      scoring: { ed_motivation: { subject: 15, stability: 10, community: 5, inspire: 5 }, ed_age_group: { elementary: 10, secondary: 10, adult: 5, early_childhood: 0 }, ed_education_level: { associates: 15, certificate: 10, bachelors: 5, masters: 0 }, ed_role: { support: 15, specialist: 10, classroom: 0, childcare: 0 }, ed_environment: { structured: 15, flexible: 10, dynamic: 0 }, ed_location: { local: 15, online: 5, willing_travel: 0 }, ed_focus: { resources: 15, teaching: 5, wellbeing: 0, leadership: 0 }, ed_special_needs: { general: 15, open: 10, love_it: 0 } },
     },
     {
       id: "child_development_teacher",
@@ -718,7 +718,7 @@ export async function registerRoutes(
       salary: { en: "$32,000 – $48,000/year", es: "$32,000 – $48,000/año" },
       education: { en: "Associate Degree or Child Development Permit (2 years)", es: "Título de asociado o permiso de desarrollo infantil (2 años)" },
       outlook: { en: "High demand — critical need in North State communities", es: "Alta demanda — necesidad crítica en comunidades del Norte del Estado" },
-      scoring: { ed_motivation: { inspire: 15, community: 10, stability: 5, subject: 0 }, ed_age_group: { early_childhood: 15, elementary: 5, secondary: 0, adult: 0 }, ed_education_level: { associates: 15, certificate: 15, bachelors: 5, masters: 0 }, ed_role: { childcare: 15, classroom: 15, support: 5, specialist: 0 }, ed_environment: { dynamic: 15, flexible: 10, structured: 5 }, ed_location: { local: 15, online: 0, willing_travel: 5 } },
+      scoring: { ed_motivation: { inspire: 15, community: 10, stability: 5, subject: 0 }, ed_age_group: { early_childhood: 15, elementary: 5, secondary: 0, adult: 0 }, ed_education_level: { associates: 15, certificate: 15, bachelors: 5, masters: 0 }, ed_role: { childcare: 15, classroom: 15, support: 5, specialist: 0 }, ed_environment: { dynamic: 15, flexible: 10, structured: 5 }, ed_location: { local: 15, online: 0, willing_travel: 5 }, ed_focus: { teaching: 15, wellbeing: 10, leadership: 0, resources: 0 }, ed_special_needs: { open: 10, general: 10, love_it: 5 } },
     },
     {
       id: "career_technical_education_instructor",
@@ -727,7 +727,7 @@ export async function registerRoutes(
       salary: { en: "$50,000 – $80,000/year", es: "$50,000 – $80,000/año" },
       education: { en: "Industry experience + CTE Credential or Associate Degree", es: "Experiencia en la industria + Credencial CTE o título de asociado" },
       outlook: { en: "Growing demand — emphasis on career readiness pathways", es: "Demanda creciente — énfasis en vías de preparación profesional" },
-      scoring: { ed_motivation: { subject: 15, community: 10, stability: 5, inspire: 10 }, ed_age_group: { secondary: 15, adult: 10, elementary: 0, early_childhood: 0 }, ed_education_level: { associates: 10, certificate: 15, bachelors: 5, masters: 0 }, ed_role: { classroom: 15, specialist: 10, support: 0, childcare: 0 }, ed_environment: { dynamic: 15, structured: 10, flexible: 5 }, ed_location: { local: 15, willing_travel: 5, online: 0 } },
+      scoring: { ed_motivation: { subject: 15, community: 10, stability: 5, inspire: 10 }, ed_age_group: { secondary: 15, adult: 10, elementary: 0, early_childhood: 0 }, ed_education_level: { associates: 10, certificate: 15, bachelors: 5, masters: 0 }, ed_role: { classroom: 15, specialist: 10, support: 0, childcare: 0 }, ed_environment: { dynamic: 15, structured: 10, flexible: 5 }, ed_location: { local: 15, willing_travel: 5, online: 0 }, ed_focus: { teaching: 15, resources: 5, leadership: 5, wellbeing: 0 }, ed_special_needs: { general: 15, open: 10, love_it: 0 } },
     },
     {
       id: "substitute_teacher",
@@ -736,7 +736,7 @@ export async function registerRoutes(
       salary: { en: "$28,000 – $45,000/year", es: "$28,000 – $45,000/año" },
       education: { en: "Bachelor's Degree + Substitute Permit", es: "Licenciatura + permiso de sustituto" },
       outlook: { en: "Very high demand — perpetual need across all districts", es: "Muy alta demanda — necesidad perpetua en todos los distritos" },
-      scoring: { ed_motivation: { inspire: 10, community: 10, stability: 5, subject: 10 }, ed_age_group: { elementary: 10, secondary: 10, early_childhood: 5, adult: 0 }, ed_education_level: { bachelors: 15, associates: 5, certificate: 0, masters: 0 }, ed_role: { classroom: 15, support: 10, specialist: 0, childcare: 0 }, ed_environment: { flexible: 15, dynamic: 15, structured: 0 }, ed_location: { local: 15, willing_travel: 10, online: 0 } },
+      scoring: { ed_motivation: { inspire: 10, community: 10, stability: 5, subject: 10 }, ed_age_group: { elementary: 10, secondary: 10, early_childhood: 5, adult: 0 }, ed_education_level: { bachelors: 15, associates: 5, certificate: 0, masters: 0 }, ed_role: { classroom: 15, support: 10, specialist: 0, childcare: 0 }, ed_environment: { flexible: 15, dynamic: 15, structured: 0 }, ed_location: { local: 15, willing_travel: 10, online: 0 }, ed_focus: { teaching: 15, wellbeing: 5, leadership: 0, resources: 0 }, ed_special_needs: { open: 15, general: 10, love_it: 5 } },
     },
     {
       id: "child_development_site_supervisor",
@@ -745,7 +745,7 @@ export async function registerRoutes(
       salary: { en: "$38,000 – $52,000/year", es: "$38,000 – $52,000/año" },
       education: { en: "Bachelor's Degree in Child Development or related", es: "Licenciatura en desarrollo infantil o relacionado" },
       outlook: { en: "High demand — leadership roles critical for quality programs", es: "Alta demanda — roles de liderazgo críticos para programas de calidad" },
-      scoring: { ed_motivation: { community: 15, inspire: 10, stability: 10, subject: 0 }, ed_age_group: { early_childhood: 15, elementary: 5, secondary: 0, adult: 0 }, ed_education_level: { bachelors: 15, associates: 5, certificate: 0, masters: 5 }, ed_role: { childcare: 15, specialist: 10, classroom: 5, support: 5 }, ed_environment: { structured: 10, dynamic: 15, flexible: 10 }, ed_location: { local: 15, willing_travel: 5, online: 0 } },
+      scoring: { ed_motivation: { community: 15, inspire: 10, stability: 10, subject: 0 }, ed_age_group: { early_childhood: 15, elementary: 5, secondary: 0, adult: 0 }, ed_education_level: { bachelors: 15, associates: 5, certificate: 0, masters: 5 }, ed_role: { childcare: 15, specialist: 10, classroom: 5, support: 5 }, ed_environment: { structured: 10, dynamic: 15, flexible: 10 }, ed_location: { local: 15, willing_travel: 5, online: 0 }, ed_focus: { leadership: 15, teaching: 5, wellbeing: 10, resources: 0 }, ed_special_needs: { open: 10, general: 10, love_it: 5 } },
     },
     {
       id: "elementary_teacher",
@@ -754,7 +754,7 @@ export async function registerRoutes(
       salary: { en: "$55,000 – $85,000/year", es: "$55,000 – $85,000/año" },
       education: { en: "Bachelor's Degree + Teaching Credential (4–5 years)", es: "Licenciatura + Credencial de enseñanza (4-5 años)" },
       outlook: { en: "Steady demand — especially in rural districts", es: "Demanda constante — especialmente en distritos rurales" },
-      scoring: { ed_motivation: { inspire: 15, community: 10, subject: 5, stability: 5 }, ed_age_group: { elementary: 15, early_childhood: 5, secondary: 0, adult: 0 }, ed_education_level: { bachelors: 15, masters: 10, associates: 0, certificate: 0 }, ed_role: { classroom: 15, specialist: 5, support: 0, childcare: 0 }, ed_environment: { structured: 15, dynamic: 10, flexible: 0 }, ed_location: { local: 10, willing_travel: 5, online: 0 } },
+      scoring: { ed_motivation: { inspire: 15, community: 10, subject: 5, stability: 5 }, ed_age_group: { elementary: 15, early_childhood: 5, secondary: 0, adult: 0 }, ed_education_level: { bachelors: 15, masters: 10, associates: 0, certificate: 0 }, ed_role: { classroom: 15, specialist: 5, support: 0, childcare: 0 }, ed_environment: { structured: 15, dynamic: 10, flexible: 0 }, ed_location: { local: 10, willing_travel: 5, online: 0 }, ed_focus: { teaching: 15, wellbeing: 5, leadership: 0, resources: 5 }, ed_special_needs: { open: 10, general: 15, love_it: 5 } },
     },
     {
       id: "secondary_teacher",
@@ -763,7 +763,7 @@ export async function registerRoutes(
       salary: { en: "$58,000 – $90,000/year", es: "$58,000 – $90,000/año" },
       education: { en: "Bachelor's Degree + Teaching Credential (4–5 years)", es: "Licenciatura + Credencial de enseñanza (4-5 años)" },
       outlook: { en: "Good demand — especially in STEM and special education", es: "Buena demanda — especialmente en STEM y educación especial" },
-      scoring: { ed_motivation: { subject: 15, inspire: 10, community: 5, stability: 5 }, ed_age_group: { secondary: 15, adult: 5, elementary: 0, early_childhood: 0 }, ed_education_level: { bachelors: 15, masters: 10, associates: 0, certificate: 0 }, ed_role: { classroom: 15, specialist: 10, support: 0, childcare: 0 }, ed_environment: { dynamic: 15, structured: 10, flexible: 0 }, ed_location: { local: 10, willing_travel: 10, online: 0 } },
+      scoring: { ed_motivation: { subject: 15, inspire: 10, community: 5, stability: 5 }, ed_age_group: { secondary: 15, adult: 5, elementary: 0, early_childhood: 0 }, ed_education_level: { bachelors: 15, masters: 10, associates: 0, certificate: 0 }, ed_role: { classroom: 15, specialist: 10, support: 0, childcare: 0 }, ed_environment: { dynamic: 15, structured: 10, flexible: 0 }, ed_location: { local: 10, willing_travel: 10, online: 0 }, ed_focus: { teaching: 15, resources: 5, wellbeing: 5, leadership: 0 }, ed_special_needs: { general: 15, open: 10, love_it: 0 } },
     },
     {
       id: "special_education_teacher",
@@ -772,7 +772,7 @@ export async function registerRoutes(
       salary: { en: "$55,000 – $85,000/year", es: "$55,000 – $85,000/año" },
       education: { en: "Bachelor's Degree + Education Specialist Credential", es: "Licenciatura + Credencial de Especialista en Educación" },
       outlook: { en: "Very high demand — critical shortage in California", es: "Muy alta demanda — escasez crítica en California" },
-      scoring: { ed_motivation: { inspire: 15, community: 10, stability: 5, subject: 0 }, ed_age_group: { elementary: 10, secondary: 10, early_childhood: 5, adult: 0 }, ed_education_level: { bachelors: 10, masters: 15, associates: 0, certificate: 0 }, ed_role: { specialist: 15, classroom: 10, support: 5, childcare: 0 }, ed_environment: { dynamic: 15, structured: 10, flexible: 5 }, ed_location: { local: 10, willing_travel: 10, online: 0 } },
+      scoring: { ed_motivation: { inspire: 15, community: 10, stability: 5, subject: 0 }, ed_age_group: { elementary: 10, secondary: 10, early_childhood: 5, adult: 0 }, ed_education_level: { bachelors: 10, masters: 15, associates: 0, certificate: 0 }, ed_role: { specialist: 15, classroom: 10, support: 5, childcare: 0 }, ed_environment: { dynamic: 15, structured: 10, flexible: 5 }, ed_location: { local: 10, willing_travel: 10, online: 0 }, ed_focus: { teaching: 10, wellbeing: 15, leadership: 0, resources: 0 }, ed_special_needs: { love_it: 15, open: 10, general: 0 } },
     },
     {
       id: "reading_literacy_teacher",
@@ -781,7 +781,7 @@ export async function registerRoutes(
       salary: { en: "$55,000 – $82,000/year", es: "$55,000 – $82,000/año" },
       education: { en: "Bachelor's Degree + Reading/Literacy Credential", es: "Licenciatura + Credencial de Lectura/Alfabetización" },
       outlook: { en: "High demand — literacy focus growing in all districts", es: "Alta demanda — enfoque en alfabetización crece en todos los distritos" },
-      scoring: { ed_motivation: { inspire: 15, subject: 10, community: 10, stability: 5 }, ed_age_group: { elementary: 15, early_childhood: 10, secondary: 5, adult: 0 }, ed_education_level: { bachelors: 15, masters: 10, associates: 0, certificate: 0 }, ed_role: { specialist: 15, classroom: 10, support: 5, childcare: 0 }, ed_environment: { structured: 10, dynamic: 15, flexible: 5 }, ed_location: { local: 10, willing_travel: 5, online: 5 } },
+      scoring: { ed_motivation: { inspire: 15, subject: 10, community: 10, stability: 5 }, ed_age_group: { elementary: 15, early_childhood: 10, secondary: 5, adult: 0 }, ed_education_level: { bachelors: 15, masters: 10, associates: 0, certificate: 0 }, ed_role: { specialist: 15, classroom: 10, support: 5, childcare: 0 }, ed_environment: { structured: 10, dynamic: 15, flexible: 5 }, ed_location: { local: 10, willing_travel: 5, online: 5 }, ed_focus: { teaching: 15, resources: 10, wellbeing: 5, leadership: 0 }, ed_special_needs: { open: 15, love_it: 10, general: 5 } },
     },
     {
       id: "pk3_teacher",
@@ -790,7 +790,7 @@ export async function registerRoutes(
       salary: { en: "$48,000 – $75,000/year", es: "$48,000 – $75,000/año" },
       education: { en: "Bachelor's Degree + PK-3 Teaching Credential", es: "Licenciatura + Credencial de enseñanza PK-3" },
       outlook: { en: "Growing demand — new credential with increasing adoption", es: "Demanda creciente — nueva credencial con adopción creciente" },
-      scoring: { ed_motivation: { inspire: 15, community: 10, stability: 5, subject: 0 }, ed_age_group: { early_childhood: 15, elementary: 15, secondary: 0, adult: 0 }, ed_education_level: { bachelors: 15, masters: 5, associates: 0, certificate: 0 }, ed_role: { classroom: 15, childcare: 10, support: 0, specialist: 5 }, ed_environment: { dynamic: 15, structured: 10, flexible: 0 }, ed_location: { local: 15, willing_travel: 5, online: 0 } },
+      scoring: { ed_motivation: { inspire: 15, community: 10, stability: 5, subject: 0 }, ed_age_group: { early_childhood: 15, elementary: 15, secondary: 0, adult: 0 }, ed_education_level: { bachelors: 15, masters: 5, associates: 0, certificate: 0 }, ed_role: { classroom: 15, childcare: 10, support: 0, specialist: 5 }, ed_environment: { dynamic: 15, structured: 10, flexible: 0 }, ed_location: { local: 15, willing_travel: 5, online: 0 }, ed_focus: { teaching: 15, wellbeing: 10, leadership: 0, resources: 0 }, ed_special_needs: { open: 10, general: 10, love_it: 5 } },
     },
     {
       id: "school_counselor",
@@ -799,7 +799,7 @@ export async function registerRoutes(
       salary: { en: "$55,000 – $80,000/year", es: "$55,000 – $80,000/año" },
       education: { en: "Master's Degree + PPS Credential", es: "Maestría + Credencial PPS" },
       outlook: { en: "Growing demand — increased focus on student mental health", es: "Demanda creciente — mayor enfoque en salud mental estudiantil" },
-      scoring: { ed_motivation: { inspire: 10, community: 15, stability: 10, subject: 0 }, ed_age_group: { secondary: 12, elementary: 10, adult: 5, early_childhood: 0 }, ed_education_level: { masters: 15, bachelors: 5, associates: 0, certificate: 0 }, ed_role: { specialist: 15, support: 10, classroom: 0, childcare: 0 }, ed_environment: { flexible: 15, structured: 5, dynamic: 5 }, ed_location: { local: 10, willing_travel: 10, online: 5 } },
+      scoring: { ed_motivation: { inspire: 10, community: 15, stability: 10, subject: 0 }, ed_age_group: { secondary: 12, elementary: 10, adult: 5, early_childhood: 0 }, ed_education_level: { masters: 15, bachelors: 5, associates: 0, certificate: 0 }, ed_role: { specialist: 15, support: 10, classroom: 0, childcare: 0 }, ed_environment: { flexible: 15, structured: 5, dynamic: 5 }, ed_location: { local: 10, willing_travel: 10, online: 5 }, ed_focus: { wellbeing: 15, teaching: 0, leadership: 5, resources: 5 }, ed_special_needs: { open: 15, love_it: 10, general: 5 } },
     },
     {
       id: "school_social_worker",
@@ -808,7 +808,7 @@ export async function registerRoutes(
       salary: { en: "$55,000 – $78,000/year", es: "$55,000 – $78,000/año" },
       education: { en: "Master's Degree in Social Work (MSW)", es: "Maestría en Trabajo Social (MSW)" },
       outlook: { en: "High demand — growing mental health needs in schools", es: "Alta demanda — crecientes necesidades de salud mental en escuelas" },
-      scoring: { ed_motivation: { community: 15, inspire: 10, stability: 5, subject: 0 }, ed_age_group: { elementary: 10, secondary: 12, early_childhood: 5, adult: 0 }, ed_education_level: { masters: 15, bachelors: 5, associates: 0, certificate: 0 }, ed_role: { specialist: 15, support: 15, classroom: 0, childcare: 0 }, ed_environment: { flexible: 15, dynamic: 10, structured: 5 }, ed_location: { local: 15, willing_travel: 5, online: 0 } },
+      scoring: { ed_motivation: { community: 15, inspire: 10, stability: 5, subject: 0 }, ed_age_group: { elementary: 10, secondary: 12, early_childhood: 5, adult: 0 }, ed_education_level: { masters: 15, bachelors: 5, associates: 0, certificate: 0 }, ed_role: { specialist: 15, support: 15, classroom: 0, childcare: 0 }, ed_environment: { flexible: 15, dynamic: 10, structured: 5 }, ed_location: { local: 15, willing_travel: 5, online: 0 }, ed_focus: { wellbeing: 15, leadership: 5, teaching: 0, resources: 0 }, ed_special_needs: { love_it: 10, open: 15, general: 0 } },
     },
     {
       id: "instructional_coordinator",
@@ -817,7 +817,7 @@ export async function registerRoutes(
       salary: { en: "$65,000 – $95,000/year", es: "$65,000 – $95,000/año" },
       education: { en: "Master's Degree + teaching experience", es: "Maestría + experiencia docente" },
       outlook: { en: "Growing demand — emphasis on educational quality", es: "Demanda creciente — énfasis en calidad educativa" },
-      scoring: { ed_motivation: { subject: 15, inspire: 10, community: 5, stability: 5 }, ed_age_group: { elementary: 10, secondary: 10, adult: 5, early_childhood: 5 }, ed_education_level: { masters: 15, bachelors: 5, associates: 0, certificate: 0 }, ed_role: { specialist: 15, classroom: 5, support: 5, childcare: 0 }, ed_environment: { structured: 15, flexible: 10, dynamic: 5 }, ed_location: { local: 10, willing_travel: 10, online: 5 } },
+      scoring: { ed_motivation: { subject: 15, inspire: 10, community: 5, stability: 5 }, ed_age_group: { elementary: 10, secondary: 10, adult: 5, early_childhood: 5 }, ed_education_level: { masters: 15, bachelors: 5, associates: 0, certificate: 0 }, ed_role: { specialist: 15, classroom: 5, support: 5, childcare: 0 }, ed_environment: { structured: 15, flexible: 10, dynamic: 5 }, ed_location: { local: 10, willing_travel: 10, online: 5 }, ed_focus: { resources: 15, teaching: 10, leadership: 10, wellbeing: 0 }, ed_special_needs: { general: 10, open: 15, love_it: 5 } },
     },
     {
       id: "school_psychologist",
@@ -826,7 +826,7 @@ export async function registerRoutes(
       salary: { en: "$70,000 – $100,000/year", es: "$70,000 – $100,000/año" },
       education: { en: "Master's or Specialist Degree (3+ years graduate)", es: "Maestría o título de especialista (3+ años de posgrado)" },
       outlook: { en: "Very high demand — severe shortage across California", es: "Muy alta demanda — escasez severa en California" },
-      scoring: { ed_motivation: { inspire: 10, community: 15, stability: 10, subject: 5 }, ed_age_group: { elementary: 12, secondary: 12, early_childhood: 5, adult: 0 }, ed_education_level: { masters: 15, bachelors: 0, associates: 0, certificate: 0 }, ed_role: { specialist: 15, support: 10, classroom: 0, childcare: 0 }, ed_environment: { flexible: 15, structured: 10, dynamic: 5 }, ed_location: { local: 10, willing_travel: 10, online: 0 } },
+      scoring: { ed_motivation: { inspire: 10, community: 15, stability: 10, subject: 5 }, ed_age_group: { elementary: 12, secondary: 12, early_childhood: 5, adult: 0 }, ed_education_level: { masters: 15, bachelors: 0, associates: 0, certificate: 0 }, ed_role: { specialist: 15, support: 10, classroom: 0, childcare: 0 }, ed_environment: { flexible: 15, structured: 10, dynamic: 5 }, ed_location: { local: 10, willing_travel: 10, online: 0 }, ed_focus: { wellbeing: 15, resources: 5, leadership: 5, teaching: 0 }, ed_special_needs: { love_it: 15, open: 10, general: 0 } },
     },
     {
       id: "principal_vice_principal",
@@ -835,7 +835,7 @@ export async function registerRoutes(
       salary: { en: "$95,000 – $145,000/year", es: "$95,000 – $145,000/año" },
       education: { en: "Master's Degree + Administrative Credential", es: "Maestría + Credencial administrativa" },
       outlook: { en: "Steady demand — leadership openings in rural districts", es: "Demanda constante — vacantes de liderazgo en distritos rurales" },
-      scoring: { ed_motivation: { community: 15, inspire: 10, stability: 10, subject: 0 }, ed_age_group: { elementary: 10, secondary: 12, early_childhood: 0, adult: 5 }, ed_education_level: { masters: 15, bachelors: 0, associates: 0, certificate: 0 }, ed_role: { specialist: 15, classroom: 5, support: 5, childcare: 0 }, ed_environment: { structured: 15, dynamic: 10, flexible: 0 }, ed_location: { local: 10, willing_travel: 10, online: 0 } },
+      scoring: { ed_motivation: { community: 15, inspire: 10, stability: 10, subject: 0 }, ed_age_group: { elementary: 10, secondary: 12, early_childhood: 0, adult: 5 }, ed_education_level: { masters: 15, bachelors: 0, associates: 0, certificate: 0 }, ed_role: { specialist: 15, classroom: 5, support: 5, childcare: 0 }, ed_environment: { structured: 15, dynamic: 10, flexible: 0 }, ed_location: { local: 10, willing_travel: 10, online: 0 }, ed_focus: { leadership: 15, wellbeing: 10, teaching: 5, resources: 0 }, ed_special_needs: { open: 10, general: 10, love_it: 5 } },
     },
     {
       id: "community_college_faculty",
@@ -844,7 +844,7 @@ export async function registerRoutes(
       salary: { en: "$60,000 – $100,000/year", es: "$60,000 – $100,000/año" },
       education: { en: "Master's Degree in subject area", es: "Maestría en el área de especialidad" },
       outlook: { en: "Steady demand — retirements creating openings", es: "Demanda constante — jubilaciones creando vacantes" },
-      scoring: { ed_motivation: { subject: 15, inspire: 10, stability: 10, community: 5 }, ed_age_group: { adult: 15, secondary: 5, elementary: 0, early_childhood: 0 }, ed_education_level: { masters: 15, bachelors: 5, associates: 0, certificate: 0 }, ed_role: { classroom: 15, specialist: 10, support: 0, childcare: 0 }, ed_environment: { flexible: 15, dynamic: 10, structured: 5 }, ed_location: { local: 10, willing_travel: 5, online: 10 } },
+      scoring: { ed_motivation: { subject: 15, inspire: 10, stability: 10, community: 5 }, ed_age_group: { adult: 15, secondary: 5, elementary: 0, early_childhood: 0 }, ed_education_level: { masters: 15, bachelors: 5, associates: 0, certificate: 0 }, ed_role: { classroom: 15, specialist: 10, support: 0, childcare: 0 }, ed_environment: { flexible: 15, dynamic: 10, structured: 5 }, ed_location: { local: 10, willing_travel: 5, online: 10 }, ed_focus: { teaching: 15, resources: 10, leadership: 5, wellbeing: 0 }, ed_special_needs: { general: 15, open: 10, love_it: 0 } },
     },
     {
       id: "librarian_media_specialist",
@@ -853,7 +853,7 @@ export async function registerRoutes(
       salary: { en: "$55,000 – $80,000/year", es: "$55,000 – $80,000/año" },
       education: { en: "Master's Degree in Library Science (MLIS)", es: "Maestría en Ciencias Bibliotecarias (MLIS)" },
       outlook: { en: "Moderate demand — valued role in academic settings", es: "Demanda moderada — rol valorado en entornos académicos" },
-      scoring: { ed_motivation: { subject: 15, stability: 10, community: 5, inspire: 5 }, ed_age_group: { secondary: 10, elementary: 10, adult: 10, early_childhood: 0 }, ed_education_level: { masters: 15, bachelors: 5, associates: 0, certificate: 0 }, ed_role: { specialist: 15, support: 10, classroom: 5, childcare: 0 }, ed_environment: { structured: 15, flexible: 10, dynamic: 0 }, ed_location: { local: 10, online: 10, willing_travel: 0 } },
+      scoring: { ed_motivation: { subject: 15, stability: 10, community: 5, inspire: 5 }, ed_age_group: { secondary: 10, elementary: 10, adult: 10, early_childhood: 0 }, ed_education_level: { masters: 15, bachelors: 5, associates: 0, certificate: 0 }, ed_role: { specialist: 15, support: 10, classroom: 5, childcare: 0 }, ed_environment: { structured: 15, flexible: 10, dynamic: 0 }, ed_location: { local: 10, online: 10, willing_travel: 0 }, ed_focus: { resources: 15, teaching: 5, leadership: 5, wellbeing: 0 }, ed_special_needs: { general: 15, open: 10, love_it: 0 } },
     },
     {
       id: "early_childhood_program_director",
@@ -862,7 +862,7 @@ export async function registerRoutes(
       salary: { en: "$50,000 – $75,000/year", es: "$50,000 – $75,000/año" },
       education: { en: "Master's Degree in Early Childhood Education or related", es: "Maestría en educación infantil o relacionado" },
       outlook: { en: "High demand — expanding early childhood initiatives", es: "Alta demanda — iniciativas de primera infancia en expansión" },
-      scoring: { ed_motivation: { community: 15, inspire: 15, stability: 5, subject: 0 }, ed_age_group: { early_childhood: 15, elementary: 5, secondary: 0, adult: 0 }, ed_education_level: { masters: 15, bachelors: 10, associates: 0, certificate: 0 }, ed_role: { specialist: 15, childcare: 10, classroom: 5, support: 0 }, ed_environment: { structured: 10, dynamic: 15, flexible: 10 }, ed_location: { local: 15, willing_travel: 5, online: 0 } },
+      scoring: { ed_motivation: { community: 15, inspire: 15, stability: 5, subject: 0 }, ed_age_group: { early_childhood: 15, elementary: 5, secondary: 0, adult: 0 }, ed_education_level: { masters: 15, bachelors: 10, associates: 0, certificate: 0 }, ed_role: { specialist: 15, childcare: 10, classroom: 5, support: 0 }, ed_environment: { structured: 10, dynamic: 15, flexible: 10 }, ed_location: { local: 15, willing_travel: 5, online: 0 }, ed_focus: { leadership: 15, teaching: 5, wellbeing: 10, resources: 0 }, ed_special_needs: { open: 10, love_it: 5, general: 10 } },
     },
     {
       id: "superintendent",
@@ -871,7 +871,7 @@ export async function registerRoutes(
       salary: { en: "$130,000 – $200,000/year", es: "$130,000 – $200,000/año" },
       education: { en: "Master's or Doctorate + Administrative Credential", es: "Maestría o doctorado + Credencial administrativa" },
       outlook: { en: "Steady demand — leadership pipeline needed in rural areas", es: "Demanda constante — se necesita desarrollo de liderazgo en áreas rurales" },
-      scoring: { ed_motivation: { community: 15, stability: 10, inspire: 5, subject: 0 }, ed_age_group: { elementary: 5, secondary: 5, adult: 10, early_childhood: 5 }, ed_education_level: { masters: 15, bachelors: 0, associates: 0, certificate: 0 }, ed_role: { specialist: 15, classroom: 0, support: 5, childcare: 0 }, ed_environment: { structured: 15, dynamic: 5, flexible: 5 }, ed_location: { local: 10, willing_travel: 10, online: 0 } },
+      scoring: { ed_motivation: { community: 15, stability: 10, inspire: 5, subject: 0 }, ed_age_group: { elementary: 5, secondary: 5, adult: 10, early_childhood: 5 }, ed_education_level: { masters: 15, bachelors: 0, associates: 0, certificate: 0 }, ed_role: { specialist: 15, classroom: 0, support: 5, childcare: 0 }, ed_environment: { structured: 15, dynamic: 5, flexible: 5 }, ed_location: { local: 10, willing_travel: 10, online: 0 }, ed_focus: { leadership: 15, resources: 5, wellbeing: 5, teaching: 0 }, ed_special_needs: { general: 10, open: 10, love_it: 5 } },
     },
   ];
 
