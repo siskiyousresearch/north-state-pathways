@@ -246,13 +246,31 @@ export default function ExplorePage() {
         </div>
 
         <div className="flex-1 relative overflow-hidden bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/30 dark:via-teal-950/30 dark:to-cyan-950/30">
-          <div className="absolute inset-0 opacity-[0.03]" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }} />
+          <svg className="absolute inset-0 w-full h-full opacity-[0.06] pointer-events-none" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <pattern id="bgTrees" x="0" y="0" width="200" height="180" patternUnits="userSpaceOnUse">
+                <path d="M30 70 L20 50 L25 52 L18 35 L24 37 L22 25 L30 15 L38 25 L36 37 L42 35 L35 52 L40 50 L30 70Z" fill="currentColor" opacity="0.5" />
+                <rect x="27" y="70" width="6" height="10" fill="currentColor" opacity="0.4" />
+
+                <path d="M160 80 L152 65 L156 66 L150 52 L155 54 L153 44 L160 35 L167 44 L165 54 L170 52 L164 66 L168 65 L160 80Z" fill="currentColor" opacity="0.4" />
+                <rect x="157" y="80" width="6" height="8" fill="currentColor" opacity="0.3" />
+
+                <path d="M90 160 L65 130 L75 132 L60 105 L72 108 L68 90 L90 60 L112 90 L108 108 L120 105 L105 132 L115 130 L90 160Z" fill="currentColor" opacity="0.3" />
+                <rect x="85" y="160" width="10" height="15" fill="currentColor" opacity="0.25" />
+
+                <path d="M55 120 L48 108 L52 109 L46 98 L50 99 L55 88 L60 99 L64 98 L58 109 L62 108 L55 120Z" fill="currentColor" opacity="0.35" />
+                <rect x="53" y="120" width="4" height="7" fill="currentColor" opacity="0.3" />
+
+                <path d="M140 140 L130 125 L134 126 L128 115 L132 116 L140 105 L148 116 L152 115 L146 126 L150 125 L140 140Z" fill="currentColor" opacity="0.3" />
+                <rect x="137" y="140" width="6" height="8" fill="currentColor" opacity="0.25" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#bgTrees)" />
+          </svg>
           
           <div className="absolute inset-0 flex items-center justify-center p-4 md:p-8">
             <svg
-              viewBox={`-10 -25 ${SVG_WIDTH + 20} ${SVG_HEIGHT + 35}`}
+              viewBox={`-10 -60 ${SVG_WIDTH + 20} ${SVG_HEIGHT + 70}`}
               className="w-full h-full max-w-[700px] max-h-full"
               style={{ filter: "drop-shadow(0 8px 30px rgba(0,0,0,0.12))" }}
               data-testid="svg-map"
@@ -474,35 +492,35 @@ export default function ExplorePage() {
                 );
               })}
 
-              <g transform="translate(12, 10)">
-                <text x="0" y="0" fontSize="18" fontWeight="800" fill="hsl(152, 40%, 20%)" letterSpacing="0.5" dominantBaseline="hanging">
+              <g transform="translate(12, -50)">
+                <text x="0" y="0" fontSize="20" fontWeight="800" fill="hsl(152, 40%, 20%)" letterSpacing="0.5" dominantBaseline="hanging">
                   {language === "en" ? "North State California" : "Norte de California"}
                 </text>
-                <text x="0" y="24" fontSize="11" fill="hsl(152, 25%, 45%)" dominantBaseline="hanging">
+                <text x="0" y="26" fontSize="12" fill="hsl(152, 25%, 45%)" dominantBaseline="hanging">
                   {language === "en" ? `10 Counties \u2022 ${onMapInstitutions.length} Institutions` : `10 Condados \u2022 ${onMapInstitutions.length} Instituciones`}
                 </text>
               </g>
 
-              <g transform={`translate(${SVG_WIDTH - 140}, 15)`}>
-                <rect x="0" y="0" width="125" height="90" rx="6" fill="white" opacity="0.9" />
-                <rect x="0" y="0" width="125" height="90" rx="6" fill="none" stroke="hsl(152, 20%, 80%)" strokeWidth="0.5" />
-                <text x="12" y="16" fontSize="8" fontWeight="700" fill="hsl(152, 30%, 30%)" dominantBaseline="central">
+              <g transform={`translate(${SVG_WIDTH - 165}, -50)`}>
+                <rect x="0" y="0" width="150" height="50" rx="8" fill="white" opacity="0.92" />
+                <rect x="0" y="0" width="150" height="50" rx="8" fill="none" stroke="hsl(152, 20%, 80%)" strokeWidth="0.5" />
+                <text x="12" y="13" fontSize="9" fontWeight="700" fill="hsl(152, 30%, 30%)" dominantBaseline="central">
                   {language === "en" ? "LEGEND" : "LEYENDA"}
                 </text>
 
-                <circle cx="16" cy="35" r="5" fill="#f59e0b" stroke="white" strokeWidth="1.5" />
-                <text x="26" y="36" fontSize="8" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
+                <circle cx="16" cy="27" r="5" fill="#f59e0b" stroke="white" strokeWidth="1.5" />
+                <text x="28" y="28" fontSize="9" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
                   {language === "en" ? "Community College" : "Colegio Comunitario"}
                 </text>
 
-                <circle cx="16" cy="53" r="5" fill="#3b82f6" stroke="white" strokeWidth="1.5" />
-                <text x="26" y="54" fontSize="8" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
+                <circle cx="82" cy="41" r="5" fill="#3b82f6" stroke="white" strokeWidth="1.5" />
+                <text x="94" y="42" fontSize="9" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
                   {language === "en" ? "University" : "Universidad"}
                 </text>
 
-                <circle cx="16" cy="71" r="5" fill="#8b5cf6" stroke="white" strokeWidth="1.5" />
-                <text x="26" y="72" fontSize="8" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
-                  {language === "en" ? "County Office of Ed." : "Oficina de Ed."}
+                <circle cx="16" cy="41" r="5" fill="#8b5cf6" stroke="white" strokeWidth="1.5" />
+                <text x="28" y="42" fontSize="9" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
+                  {language === "en" ? "Co. Office of Ed." : "Oficina de Ed."}
                 </text>
               </g>
             </svg>
