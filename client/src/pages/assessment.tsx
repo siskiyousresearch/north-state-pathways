@@ -30,7 +30,7 @@ const healthcareQuestions: QuizQuestion[] = [
       en: "What matters most to you in a career?",
       es: "¿Qué es lo que más te importa en una carrera?",
     },
-    gif: "https://media.tenor.com/nBnOmPbsjNkAAAAd/the-office-michael-scott.gif",
+    gif: "https://media.giphy.com/media/l0HlMSVVw9BmqMPe0/giphy.gif",
     options: [
       { value: "money", label: { en: "High earning potential — I want financial security", es: "Alto potencial de ingresos — quiero seguridad financiera" } },
       { value: "passion", label: { en: "Helping people — I want to make a difference", es: "Ayudar a las personas — quiero hacer la diferencia" } },
@@ -45,7 +45,7 @@ const healthcareQuestions: QuizQuestion[] = [
       en: "How much time are you willing to spend in school?",
       es: "¿Cuánto tiempo estás dispuesto/a a pasar estudiando?",
     },
-    gif: "https://media.tenor.com/lOgxwnWrxqYAAAAd/dog-cute.gif",
+    gif: "https://media.giphy.com/media/3o7btNa0RUYa5E7iiQ/giphy.gif",
     options: [
       { value: "minimal", label: { en: "As little as possible — on-the-job training or a few months", es: "Lo menos posible — capacitación en el trabajo o unos meses" } },
       { value: "short", label: { en: "1-2 years — a certificate or associate degree", es: "1-2 años — un certificado o título de asociado" } },
@@ -60,7 +60,7 @@ const healthcareQuestions: QuizQuestion[] = [
       en: "How much do you want to work directly with patients?",
       es: "¿Cuánto deseas trabajar directamente con pacientes?",
     },
-    gif: "https://media.tenor.com/ZK1mkWw-65wAAAAd/hug-cute.gif",
+    gif: "https://media.giphy.com/media/QBGfW8iczqACOikMYr/giphy.gif",
     options: [
       { value: "all_the_time", label: { en: "All the time — I love working with people face-to-face", es: "Todo el tiempo — me encanta trabajar cara a cara con las personas" } },
       { value: "some", label: { en: "Some interaction is fine, but not all day", es: "Algo de interacción está bien, pero no todo el día" } },
@@ -74,7 +74,7 @@ const healthcareQuestions: QuizQuestion[] = [
       en: "How comfortable are you with medical procedures and blood?",
       es: "¿Qué tan cómodo/a te sientes con procedimientos médicos y sangre?",
     },
-    gif: "https://media.tenor.com/-EKVxmGt7UcAAAAd/nurse-dance.gif",
+    gif: "https://media.giphy.com/media/YnZPEeeC7q6pQTRj3H/giphy.gif",
     options: [
       { value: "very", label: { en: "Very comfortable — I can handle anything", es: "Muy cómodo/a — puedo manejar cualquier cosa" } },
       { value: "somewhat", label: { en: "Somewhat comfortable — I can manage with training", es: "Algo cómodo/a — puedo manejarlo con capacitación" } },
@@ -88,7 +88,7 @@ const healthcareQuestions: QuizQuestion[] = [
       en: "What kind of work pace do you prefer?",
       es: "¿Qué tipo de ritmo de trabajo prefieres?",
     },
-    gif: "https://media.tenor.com/sfgjf1JnpFoAAAAd/running-firefighter.gif",
+    gif: "https://media.giphy.com/media/ule4vhcY1xEKQ/giphy.gif",
     options: [
       { value: "fast", label: { en: "Fast-paced and high-pressure — I thrive under stress", es: "Rápido y alta presión — me desempeño bien bajo estrés" } },
       { value: "moderate", label: { en: "Steady and structured — I like routine with some variety", es: "Estable y estructurado — me gusta la rutina con algo de variedad" } },
@@ -102,7 +102,7 @@ const healthcareQuestions: QuizQuestion[] = [
       en: "What age groups are you interested in working with?",
       es: "¿Con qué grupos de edad te interesa trabajar?",
     },
-    gif: "https://media.tenor.com/E5MlxuCvJYMAAAAd/hugs-family.gif",
+    gif: "https://media.giphy.com/media/3oEjHZhG9COPG6XjzO/giphy.gif",
     multiSelect: true,
     options: [
       { value: "children", label: { en: "Children and teenagers", es: "Niños y adolescentes" } },
@@ -118,7 +118,7 @@ const healthcareQuestions: QuizQuestion[] = [
       en: "What kind of work setting sounds best to you?",
       es: "¿Qué tipo de entorno de trabajo te suena mejor?",
     },
-    gif: "https://media.tenor.com/2roX3uxz_68AAAAd/hospital-doctor.gif",
+    gif: "https://media.giphy.com/media/l3q2Hy66w1hpDSWUE/giphy.gif",
     options: [
       { value: "hospital", label: { en: "Hospital — I want to be in the action", es: "Hospital — quiero estar en la acción" } },
       { value: "clinic", label: { en: "Clinic or doctor's office — steady and personal", es: "Clínica o consultorio — estable y personal" } },
@@ -133,7 +133,7 @@ const healthcareQuestions: QuizQuestion[] = [
       en: "What kind of daily tasks appeal to you most?",
       es: "¿Qué tipo de tareas diarias te atraen más?",
     },
-    gif: "https://media.tenor.com/DHFPyO_f6x0AAAAd/working-hard-typing.gif",
+    gif: "https://media.giphy.com/media/LmBsnpDCuturMhtLfw/giphy.gif",
     options: [
       { value: "hands_on", label: { en: "Hands-on care — procedures, wound care, injections", es: "Cuidado práctico — procedimientos, cuidado de heridas, inyecciones" } },
       { value: "technology", label: { en: "Technology & equipment — imaging, lab work, machines", es: "Tecnología y equipos — imágenes, laboratorio, máquinas" } },
@@ -470,12 +470,13 @@ export default function AssessmentPage() {
               </div>
 
               <div className="flex flex-col items-center gap-4">
-                <div className="w-full max-w-lg aspect-video rounded-2xl overflow-hidden bg-muted/30 border" data-testid="img-question-gif">
+                <div className="w-full max-w-lg aspect-video rounded-2xl overflow-hidden bg-muted/30 border flex items-center justify-center" data-testid="img-question-gif">
                   <img
                     src={currentQuestion.gif}
                     alt=""
                     className="w-full h-full object-cover"
                     loading="eager"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
                 </div>
                 <h2 className="text-xl font-bold text-center" data-testid="text-question">
