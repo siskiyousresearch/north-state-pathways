@@ -252,7 +252,7 @@ export default function ExplorePage() {
           
           <div className="absolute inset-0 flex items-center justify-center p-4 md:p-8">
             <svg
-              viewBox={`-10 -5 ${SVG_WIDTH + 20} ${SVG_HEIGHT + 15}`}
+              viewBox={`-10 -25 ${SVG_WIDTH + 20} ${SVG_HEIGHT + 35}`}
               className="w-full h-full max-w-[700px] max-h-full"
               style={{ filter: "drop-shadow(0 8px 30px rgba(0,0,0,0.12))" }}
               data-testid="svg-map"
@@ -261,17 +261,17 @@ export default function ExplorePage() {
             >
               <defs>
                 <linearGradient id="mapGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="hsl(152, 40%, 40%)" />
-                  <stop offset="50%" stopColor="hsl(152, 45%, 32%)" />
-                  <stop offset="100%" stopColor="hsl(155, 40%, 28%)" />
+                  <stop offset="0%" stopColor="hsl(152, 28%, 48%)" />
+                  <stop offset="50%" stopColor="hsl(152, 30%, 40%)" />
+                  <stop offset="100%" stopColor="hsl(155, 28%, 36%)" />
                 </linearGradient>
                 <linearGradient id="mapGradHover" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="hsl(152, 45%, 48%)" />
-                  <stop offset="100%" stopColor="hsl(152, 45%, 38%)" />
+                  <stop offset="0%" stopColor="hsl(152, 35%, 52%)" />
+                  <stop offset="100%" stopColor="hsl(152, 35%, 44%)" />
                 </linearGradient>
                 <linearGradient id="mapGradActive" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="hsl(152, 50%, 52%)" />
-                  <stop offset="100%" stopColor="hsl(152, 50%, 42%)" />
+                  <stop offset="0%" stopColor="hsl(152, 38%, 56%)" />
+                  <stop offset="100%" stopColor="hsl(152, 38%, 48%)" />
                 </linearGradient>
                 <filter id="countyGlow">
                   <feGaussianBlur stdDeviation="4" result="blur" />
@@ -326,10 +326,10 @@ export default function ExplorePage() {
                       dominantBaseline="central"
                       className="pointer-events-none select-none"
                       fill="white"
-                      fontSize="11"
+                      fontSize="13"
                       fontWeight="700"
                       letterSpacing="2"
-                      opacity={isHighlighted ? 1 : 0.55}
+                      opacity={isHighlighted ? 1 : 0.6}
                       style={{ textShadow: "0 1px 3px rgba(0,0,0,0.3)", transition: "opacity 0.3s" }}
                     >
                       {county.name.toUpperCase()}
@@ -385,8 +385,8 @@ export default function ExplorePage() {
                   >
                     {isActive && (
                       <>
-                        <circle cx={inst.x} cy={inst.y} r="16" fill={color} opacity="0.15">
-                          <animate attributeName="r" values="12;20;12" dur="2s" repeatCount="indefinite" />
+                        <circle cx={inst.x} cy={inst.y} r="18" fill={color} opacity="0.15">
+                          <animate attributeName="r" values="14;22;14" dur="2s" repeatCount="indefinite" />
                           <animate attributeName="opacity" values="0.2;0.05;0.2" dur="2s" repeatCount="indefinite" />
                         </circle>
                       </>
@@ -395,10 +395,10 @@ export default function ExplorePage() {
                     <circle
                       cx={inst.x}
                       cy={inst.y}
-                      r={highlighted ? 7 : 5}
+                      r={highlighted ? 9 : 7}
                       fill={color}
                       stroke="white"
-                      strokeWidth={highlighted ? 2.5 : 2}
+                      strokeWidth={highlighted ? 3 : 2.5}
                       className="transition-all duration-200"
                       filter="url(#markerShadow)"
                     />
@@ -475,33 +475,33 @@ export default function ExplorePage() {
               })}
 
               <g transform="translate(12, 10)">
-                <text x="0" y="0" fontSize="13" fontWeight="800" fill="hsl(152, 40%, 20%)" letterSpacing="0.5" dominantBaseline="hanging">
+                <text x="0" y="0" fontSize="18" fontWeight="800" fill="hsl(152, 40%, 20%)" letterSpacing="0.5" dominantBaseline="hanging">
                   {language === "en" ? "North State California" : "Norte de California"}
                 </text>
-                <text x="0" y="18" fontSize="8" fill="hsl(152, 25%, 45%)" dominantBaseline="hanging">
+                <text x="0" y="24" fontSize="11" fill="hsl(152, 25%, 45%)" dominantBaseline="hanging">
                   {language === "en" ? `10 Counties \u2022 ${onMapInstitutions.length} Institutions` : `10 Condados \u2022 ${onMapInstitutions.length} Instituciones`}
                 </text>
               </g>
 
-              <g transform={`translate(${SVG_WIDTH - 115}, 15)`}>
-                <rect x="0" y="0" width="100" height="72" rx="6" fill="white" opacity="0.9" />
-                <rect x="0" y="0" width="100" height="72" rx="6" fill="none" stroke="hsl(152, 20%, 80%)" strokeWidth="0.5" />
-                <text x="10" y="14" fontSize="6" fontWeight="700" fill="hsl(152, 30%, 30%)" dominantBaseline="central">
+              <g transform={`translate(${SVG_WIDTH - 140}, 15)`}>
+                <rect x="0" y="0" width="125" height="90" rx="6" fill="white" opacity="0.9" />
+                <rect x="0" y="0" width="125" height="90" rx="6" fill="none" stroke="hsl(152, 20%, 80%)" strokeWidth="0.5" />
+                <text x="12" y="16" fontSize="8" fontWeight="700" fill="hsl(152, 30%, 30%)" dominantBaseline="central">
                   {language === "en" ? "LEGEND" : "LEYENDA"}
                 </text>
 
-                <circle cx="14" cy="28" r="4" fill="#f59e0b" stroke="white" strokeWidth="1.5" />
-                <text x="22" y="29" fontSize="6" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
+                <circle cx="16" cy="35" r="5" fill="#f59e0b" stroke="white" strokeWidth="1.5" />
+                <text x="26" y="36" fontSize="8" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
                   {language === "en" ? "Community College" : "Colegio Comunitario"}
                 </text>
 
-                <circle cx="14" cy="42" r="4" fill="#3b82f6" stroke="white" strokeWidth="1.5" />
-                <text x="22" y="43" fontSize="6" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
+                <circle cx="16" cy="53" r="5" fill="#3b82f6" stroke="white" strokeWidth="1.5" />
+                <text x="26" y="54" fontSize="8" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
                   {language === "en" ? "University" : "Universidad"}
                 </text>
 
-                <circle cx="14" cy="56" r="4" fill="#8b5cf6" stroke="white" strokeWidth="1.5" />
-                <text x="22" y="57" fontSize="6" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
+                <circle cx="16" cy="71" r="5" fill="#8b5cf6" stroke="white" strokeWidth="1.5" />
+                <text x="26" y="72" fontSize="8" fill="hsl(152, 20%, 35%)" dominantBaseline="central">
                   {language === "en" ? "County Office of Ed." : "Oficina de Ed."}
                 </text>
               </g>
