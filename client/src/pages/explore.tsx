@@ -379,13 +379,14 @@ export default function ExplorePage() {
                 const highlighted = isActive || isHovered;
 
                 const hasLogo = !!inst.logo;
-                const tooltipW = 220;
-                const tooltipH = api && api.programs.length > 0 ? (hasLogo ? 80 : 60) : (hasLogo ? 68 : 44);
+                const tooltipW = 280;
+                const logoSize = 52;
+                const tooltipH = api && api.programs.length > 0 ? (hasLogo ? 100 : 80) : (hasLogo ? 82 : 58);
                 let tooltipX = inst.x - tooltipW / 2;
-                let tooltipY = inst.y - tooltipH - 16;
+                let tooltipY = inst.y - tooltipH - 18;
                 if (tooltipX < 5) tooltipX = 5;
                 if (tooltipX + tooltipW > SVG_WIDTH - 5) tooltipX = SVG_WIDTH - tooltipW - 5;
-                if (tooltipY < 5) tooltipY = inst.y + 16;
+                if (tooltipY < 5) tooltipY = inst.y + 18;
 
                 return (
                   <g
@@ -423,9 +424,8 @@ export default function ExplorePage() {
                     />
 
                     {highlighted && (() => {
-                      const logoSize = 40;
-                      const textStartX = hasLogo ? tooltipX + logoSize + 16 : tooltipX + 14;
-                      const textStartY = tooltipY + (hasLogo ? 10 : 8);
+                      const textStartX = hasLogo ? tooltipX + logoSize + 18 : tooltipX + 16;
+                      const textStartY = tooltipY + 12;
                       return (
                         <g className="animate-in fade-in zoom-in-95 duration-150">
                           <rect
@@ -433,7 +433,7 @@ export default function ExplorePage() {
                             y={tooltipY}
                             width={tooltipW}
                             height={tooltipH}
-                            rx="8"
+                            rx="10"
                             fill="white"
                             filter="url(#tooltipShadow)"
                             opacity="0.98"
@@ -443,74 +443,74 @@ export default function ExplorePage() {
                             y={tooltipY}
                             width={tooltipW}
                             height={tooltipH}
-                            rx="8"
+                            rx="10"
                             fill="none"
-                            stroke="hsl(152, 30%, 85%)"
-                            strokeWidth="0.5"
+                            stroke="hsl(152, 30%, 82%)"
+                            strokeWidth="0.8"
                           />
                           {hasLogo && (
                             <>
                               <rect
-                                x={tooltipX + 8}
+                                x={tooltipX + 10}
                                 y={tooltipY + (tooltipH - logoSize) / 2}
                                 width={logoSize}
                                 height={logoSize}
-                                rx="6"
-                                fill="white"
-                                stroke="hsl(152, 20%, 88%)"
+                                rx="8"
+                                fill="#f8faf9"
+                                stroke="hsl(152, 20%, 85%)"
                                 strokeWidth="0.5"
                               />
                               <image
                                 href={inst.logo}
-                                x={tooltipX + 11}
-                                y={tooltipY + (tooltipH - logoSize) / 2 + 3}
-                                width={logoSize - 6}
-                                height={logoSize - 6}
+                                x={tooltipX + 14}
+                                y={tooltipY + (tooltipH - logoSize) / 2 + 4}
+                                width={logoSize - 8}
+                                height={logoSize - 8}
                                 preserveAspectRatio="xMidYMid meet"
                               />
                             </>
                           )}
                           {!hasLogo && (
                             <>
-                              <circle cx={tooltipX + 14} cy={tooltipY + 18} r="7" fill={`${color}20`} />
-                              <circle cx={tooltipX + 14} cy={tooltipY + 18} r="3.5" fill={color} />
+                              <circle cx={tooltipX + 22} cy={tooltipY + 24} r="10" fill={`${color}20`} />
+                              <circle cx={tooltipX + 22} cy={tooltipY + 24} r="5" fill={color} />
                             </>
                           )}
                           <text
                             x={textStartX}
                             y={textStartY}
                             dominantBaseline="hanging"
-                            fill="hsl(152, 40%, 15%)"
-                            fontSize="10"
+                            fill="hsl(152, 40%, 12%)"
+                            fontSize="14"
                             fontWeight="700"
                           >
-                            {inst.name.length > 24 ? inst.name.slice(0, 24) + "..." : inst.name}
+                            {inst.name.length > 22 ? inst.name.slice(0, 22) + "..." : inst.name}
                           </text>
                           <text
                             x={textStartX}
-                            y={textStartY + 15}
+                            y={textStartY + 20}
                             dominantBaseline="hanging"
-                            fill="hsl(152, 20%, 50%)"
-                            fontSize="8"
+                            fill="hsl(152, 20%, 45%)"
+                            fontSize="11"
                           >
                             {inst.type}
                           </text>
                           <text
                             x={textStartX}
-                            y={textStartY + 27}
+                            y={textStartY + 35}
                             dominantBaseline="hanging"
-                            fill="hsl(152, 20%, 55%)"
-                            fontSize="7"
+                            fill="hsl(152, 20%, 52%)"
+                            fontSize="10"
                           >
                             {inst.county ? `${inst.county} County` : ""}
                           </text>
                           {api && api.programs.length > 0 && (
                             <text
                               x={textStartX}
-                              y={textStartY + (hasLogo ? 42 : 40)}
+                              y={textStartY + (hasLogo ? 54 : 48)}
                               dominantBaseline="hanging"
                               fill={color}
-                              fontSize="8"
+                              fontSize="11"
                               fontWeight="600"
                             >
                               {api.programs.length} {t("explore.programs").toLowerCase()} {language === "en" ? "available" : "disponibles"}

@@ -72,21 +72,21 @@ export const countyPaths: CountyPath[] = [
 ];
 
 export const mapInstitutions: MapInstitution[] = [
-  { name: "Shasta College", type: "Community College", county: "Shasta", x: 228, y: 369, marker: "college", logo: "https://www.shastacollege.edu/wp-content/uploads/2020/01/SC_Seal_color-300x300.png" },
-  { name: "Simpson University", type: "University (Private)", county: "Shasta", x: 221, y: 363, marker: "university", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/e/e3/Simpson_University_seal.svg/200px-Simpson_University_seal.svg.png" },
-  { name: "College of the Siskiyous", type: "Community College", county: "Siskiyou", x: 232, y: 92, marker: "college", logo: "https://www.siskiyous.edu/marketing/images/logos/cos-seal-color.png" },
-  { name: "Lassen Community College", type: "Community College", county: "Lassen", x: 405, y: 388, marker: "college", logo: "https://www.lassencollege.edu/about/PublishingImages/Pages/default/Lassen%20College%20Seal.png" },
-  { name: "Butte College", type: "Community College", county: "Butte", x: 331, y: 589, marker: "college", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/d/da/Butte_College_seal.svg/200px-Butte_College_seal.svg.png" },
-  { name: "CSU Chico", type: "University (CSU)", county: "Butte", x: 301, y: 571, marker: "university", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/6/6b/Chico_State_Seal.svg/200px-Chico_State_Seal.svg.png" },
-  { name: "Shasta County Office of Education", type: "County Office of Education", county: "Shasta", x: 240, y: 366, marker: "county-office", logo: "https://www.shastacoe.org/uploaded/themes/shastacoe/img/shasta-coe-logo.png" },
-  { name: "Butte County Office of Education", type: "County Office of Education", county: "Butte", x: 310, y: 577, marker: "county-office", logo: "https://www.bcoe.org/cms/lib/CA02218prior/Centricity/Domain/1/BCOE-Logo-Color.png" },
-  { name: "Siskiyou County Office of Education", type: "County Office of Education", county: "Siskiyou", x: 245, y: 92, marker: "county-office", logo: "https://www.siskiyoucoe.net/cms/lib/CA02000300/Centricity/Domain/1/SCOE-Logo.png" },
-  { name: "Tehama County Office of Education", type: "County Office of Education", county: "Tehama", x: 244, y: 464, marker: "county-office", logo: "https://www.tehamacoe.org/cms/lib/CA02218566/Centricity/Domain/1/TCDE-Logo.png" },
+  { name: "Shasta College", type: "Community College", county: "Shasta", x: 228, y: 369, marker: "college", logo: "/images/logos/lassen.png" },
+  { name: "Simpson University", type: "University (Private)", county: "Shasta", x: 221, y: 363, marker: "university", logo: "/images/logos/simpson.png" },
+  { name: "College of the Siskiyous", type: "Community College", county: "Siskiyou", x: 232, y: 92, marker: "college", logo: "/images/logos/siskiyous.png" },
+  { name: "Lassen Community College", type: "Community College", county: "Lassen", x: 405, y: 388, marker: "college", logo: "/images/logos/lassen.png" },
+  { name: "Butte College", type: "Community College", county: "Butte", x: 331, y: 589, marker: "college", logo: "/images/logos/butte-college.png" },
+  { name: "CSU Chico", type: "University (CSU)", county: "Butte", x: 301, y: 571, marker: "university", logo: "/images/logos/csu-chico.png" },
+  { name: "Shasta County Office of Education", type: "County Office of Education", county: "Shasta", x: 240, y: 366, marker: "county-office" },
+  { name: "Butte County Office of Education", type: "County Office of Education", county: "Butte", x: 310, y: 577, marker: "county-office", logo: "/images/logos/butte-coe.png" },
+  { name: "Siskiyou County Office of Education", type: "County Office of Education", county: "Siskiyou", x: 245, y: 92, marker: "county-office", logo: "/images/logos/siskiyou-coe.png" },
+  { name: "Tehama County Office of Education", type: "County Office of Education", county: "Tehama", x: 244, y: 464, marker: "county-office" },
 ];
 
 export const offMapInstitutions: MapInstitution[] = [
-  { name: "UC Davis", type: "University (UC)", county: null, x: 0, y: 0, marker: "university", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/d/d1/University_of_California%2C_Davis_seal.svg/200px-University_of_California%2C_Davis_seal.svg.png" },
-  { name: "Southern Oregon University", type: "University (Out-of-State)", county: null, x: 0, y: 0, marker: "university", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/5/5e/Southern_Oregon_University_seal.svg/200px-Southern_Oregon_University_seal.svg.png" },
-  { name: "Western Governors University", type: "University (Online)", county: null, x: 0, y: 0, marker: "online", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/b/b5/WGU_Seal.svg/200px-WGU_Seal.svg.png" },
-  { name: "REACH University", type: "University (Online)", county: null, x: 0, y: 0, marker: "online", logo: "https://www.reach.edu/wp-content/uploads/2021/08/REACH-Logo-Horizontal-Full-Color.png" },
+  { name: "UC Davis", type: "University (UC)", county: null, x: 0, y: 0, marker: "university" },
+  { name: "Southern Oregon University", type: "University (Out-of-State)", county: null, x: 0, y: 0, marker: "university", logo: "/images/logos/sou.png" },
+  { name: "Western Governors University", type: "University (Online)", county: null, x: 0, y: 0, marker: "online", logo: "/images/logos/wgu.png" },
+  { name: "REACH University", type: "University (Online)", county: null, x: 0, y: 0, marker: "online", logo: "/images/logos/reach.png" },
 ];
