@@ -79,6 +79,7 @@ shared/
 - counties, institutions, pathways, programs, resources (knowledge base)
 - onboarding_scripts (editable narration scripts per pathway/step with audio URLs)
 - chat_sessions, chat_messages (student interactions)
+- assessment_questions, assessment_options, assessment_careers (admin-editable self-assessment quiz)
 - research_tasks (AI research with human approval)
 - app_settings (key-value store for AI model selection, API keys)
 - session (express-session store, auto-created by connect-pg-simple)
@@ -157,11 +158,19 @@ shared/
 50. Mobile-responsive: bottom card overlay on small screens, sidebar on desktop
 51. `GET /api/map/institutions` public endpoint returns institutions with programs and pathway data
 52. `client/src/lib/map-data.ts` defines institution/county positions on the illustrated map
-53. Career Self-Assessment quiz at `/assessment` with Healthcare (6 questions) and Education (6 questions) tracks
-54. Career-profile scoring: 30 healthcare careers (Certificate: CNA, EMT, Medical Assistant, Phlebotomist, Pharmacy Tech, Dental Assistant, Home Health Aide, Medical Biller; Associates: RN, Health Info Tech, Dental Hygienist, Respiratory Therapist, Radiologic Tech, Surgical Tech, PTA, Diagnostic Tech, Patient Navigator; Bachelor's: Community Health Worker, Health Ed Specialist, Substance Abuse Counselor, Healthcare Administrator, Clinical Research Coordinator, Nutritionist; Master's+: LVN, Speech-Language Pathologist, OT, PA, NP, Pharmacist, Physical Therapist) and 26 education careers (Certificate: Paraprofessional, Child Dev Assistant, Bilingual Assistant, Bus Driver; Associates: Instructional Assistant, Special Ed Assistant, Afterschool Manager, Library Tech, Child Dev Teacher, CTE Instructor; Bachelor's: Substitute Teacher, Child Dev Supervisor, Elementary Teacher, Secondary Teacher, Special Ed Teacher, Reading Teacher, PK-3 Teacher; Master's+: School Counselor, School Social Worker, Instructional Coordinator, School Psychologist, Principal, CC Faculty, Librarian, ECE Program Director, Superintendent) with scoring matrices per question/answer
-55. `POST /api/assessment/results` returns top 3 career matches with matchPercent, salary, education, outlook, plus AI-generated personalized insight (gpt-4o-mini, 10s timeout)
-56. Career match cards with rank icons (Trophy/Award/Medal), salary/education/outlook info blocks, and percentage badges
-57. Self-Assessment admin page under "In Development" sidebar section
+53. Career Self-Assessment quiz at `/assessment` — fully database-driven, admin-editable
+54. `assessment_questions` table: track, category, bilingual question text, GIF URL, multi-select flag, sort_order, is_active
+55. `assessment_options` table: question_id (FK cascade), value slug, bilingual labels, sort_order
+56. `assessment_careers` table: track, bilingual name/description/salary/education/outlook
+57. AI-driven career scoring: GPT-4o-mini analyzes student answers + career descriptions (no hardcoded weight matrices)
+58. `POST /api/assessment/results` returns top 3 AI-scored career matches with matchPercent, salary, education, outlook, plus personalized AI insight
+59. `GET /api/assessment/questions?track=X` — public endpoint for fetching active quiz questions with options
+60. Admin Self-Assessment page: Questions tab (CRUD with inline edit, reorder, active toggle) + Careers tab (CRUD with bilingual fields)
+61. AI Assist buttons: generate new questions/careers, improve existing question text, suggest GIF search terms
+62. `POST /api/admin/assessment/ai-assist` — AI generation endpoint for questions, careers, and GIF suggestions
+63. Admin CRUD routes: `GET/POST/PATCH/DELETE /api/admin/assessment/questions` and `/api/admin/assessment/careers`
+64. 16 questions (8 healthcare + 8 education) with 58 options and 56 careers (30 HC + 26 ED) seeded from `server/seed-assessment.ts`
+65. Career match cards with rank icons (Trophy/Award/Medal), salary/education/outlook info blocks, and percentage badges
 
 ## Running
 - `npm run dev` starts both frontend (Vite) and backend (Express) on port 5000

@@ -1,17 +1,20 @@
 import { useState } from "react";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { useLanguage } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft, ArrowRight, Globe, MessageCircle,
   Stethoscope, GraduationCap, CheckCircle2,
   RotateCcw, Sparkles, Heart, BookOpen,
   DollarSign, Clock, TrendingUp, Trophy, Award, Medal
 } from "lucide-react";
+import type { AssessmentQuestion, AssessmentOption } from "@shared/schema";
 
 interface QuizQuestion {
   id: string;
@@ -22,247 +25,23 @@ interface QuizQuestion {
   options: { value: string; label: { en: string; es: string } }[];
 }
 
-const healthcareQuestions: QuizQuestion[] = [
-  {
-    id: "hc_motivation",
-    category: "Motivation",
-    question: {
-      en: "What matters most to you in a career?",
-      es: "¿Qué es lo que más te importa en una carrera?",
-    },
-    gif: "https://media.giphy.com/media/l0HlMSVVw9BmqMPe0/giphy.gif",
-    options: [
-      { value: "money", label: { en: "High earning potential — I want financial security", es: "Alto potencial de ingresos — quiero seguridad financiera" } },
-      { value: "passion", label: { en: "Helping people — I want to make a difference", es: "Ayudar a las personas — quiero hacer la diferencia" } },
-      { value: "balance", label: { en: "Work-life balance — I value my personal time", es: "Equilibrio vida-trabajo — valoro mi tiempo personal" } },
-      { value: "growth", label: { en: "Career growth — I want room to advance", es: "Crecimiento profesional — quiero espacio para avanzar" } },
-    ],
-  },
-  {
-    id: "hc_education",
-    category: "Education",
-    question: {
-      en: "How much time are you willing to spend in school?",
-      es: "¿Cuánto tiempo estás dispuesto/a a pasar estudiando?",
-    },
-    gif: "https://media.giphy.com/media/3o7btNa0RUYa5E7iiQ/giphy.gif",
-    options: [
-      { value: "minimal", label: { en: "As little as possible — on-the-job training or a few months", es: "Lo menos posible — capacitación en el trabajo o unos meses" } },
-      { value: "short", label: { en: "1-2 years — a certificate or associate degree", es: "1-2 años — un certificado o título de asociado" } },
-      { value: "medium", label: { en: "3-4 years — a bachelor's degree", es: "3-4 años — una licenciatura" } },
-      { value: "long", label: { en: "5+ years — I'm ready for an advanced degree", es: "5+ años — estoy listo/a para un título avanzado" } },
-    ],
-  },
-  {
-    id: "hc_patients",
-    category: "Patient Interaction",
-    question: {
-      en: "How much do you want to work directly with patients?",
-      es: "¿Cuánto deseas trabajar directamente con pacientes?",
-    },
-    gif: "https://media.giphy.com/media/QBGfW8iczqACOikMYr/giphy.gif",
-    options: [
-      { value: "all_the_time", label: { en: "All the time — I love working with people face-to-face", es: "Todo el tiempo — me encanta trabajar cara a cara con las personas" } },
-      { value: "some", label: { en: "Some interaction is fine, but not all day", es: "Algo de interacción está bien, pero no todo el día" } },
-      { value: "minimal", label: { en: "I prefer working behind the scenes", es: "Prefiero trabajar detrás de escena" } },
-    ],
-  },
-  {
-    id: "hc_medical",
-    category: "Medical Comfort",
-    question: {
-      en: "How comfortable are you with medical procedures and blood?",
-      es: "¿Qué tan cómodo/a te sientes con procedimientos médicos y sangre?",
-    },
-    gif: "https://media.giphy.com/media/YnZPEeeC7q6pQTRj3H/giphy.gif",
-    options: [
-      { value: "very", label: { en: "Very comfortable — I can handle anything", es: "Muy cómodo/a — puedo manejar cualquier cosa" } },
-      { value: "somewhat", label: { en: "Somewhat comfortable — I can manage with training", es: "Algo cómodo/a — puedo manejarlo con capacitación" } },
-      { value: "not_really", label: { en: "Not really — I'd rather avoid clinical settings", es: "No mucho — prefiero evitar entornos clínicos" } },
-    ],
-  },
-  {
-    id: "hc_emergency",
-    category: "Work Environment",
-    question: {
-      en: "What kind of work pace do you prefer?",
-      es: "¿Qué tipo de ritmo de trabajo prefieres?",
-    },
-    gif: "https://media.giphy.com/media/ule4vhcY1xEKQ/giphy.gif",
-    options: [
-      { value: "fast", label: { en: "Fast-paced and high-pressure — I thrive under stress", es: "Rápido y alta presión — me desempeño bien bajo estrés" } },
-      { value: "moderate", label: { en: "Steady and structured — I like routine with some variety", es: "Estable y estructurado — me gusta la rutina con algo de variedad" } },
-      { value: "calm", label: { en: "Calm and predictable — I prefer a relaxed environment", es: "Tranquilo y predecible — prefiero un ambiente relajado" } },
-    ],
-  },
-  {
-    id: "hc_age_group",
-    category: "Population",
-    question: {
-      en: "What age groups are you interested in working with?",
-      es: "¿Con qué grupos de edad te interesa trabajar?",
-    },
-    gif: "https://media.giphy.com/media/3oEjHZhG9COPG6XjzO/giphy.gif",
-    multiSelect: true,
-    options: [
-      { value: "children", label: { en: "Children and teenagers", es: "Niños y adolescentes" } },
-      { value: "adults", label: { en: "Adults", es: "Adultos" } },
-      { value: "elderly", label: { en: "Elderly", es: "Personas mayores" } },
-      { value: "all", label: { en: "All ages — I don't have a preference", es: "Todas las edades — no tengo preferencia" } },
-    ],
-  },
-  {
-    id: "hc_setting",
-    category: "Work Setting",
-    question: {
-      en: "What kind of work setting sounds best to you?",
-      es: "¿Qué tipo de entorno de trabajo te suena mejor?",
-    },
-    gif: "https://media.giphy.com/media/l3q2Hy66w1hpDSWUE/giphy.gif",
-    options: [
-      { value: "hospital", label: { en: "Hospital — I want to be in the action", es: "Hospital — quiero estar en la acción" } },
-      { value: "clinic", label: { en: "Clinic or doctor's office — steady and personal", es: "Clínica o consultorio — estable y personal" } },
-      { value: "community", label: { en: "Community or home-based — out in the field", es: "Comunidad o a domicilio — en el campo" } },
-      { value: "office", label: { en: "Office or lab — behind the scenes", es: "Oficina o laboratorio — detrás de escena" } },
-    ],
-  },
-  {
-    id: "hc_tasks",
-    category: "Daily Tasks",
-    question: {
-      en: "What kind of daily tasks appeal to you most?",
-      es: "¿Qué tipo de tareas diarias te atraen más?",
-    },
-    gif: "https://media.giphy.com/media/LmBsnpDCuturMhtLfw/giphy.gif",
-    options: [
-      { value: "hands_on", label: { en: "Hands-on care — procedures, wound care, injections", es: "Cuidado práctico — procedimientos, cuidado de heridas, inyecciones" } },
-      { value: "technology", label: { en: "Technology & equipment — imaging, lab work, machines", es: "Tecnología y equipos — imágenes, laboratorio, máquinas" } },
-      { value: "counseling", label: { en: "Talking & teaching — counseling, education, outreach", es: "Hablar y enseñar — consejería, educación, difusión" } },
-      { value: "administrative", label: { en: "Organizing & managing — records, billing, administration", es: "Organizar y gestionar — registros, facturación, administración" } },
-    ],
-  },
-];
+type DBQuestion = AssessmentQuestion & { options: AssessmentOption[] };
 
-const educationQuestions: QuizQuestion[] = [
-  {
-    id: "ed_motivation",
-    category: "Motivation",
-    question: {
-      en: "Why are you interested in a career in education?",
-      es: "¿Por qué te interesa una carrera en educación?",
-    },
-    gif: "https://media.tenor.com/0awndc0411wAAAAd/happy-dance-excited.gif",
-    options: [
-      { value: "inspire", label: { en: "I want to inspire and shape young minds", es: "Quiero inspirar y formar mentes jóvenes" } },
-      { value: "community", label: { en: "I want to strengthen my community through education", es: "Quiero fortalecer mi comunidad a través de la educación" } },
-      { value: "subject", label: { en: "I'm passionate about a subject and want to share it", es: "Me apasiona una materia y quiero compartirla" } },
-      { value: "stability", label: { en: "I want a stable career with good benefits", es: "Quiero una carrera estable con buenos beneficios" } },
-    ],
-  },
-  {
-    id: "ed_age_group",
-    category: "Age Group",
-    question: {
-      en: "What age groups would you like to teach?",
-      es: "¿A qué grupos de edad te gustaría enseñar?",
-    },
-    gif: "https://media.tenor.com/F4EfNZj7nCsAAAAd/alex-wolff-raising-hand.gif",
-    multiSelect: true,
-    options: [
-      { value: "early_childhood", label: { en: "Young children (preschool to kindergarten)", es: "Niños pequeños (preescolar a kinder)" } },
-      { value: "elementary", label: { en: "Elementary school (grades 1-6)", es: "Escuela primaria (grados 1-6)" } },
-      { value: "secondary", label: { en: "Middle or high school (grades 7-12)", es: "Escuela secundaria o preparatoria (grados 7-12)" } },
-      { value: "adult", label: { en: "Adults or college students", es: "Adultos o estudiantes universitarios" } },
-    ],
-  },
-  {
-    id: "ed_education_level",
-    category: "Education",
-    question: {
-      en: "How much schooling are you willing to complete?",
-      es: "¿Cuánta educación estás dispuesto/a a completar?",
-    },
-    gif: "https://media.tenor.com/ICCkMEE3hKUAAAAd/graduation-celebration.gif",
-    options: [
-      { value: "certificate", label: { en: "A certificate program (less than 2 years)", es: "Un programa de certificado (menos de 2 años)" } },
-      { value: "associates", label: { en: "An associate degree (2 years)", es: "Un título de asociado (2 años)" } },
-      { value: "bachelors", label: { en: "A bachelor's degree (4 years)", es: "Una licenciatura (4 años)" } },
-      { value: "masters", label: { en: "A master's degree or credential program", es: "Una maestría o programa de credencial" } },
-    ],
-  },
-  {
-    id: "ed_role",
-    category: "Role Type",
-    question: {
-      en: "What kind of role interests you most?",
-      es: "¿Qué tipo de rol te interesa más?",
-    },
-    gif: "https://media.tenor.com/UQ4bHLp78PYAAAAM/team-high-five-family-feud-canada.gif",
-    options: [
-      { value: "classroom", label: { en: "Lead teacher in a classroom", es: "Maestro/a principal en un salón de clases" } },
-      { value: "support", label: { en: "Supporting role — helping teachers and students", es: "Rol de apoyo — ayudando a maestros y estudiantes" } },
-      { value: "specialist", label: { en: "Specialist — counseling, special ed, or administration", es: "Especialista — consejería, educación especial o administración" } },
-      { value: "childcare", label: { en: "Childcare or early learning center", es: "Cuidado infantil o centro de aprendizaje temprano" } },
-    ],
-  },
-  {
-    id: "ed_environment",
-    category: "Environment",
-    question: {
-      en: "What kind of work environment do you prefer?",
-      es: "¿Qué tipo de ambiente de trabajo prefieres?",
-    },
-    gif: "https://media.tenor.com/JChxs-yyayQAAAAd/cozy-aesthetic.gif",
-    options: [
-      { value: "structured", label: { en: "Structured and predictable — I like a set schedule", es: "Estructurado y predecible — me gusta un horario fijo" } },
-      { value: "dynamic", label: { en: "Dynamic and creative — every day is different", es: "Dinámico y creativo — cada día es diferente" } },
-      { value: "flexible", label: { en: "Flexible — I want control over my schedule", es: "Flexible — quiero control sobre mi horario" } },
-    ],
-  },
-  {
-    id: "ed_location",
-    category: "Location",
-    question: {
-      en: "Where would you prefer to study?",
-      es: "¿Dónde preferirías estudiar?",
-    },
-    gif: "https://media.tenor.com/PdIGGQsJAF4AAAAd/summer-road-trip.gif",
-    options: [
-      { value: "local", label: { en: "Locally in the North State — I want to stay close to home", es: "Localmente en el Norte del Estado — quiero quedarme cerca de casa" } },
-      { value: "willing_travel", label: { en: "I'm willing to travel or relocate for the right program", es: "Estoy dispuesto/a a viajar o mudarme por el programa adecuado" } },
-      { value: "online", label: { en: "Online — I need the flexibility of remote learning", es: "En línea — necesito la flexibilidad del aprendizaje remoto" } },
-    ],
-  },
-  {
-    id: "ed_focus",
-    category: "Focus Area",
-    question: {
-      en: "What part of working in education excites you most?",
-      es: "¿Qué parte de trabajar en educación te emociona más?",
-    },
-    gif: "https://media.tenor.com/8wYnJIc6mWoAAAAd/light-bulb-idea.gif",
-    options: [
-      { value: "teaching", label: { en: "Teaching & curriculum — creating lessons, leading a classroom", es: "Enseñanza y currículo — crear lecciones, dirigir un salón" } },
-      { value: "wellbeing", label: { en: "Student wellbeing — counseling, social-emotional support", es: "Bienestar estudiantil — consejería, apoyo socioemocional" } },
-      { value: "leadership", label: { en: "Leadership & administration — managing schools or programs", es: "Liderazgo y administración — gestionar escuelas o programas" } },
-      { value: "resources", label: { en: "Resources & research — libraries, media, instructional design", es: "Recursos e investigación — bibliotecas, medios, diseño instruccional" } },
-    ],
-  },
-  {
-    id: "ed_special_needs",
-    category: "Special Needs",
-    question: {
-      en: "How do you feel about working with students with special needs?",
-      es: "¿Cómo te sientes acerca de trabajar con estudiantes con necesidades especiales?",
-    },
-    gif: "https://media.tenor.com/ZK1mkWw-65wAAAAd/hug-cute.gif",
-    options: [
-      { value: "love_it", label: { en: "I'd love it — that's exactly what I want to do", es: "Me encantaría — eso es exactamente lo que quiero hacer" } },
-      { value: "open", label: { en: "I'm open to it — I'd be happy to include it in my work", es: "Estoy abierto/a — me gustaría incluirlo en mi trabajo" } },
-      { value: "general", label: { en: "I prefer general education — mainstream classrooms", es: "Prefiero educación general — aulas regulares" } },
-    ],
-  },
-];
+function mapDBQuestionsToQuiz(dbQuestions: DBQuestion[]): QuizQuestion[] {
+  return dbQuestions
+    .filter(q => q.isActive)
+    .map(q => ({
+      id: String(q.id),
+      category: q.category,
+      question: { en: q.questionEn, es: q.questionEs },
+      gif: q.gifUrl || "",
+      multiSelect: q.multiSelect || false,
+      options: q.options.map(o => ({
+        value: o.value,
+        label: { en: o.labelEn, es: o.labelEs },
+      })),
+    }));
+}
 
 interface CareerMatch {
   id: string;
@@ -290,16 +69,22 @@ export default function AssessmentPage() {
   const [result, setResult] = useState<AssessmentResult | null>(null);
   const [loadingResult, setLoadingResult] = useState(false);
 
-  const questions = track === "healthcare" ? healthcareQuestions : educationQuestions;
+  const { data: dbQuestions, isLoading: questionsLoading } = useQuery<DBQuestion[]>({
+    queryKey: ["/api/assessment/questions", `?track=${track}`],
+    enabled: !!track,
+  });
+
+  const questions: QuizQuestion[] = dbQuestions ? mapDBQuestionsToQuiz(dbQuestions) : [];
   const currentQuestion = questions[currentStep];
 
   const hasAnswer = (id: string) => {
     const a = answers[id];
     return a && (Array.isArray(a) ? a.length > 0 : a.length > 0);
   };
-  const progress = track ? ((currentStep + (hasAnswer(currentQuestion?.id) ? 1 : 0)) / questions.length) * 100 : 0;
+  const progress = track && currentQuestion ? ((currentStep + (hasAnswer(currentQuestion?.id) ? 1 : 0)) / questions.length) * 100 : 0;
 
   const handleSelectOption = (value: string) => {
+    if (!currentQuestion) return;
     if (currentQuestion.multiSelect) {
       setAnswers(prev => {
         const current = (prev[currentQuestion.id] as string[]) || [];
@@ -428,7 +213,6 @@ export default function AssessmentPage() {
                           : "Enfermería, EMT, asistente médico y más"}
                       </p>
                     </div>
-                    <Badge variant="secondary" className="text-xs">6 {language === "en" ? "questions" : "preguntas"}</Badge>
                   </div>
                 </Card>
 
@@ -449,14 +233,35 @@ export default function AssessmentPage() {
                           : "Enseñanza, primera infancia, credenciales y más"}
                       </p>
                     </div>
-                    <Badge variant="secondary" className="text-xs">6 {language === "en" ? "questions" : "preguntas"}</Badge>
                   </div>
                 </Card>
               </div>
             </div>
           )}
 
-          {track && !result && currentQuestion && (
+          {track && !result && questionsLoading && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-5 w-24" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+                <Skeleton className="h-1.5 w-full" />
+              </div>
+              <div className="flex flex-col items-center gap-4">
+                <Skeleton className="w-full max-w-lg aspect-video rounded-2xl" />
+                <Skeleton className="h-7 w-3/4" />
+              </div>
+              <div className="space-y-2.5">
+                <Skeleton className="h-14 w-full rounded-lg" />
+                <Skeleton className="h-14 w-full rounded-lg" />
+                <Skeleton className="h-14 w-full rounded-lg" />
+                <Skeleton className="h-14 w-full rounded-lg" />
+              </div>
+            </div>
+          )}
+
+          {track && !result && !questionsLoading && currentQuestion && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300" key={currentQuestion.id}>
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs text-muted-foreground">

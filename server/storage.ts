@@ -3,14 +3,15 @@ import { eq, desc, sql, and, count, gte, sum } from "drizzle-orm";
 import {
   counties, institutions, pathways, programs, resources,
   chatSessions, chatMessages, researchTasks, conversations, messages, appSettings, tokenUsage,
-  onboardingScripts,
+  onboardingScripts, assessmentQuestions, assessmentOptions, assessmentCareers,
   type InsertCounty, type InsertInstitution, type InsertPathway,
   type InsertProgram, type InsertResource, type InsertChatSession,
   type InsertChatMessage, type InsertResearchTask, type InsertTokenUsage,
-  type InsertOnboardingScript,
+  type InsertOnboardingScript, type InsertAssessmentQuestion, type InsertAssessmentOption, type InsertAssessmentCareer,
   type County, type Institution, type Pathway, type Program,
   type Resource, type ChatSession, type ChatMessage, type ResearchTask,
-  type AppSetting, type TokenUsage, type OnboardingScript
+  type AppSetting, type TokenUsage, type OnboardingScript,
+  type AssessmentQuestion, type AssessmentOption, type AssessmentCareer
 } from "@shared/schema";
 
 export interface IStorage {
@@ -73,6 +74,20 @@ export interface IStorage {
   }>;
 
   getPathwayKnowledge(): Promise<string>;
+
+  getAssessmentQuestions(track?: string): Promise<(AssessmentQuestion & { options: AssessmentOption[] })[]>;
+  createAssessmentQuestion(data: InsertAssessmentQuestion): Promise<AssessmentQuestion>;
+  updateAssessmentQuestion(id: number, data: Partial<InsertAssessmentQuestion>): Promise<AssessmentQuestion | undefined>;
+  deleteAssessmentQuestion(id: number): Promise<void>;
+
+  createAssessmentOption(data: InsertAssessmentOption): Promise<AssessmentOption>;
+  updateAssessmentOption(id: number, data: Partial<InsertAssessmentOption>): Promise<AssessmentOption | undefined>;
+  deleteAssessmentOption(id: number): Promise<void>;
+
+  getAssessmentCareers(track?: string): Promise<AssessmentCareer[]>;
+  createAssessmentCareer(data: InsertAssessmentCareer): Promise<AssessmentCareer>;
+  updateAssessmentCareer(id: number, data: Partial<InsertAssessmentCareer>): Promise<AssessmentCareer | undefined>;
+  deleteAssessmentCareer(id: number): Promise<void>;
 
   recordTokenUsage(data: InsertTokenUsage): Promise<TokenUsage>;
   getTokenUsageStats(period: "day" | "month"): Promise<{
@@ -345,6 +360,72 @@ export class DatabaseStorage implements IStorage {
   }
   async deleteOnboardingScript(id: number): Promise<void> {
     await db.delete(onboardingScripts).where(eq(onboardingScripts.id, id));
+  }
+
+  async getAssessmentQuestions(track?: string): Promise<(AssessmentQuestion & { options: AssessmentOption[] })[]> {
+    let questions: AssessmentQuestion[];
+    if (track) {
+      questions = await db.select().from(assessmentQuestions)
+        .where(eq(assessmentQuestions.track, track))
+        .orderBy(assessmentQuestions.sortOrder);
+    } else {
+      questions = await db.select().from(assessmentQuestions)
+        .orderBy(assessmentQuestions.sortOrder);
+    }
+    const allOptions = await db.select().from(assessmentOptions).orderBy(assessmentOptions.sortOrder);
+    return questions.map(q => ({
+      ...q,
+      options: allOptions.filter(o => o.questionId === q.id),
+    }));
+  }
+
+  async createAssessmentQuestion(data: InsertAssessmentQuestion): Promise<AssessmentQuestion> {
+    const [q] = await db.insert(assessmentQuestions).values(data).returning();
+    return q;
+  }
+
+  async updateAssessmentQuestion(id: number, data: Partial<InsertAssessmentQuestion>): Promise<AssessmentQuestion | undefined> {
+    const [q] = await db.update(assessmentQuestions).set({ ...data, updatedAt: new Date() }).where(eq(assessmentQuestions.id, id)).returning();
+    return q;
+  }
+
+  async deleteAssessmentQuestion(id: number): Promise<void> {
+    await db.delete(assessmentQuestions).where(eq(assessmentQuestions.id, id));
+  }
+
+  async createAssessmentOption(data: InsertAssessmentOption): Promise<AssessmentOption> {
+    const [o] = await db.insert(assessmentOptions).values(data).returning();
+    return o;
+  }
+
+  async updateAssessmentOption(id: number, data: Partial<InsertAssessmentOption>): Promise<AssessmentOption | undefined> {
+    const [o] = await db.update(assessmentOptions).set(data).where(eq(assessmentOptions.id, id)).returning();
+    return o;
+  }
+
+  async deleteAssessmentOption(id: number): Promise<void> {
+    await db.delete(assessmentOptions).where(eq(assessmentOptions.id, id));
+  }
+
+  async getAssessmentCareers(track?: string): Promise<AssessmentCareer[]> {
+    if (track) {
+      return db.select().from(assessmentCareers).where(eq(assessmentCareers.track, track));
+    }
+    return db.select().from(assessmentCareers);
+  }
+
+  async createAssessmentCareer(data: InsertAssessmentCareer): Promise<AssessmentCareer> {
+    const [c] = await db.insert(assessmentCareers).values(data).returning();
+    return c;
+  }
+
+  async updateAssessmentCareer(id: number, data: Partial<InsertAssessmentCareer>): Promise<AssessmentCareer | undefined> {
+    const [c] = await db.update(assessmentCareers).set({ ...data, updatedAt: new Date() }).where(eq(assessmentCareers.id, id)).returning();
+    return c;
+  }
+
+  async deleteAssessmentCareer(id: number): Promise<void> {
+    await db.delete(assessmentCareers).where(eq(assessmentCareers.id, id));
   }
 
   async recordTokenUsage(data: InsertTokenUsage): Promise<TokenUsage> {

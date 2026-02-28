@@ -1,5 +1,6 @@
 import { db } from "./db";
 import { counties, institutions, pathways, programs, resources, onboardingScripts } from "@shared/schema";
+import { seedAssessmentData } from "./seed-assessment";
 
 async function seedOnboardingScripts() {
   const existing = await db.select().from(onboardingScripts);
@@ -292,6 +293,7 @@ export async function seedDatabase() {
     console.log("Database already seeded, skipping main seed.");
     await seedOnboardingScripts();
     await seedSpanishOnboardingScripts();
+    await seedAssessmentData();
     return;
   }
 
@@ -381,6 +383,7 @@ export async function seedDatabase() {
 
   await seedOnboardingScripts();
   await seedSpanishOnboardingScripts();
+  await seedAssessmentData();
   console.log("Seed data inserted successfully!");
 }
 

@@ -133,6 +133,50 @@ export const tokenUsage = pgTable("token_usage", {
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+export const assessmentQuestions = pgTable("assessment_questions", {
+  id: serial("id").primaryKey(),
+  track: text("track").notNull(),
+  category: text("category").notNull(),
+  questionEn: text("question_en").notNull(),
+  questionEs: text("question_es").notNull(),
+  gifUrl: text("gif_url"),
+  multiSelect: boolean("multi_select").default(false),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const assessmentOptions = pgTable("assessment_options", {
+  id: serial("id").primaryKey(),
+  questionId: integer("question_id").references(() => assessmentQuestions.id, { onDelete: "cascade" }).notNull(),
+  value: text("value").notNull(),
+  labelEn: text("label_en").notNull(),
+  labelEs: text("label_es").notNull(),
+  sortOrder: integer("sort_order").default(0),
+});
+
+export const assessmentCareers = pgTable("assessment_careers", {
+  id: serial("id").primaryKey(),
+  track: text("track").notNull(),
+  name: text("name").notNull(),
+  nameEs: text("name_es"),
+  descriptionEn: text("description_en"),
+  descriptionEs: text("description_es"),
+  salaryEn: text("salary_en"),
+  salaryEs: text("salary_es"),
+  educationEn: text("education_en"),
+  educationEs: text("education_es"),
+  outlookEn: text("outlook_en"),
+  outlookEs: text("outlook_es"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertAssessmentQuestionSchema = createInsertSchema(assessmentQuestions).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertAssessmentOptionSchema = createInsertSchema(assessmentOptions).omit({ id: true });
+export const insertAssessmentCareerSchema = createInsertSchema(assessmentCareers).omit({ id: true, createdAt: true, updatedAt: true });
+
 export const insertOnboardingScriptSchema = createInsertSchema(onboardingScripts).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertTokenUsageSchema = createInsertSchema(tokenUsage).omit({ id: true, createdAt: true });
 
@@ -169,3 +213,10 @@ export type Message = typeof messages.$inferSelect;
 export type AppSetting = typeof appSettings.$inferSelect;
 export type TokenUsage = typeof tokenUsage.$inferSelect;
 export type InsertTokenUsage = z.infer<typeof insertTokenUsageSchema>;
+
+export type AssessmentQuestion = typeof assessmentQuestions.$inferSelect;
+export type InsertAssessmentQuestion = z.infer<typeof insertAssessmentQuestionSchema>;
+export type AssessmentOption = typeof assessmentOptions.$inferSelect;
+export type InsertAssessmentOption = z.infer<typeof insertAssessmentOptionSchema>;
+export type AssessmentCareer = typeof assessmentCareers.$inferSelect;
+export type InsertAssessmentCareer = z.infer<typeof insertAssessmentCareerSchema>;
