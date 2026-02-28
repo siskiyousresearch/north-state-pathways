@@ -72,12 +72,12 @@ export const countyPaths: CountyPath[] = [
 ];
 
 export const mapInstitutions: MapInstitution[] = [
-  { name: "Shasta College", type: "Community College", county: "Shasta", x: 228, y: 369, marker: "college", logo: "/images/logos/lassen.png" },
+  { name: "Shasta College", type: "Community College", county: "Shasta", x: 228, y: 369, marker: "college" },
   { name: "Simpson University", type: "University (Private)", county: "Shasta", x: 221, y: 363, marker: "university", logo: "/images/logos/simpson.png" },
   { name: "College of the Siskiyous", type: "Community College", county: "Siskiyou", x: 232, y: 92, marker: "college", logo: "/images/logos/siskiyous.png" },
   { name: "Lassen Community College", type: "Community College", county: "Lassen", x: 405, y: 388, marker: "college", logo: "/images/logos/lassen.png" },
   { name: "Butte College", type: "Community College", county: "Butte", x: 331, y: 589, marker: "college", logo: "/images/logos/butte-college.png" },
-  { name: "CSU Chico", type: "University (CSU)", county: "Butte", x: 301, y: 571, marker: "university", logo: "/images/logos/csu-chico.png" },
+  { name: "CSU Chico", type: "University (CSU)", county: "Butte", x: 301, y: 571, marker: "university" },
   { name: "Shasta County Office of Education", type: "County Office of Education", county: "Shasta", x: 240, y: 366, marker: "county-office" },
   { name: "Butte County Office of Education", type: "County Office of Education", county: "Butte", x: 310, y: 577, marker: "county-office", logo: "/images/logos/butte-coe.png" },
   { name: "Siskiyou County Office of Education", type: "County Office of Education", county: "Siskiyou", x: 245, y: 92, marker: "county-office", logo: "/images/logos/siskiyou-coe.png" },
