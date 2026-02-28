@@ -378,13 +378,14 @@ export default function ExplorePage() {
                 const color = markerColors[inst.marker];
                 const highlighted = isActive || isHovered;
 
-                const tooltipW = 160;
-                const tooltipH = api && api.programs.length > 0 ? 46 : 32;
+                const hasLogo = !!inst.logo;
+                const tooltipW = 220;
+                const tooltipH = api && api.programs.length > 0 ? (hasLogo ? 80 : 60) : (hasLogo ? 68 : 44);
                 let tooltipX = inst.x - tooltipW / 2;
-                let tooltipY = inst.y - tooltipH - 14;
+                let tooltipY = inst.y - tooltipH - 16;
                 if (tooltipX < 5) tooltipX = 5;
                 if (tooltipX + tooltipW > SVG_WIDTH - 5) tooltipX = SVG_WIDTH - tooltipW - 5;
-                if (tooltipY < 5) tooltipY = inst.y + 14;
+                if (tooltipY < 5) tooltipY = inst.y + 16;
 
                 return (
                   <g
@@ -421,73 +422,103 @@ export default function ExplorePage() {
                       filter="url(#markerShadow)"
                     />
 
-                    {highlighted && (
-                      <g className="animate-in fade-in zoom-in-95 duration-150">
-                        <rect
-                          x={tooltipX}
-                          y={tooltipY}
-                          width={tooltipW}
-                          height={tooltipH}
-                          rx="6"
-                          fill="white"
-                          filter="url(#tooltipShadow)"
-                          opacity="0.97"
-                        />
-                        <rect
-                          x={tooltipX}
-                          y={tooltipY}
-                          width={tooltipW}
-                          height={tooltipH}
-                          rx="6"
-                          fill="none"
-                          stroke="hsl(152, 30%, 85%)"
-                          strokeWidth="0.5"
-                        />
-                        <circle
-                          cx={tooltipX + 14}
-                          cy={tooltipY + 14}
-                          r="5"
-                          fill={`${color}20`}
-                        />
-                        <circle
-                          cx={tooltipX + 14}
-                          cy={tooltipY + 14}
-                          r="2.5"
-                          fill={color}
-                        />
-                        <text
-                          x={tooltipX + 24}
-                          y={tooltipY + 12}
-                          dominantBaseline="central"
-                          fill="hsl(152, 40%, 15%)"
-                          fontSize="7"
-                          fontWeight="700"
-                        >
-                          {inst.name.length > 20 ? inst.name.slice(0, 20) + "..." : inst.name}
-                        </text>
-                        <text
-                          x={tooltipX + 24}
-                          y={tooltipY + 22}
-                          dominantBaseline="central"
-                          fill="hsl(152, 20%, 50%)"
-                          fontSize="5.5"
-                        >
-                          {inst.type} {inst.county ? `\u2022 ${inst.county} County` : ""}
-                        </text>
-                        {api && api.programs.length > 0 && (
+                    {highlighted && (() => {
+                      const logoSize = 40;
+                      const textStartX = hasLogo ? tooltipX + logoSize + 16 : tooltipX + 14;
+                      const textStartY = tooltipY + (hasLogo ? 10 : 8);
+                      return (
+                        <g className="animate-in fade-in zoom-in-95 duration-150">
+                          <rect
+                            x={tooltipX}
+                            y={tooltipY}
+                            width={tooltipW}
+                            height={tooltipH}
+                            rx="8"
+                            fill="white"
+                            filter="url(#tooltipShadow)"
+                            opacity="0.98"
+                          />
+                          <rect
+                            x={tooltipX}
+                            y={tooltipY}
+                            width={tooltipW}
+                            height={tooltipH}
+                            rx="8"
+                            fill="none"
+                            stroke="hsl(152, 30%, 85%)"
+                            strokeWidth="0.5"
+                          />
+                          {hasLogo && (
+                            <>
+                              <rect
+                                x={tooltipX + 8}
+                                y={tooltipY + (tooltipH - logoSize) / 2}
+                                width={logoSize}
+                                height={logoSize}
+                                rx="6"
+                                fill="white"
+                                stroke="hsl(152, 20%, 88%)"
+                                strokeWidth="0.5"
+                              />
+                              <image
+                                href={inst.logo}
+                                x={tooltipX + 11}
+                                y={tooltipY + (tooltipH - logoSize) / 2 + 3}
+                                width={logoSize - 6}
+                                height={logoSize - 6}
+                                preserveAspectRatio="xMidYMid meet"
+                              />
+                            </>
+                          )}
+                          {!hasLogo && (
+                            <>
+                              <circle cx={tooltipX + 14} cy={tooltipY + 18} r="7" fill={`${color}20`} />
+                              <circle cx={tooltipX + 14} cy={tooltipY + 18} r="3.5" fill={color} />
+                            </>
+                          )}
                           <text
-                            x={tooltipX + 14}
-                            y={tooltipY + 36}
-                            dominantBaseline="central"
-                            fill={color}
-                            fontSize="6"
-                            fontWeight="600"
+                            x={textStartX}
+                            y={textStartY}
+                            dominantBaseline="hanging"
+                            fill="hsl(152, 40%, 15%)"
+                            fontSize="10"
+                            fontWeight="700"
                           >
-                            {api.programs.length} {t("explore.programs").toLowerCase()} {language === "en" ? "available" : "disponibles"}
+                            {inst.name.length > 24 ? inst.name.slice(0, 24) + "..." : inst.name}
                           </text>
-                        )}
-                      </g>
-                    )}
+                          <text
+                            x={textStartX}
+                            y={textStartY + 15}
+                            dominantBaseline="hanging"
+                            fill="hsl(152, 20%, 50%)"
+                            fontSize="8"
+                          >
+                            {inst.type}
+                          </text>
+                          <text
+                            x={textStartX}
+                            y={textStartY + 27}
+                            dominantBaseline="hanging"
+                            fill="hsl(152, 20%, 55%)"
+                            fontSize="7"
+                          >
+                            {inst.county ? `${inst.county} County` : ""}
+                          </text>
+                          {api && api.programs.length > 0 && (
+                            <text
+                              x={textStartX}
+                              y={textStartY + (hasLogo ? 42 : 40)}
+                              dominantBaseline="hanging"
+                              fill={color}
+                              fontSize="8"
+                              fontWeight="600"
+                            >
+                              {api.programs.length} {t("explore.programs").toLowerCase()} {language === "en" ? "available" : "disponibles"}
+                            </text>
+                          )}
+                        </g>
+                      );
+                    })()}
                   </g>
                 );
               })}
