@@ -545,7 +545,7 @@ export default function ChatPage() {
       <div className="flex-1 overflow-hidden">
         <div ref={scrollRef} className="h-full overflow-y-auto">
           {aiOptedOut ? (
-            <div className="flex items-center justify-center min-h-full">
+            <div className="h-full">
               <ChatAIOptOutFallback language={language} />
             </div>
           ) : showOnboarding ? (

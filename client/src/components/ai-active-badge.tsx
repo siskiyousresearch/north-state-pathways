@@ -165,96 +165,138 @@ export function ChatAIOptOutFallback({ language }: ChatAIOptOutFallbackProps) {
   });
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-6" data-testid="chat-ai-optout-fallback">
-      <Card className="p-6 text-center space-y-4">
-        <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mx-auto">
-          <UserX className="w-7 h-7 text-muted-foreground" />
-        </div>
-        <div>
-          <h2 className="text-lg font-bold" data-testid="text-ai-off-heading">
-            {language === "en" ? "AI Chat is Turned Off" : "El Chat de IA está Desactivado"}
-          </h2>
-          <p className="text-sm text-muted-foreground mt-2" data-testid="text-ai-off-description">
-            {language === "en"
-              ? "You've opted out of AI-powered features. You can still explore programs and resources directly using our interactive map."
-              : "Has desactivado las funciones de IA. Aún puedes explorar programas y recursos directamente usando nuestro mapa interactivo."}
-          </p>
-        </div>
-        <a href="/explore">
-          <Button className="gap-2" data-testid="button-explore-map">
-            <Map className="w-4 h-4" />
-            {language === "en" ? "Explore the Map" : "Explorar el Mapa"}
-          </Button>
-        </a>
-      </Card>
-
-      {/* Resources */}
-      <div className="space-y-3" data-testid="optout-resources-section">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <BookOpen className="w-4 h-4 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold">
-              {language === "en" ? "Available Resources" : "Recursos Disponibles"}
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              {language === "en"
-                ? "Programs and services you can access directly."
-                : "Programas y servicios a los que puedes acceder directamente."}
-            </p>
+    <div className="w-full h-full flex" data-testid="chat-ai-optout-fallback">
+      {/* Left sidebar — Resources */}
+      <aside className="w-72 shrink-0 border-r bg-muted/20 flex flex-col overflow-y-auto hidden md:flex" data-testid="optout-resources-section">
+        <div className="p-4 border-b bg-background/80 sticky top-0">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+              <BookOpen className="w-3.5 h-3.5 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold leading-tight">
+                {language === "en" ? "Available Resources" : "Recursos Disponibles"}
+              </h3>
+              <p className="text-xs text-muted-foreground leading-tight">
+                {language === "en" ? "Access directly" : "Acceso directo"}
+              </p>
+            </div>
           </div>
         </div>
 
-        {resourcesLoading ? (
-          <div className="space-y-2">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-16 rounded-lg bg-muted/50 animate-pulse" />
-            ))}
-          </div>
-        ) : resourcesList.length === 0 ? (
-          <Card className="p-4" data-testid="card-no-resources">
-            <p className="text-sm text-muted-foreground text-center">
+        <div className="p-3 space-y-2 flex-1">
+          {resourcesLoading ? (
+            <>
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="h-20 rounded-lg bg-muted/50 animate-pulse" />
+              ))}
+            </>
+          ) : resourcesList.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-4" data-testid="card-no-resources">
               {language === "en" ? "No resources available at this time." : "No hay recursos disponibles en este momento."}
             </p>
-          </Card>
-        ) : (
-          <div className="space-y-2">
-            {resourcesList.map(resource => (
-              <Card key={resource.id} className="p-4" data-testid={`card-resource-${resource.id}`}>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-semibold" data-testid={`text-resource-name-${resource.id}`}>{resource.name}</p>
-                      <Badge variant="secondary" className="text-xs shrink-0">{resource.type}</Badge>
-                    </div>
-                    {resource.description && (
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{resource.description}</p>
-                    )}
-                    {resource.eligibility && (
-                      <p className="text-xs text-muted-foreground mt-0.5 italic">{resource.eligibility}</p>
+          ) : (
+            resourcesList.map(resource => (
+              <Card key={resource.id} className="p-3" data-testid={`card-resource-${resource.id}`}>
+                <div className="space-y-1">
+                  <div className="flex items-start justify-between gap-1">
+                    <p className="text-xs font-semibold leading-snug" data-testid={`text-resource-name-${resource.id}`}>{resource.name}</p>
+                    {resource.url && (
+                      <a
+                        href={resource.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0 inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
+                        data-testid={`link-resource-url-${resource.id}`}
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
                     )}
                   </div>
-                  {resource.url && (
-                    <a
-                      href={resource.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                      data-testid={`link-resource-url-${resource.id}`}
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      {language === "en" ? "Visit" : "Visitar"}
-                    </a>
+                  <Badge variant="secondary" className="text-xs">{resource.type}</Badge>
+                  {resource.description && (
+                    <p className="text-xs text-muted-foreground line-clamp-2">{resource.description}</p>
+                  )}
+                  {resource.eligibility && (
+                    <p className="text-xs text-muted-foreground italic line-clamp-1">{resource.eligibility}</p>
                   )}
                 </div>
               </Card>
-            ))}
-          </div>
-        )}
-      </div>
+            ))
+          )}
+        </div>
+      </aside>
 
-      <HumanCounselorPanel language={language} />
+      {/* Right main area — AI off notice + Counselors */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-xl mx-auto px-4 py-8 space-y-6">
+          <Card className="p-6 text-center space-y-4">
+            <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mx-auto">
+              <UserX className="w-7 h-7 text-muted-foreground" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold" data-testid="text-ai-off-heading">
+                {language === "en" ? "AI Chat is Turned Off" : "El Chat de IA está Desactivado"}
+              </h2>
+              <p className="text-sm text-muted-foreground mt-2" data-testid="text-ai-off-description">
+                {language === "en"
+                  ? "You've opted out of AI-powered features. You can still explore programs and resources directly using our interactive map."
+                  : "Has desactivado las funciones de IA. Aún puedes explorar programas y recursos directamente usando nuestro mapa interactivo."}
+              </p>
+            </div>
+            <a href="/explore">
+              <Button className="gap-2" data-testid="button-explore-map">
+                <Map className="w-4 h-4" />
+                {language === "en" ? "Explore the Map" : "Explorar el Mapa"}
+              </Button>
+            </a>
+          </Card>
+
+          {/* Resources visible on mobile (sidebar hidden on small screens) */}
+          <div className="md:hidden space-y-3" data-testid="optout-resources-mobile">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                <BookOpen className="w-3.5 h-3.5 text-primary" />
+              </div>
+              <h3 className="text-sm font-bold">
+                {language === "en" ? "Available Resources" : "Recursos Disponibles"}
+              </h3>
+            </div>
+            {resourcesLoading ? (
+              <div className="space-y-2">
+                {[1, 2].map(i => <div key={i} className="h-16 rounded-lg bg-muted/50 animate-pulse" />)}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {resourcesList.map(resource => (
+                  <Card key={resource.id} className="p-3" data-testid={`card-resource-mobile-${resource.id}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-xs font-semibold">{resource.name}</p>
+                          <Badge variant="secondary" className="text-xs shrink-0">{resource.type}</Badge>
+                        </div>
+                        {resource.description && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{resource.description}</p>
+                        )}
+                      </div>
+                      {resource.url && (
+                        <a href={resource.url} target="_blank" rel="noopener noreferrer"
+                          className="shrink-0 inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                          <ExternalLink className="w-3 h-3" />
+                          {language === "en" ? "Visit" : "Visitar"}
+                        </a>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <HumanCounselorPanel language={language} />
+        </div>
+      </div>
     </div>
   );
 }
