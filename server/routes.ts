@@ -1658,6 +1658,15 @@ Return ONLY the JSON.`;
     }
   });
 
+  app.get("/api/contacts", async (_req, res) => {
+    try {
+      const allContacts = await storage.getContacts();
+      res.json(allContacts.filter(c => c.isActive));
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch contacts" });
+    }
+  });
+
   // Public endpoint: fetch pathways (for chat page)
   app.get("/api/pathways", async (_req, res) => {
     try { res.json(await storage.getPathways()); }

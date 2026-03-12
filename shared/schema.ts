@@ -140,10 +140,13 @@ export const tokenUsage = pgTable("token_usage", {
 export const contacts = pgTable("contacts", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  title: text("title").notNull(),
-  phone: text("phone").notNull(),
-  email: text("email").notNull(),
+  title: text("title"),
+  phone: text("phone"),
+  email: text("email"),
   institutionId: integer("institution_id").references(() => institutions.id),
+  institution: text("institution"),
+  county: text("county"),
+  isActive: boolean("is_active").default(true).notNull(),
 });
 
 export const assessmentQuestions = pgTable("assessment_questions", {
@@ -236,3 +239,4 @@ export type AssessmentOption = typeof assessmentOptions.$inferSelect;
 export type InsertAssessmentOption = z.infer<typeof insertAssessmentOptionSchema>;
 export type AssessmentCareer = typeof assessmentCareers.$inferSelect;
 export type InsertAssessmentCareer = z.infer<typeof insertAssessmentCareerSchema>;
+

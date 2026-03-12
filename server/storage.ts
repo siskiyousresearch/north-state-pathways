@@ -96,6 +96,7 @@ export interface IStorage {
   getContacts(): Promise<Contact[]>;
   createContact(data: InsertContact): Promise<Contact>;
   updateContact(id: number, data: Partial<InsertContact>): Promise<Contact | undefined>;
+  deleteContact(id: number): Promise<void>;
 
   recordTokenUsage(data: InsertTokenUsage): Promise<TokenUsage>;
   getTokenUsageStats(period: "day" | "month"): Promise<{
@@ -504,6 +505,21 @@ export class DatabaseStorage implements IStorage {
       byModel: Array.from(modelMap.values()).sort((a, b) => b.totalTokens - a.totalTokens),
       byType: Array.from(typeMap.values()).sort((a, b) => b.totalTokens - a.totalTokens),
     };
+  }
+
+  async getContacts() {
+    return db.select().from(contacts);
+  }
+  async createContact(data: InsertContact) {
+    const [contact] = await db.insert(contacts).values(data).returning();
+    return contact;
+  }
+  async updateContact(id: number, data: Partial<InsertContact>) {
+    const [contact] = await db.update(contacts).set(data).where(eq(contacts.id, id)).returning();
+    return contact;
+  }
+  async deleteContact(id: number) {
+    await db.delete(contacts).where(eq(contacts.id, id));
   }
 }
 

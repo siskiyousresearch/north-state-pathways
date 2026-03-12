@@ -31,6 +31,9 @@ The platform is built with a modern web stack:
     -   HUMANS Principles section on the landing page, aligning with human-centered AI frameworks.
     -   Zod schema validation for API endpoints.
     -   In-memory knowledge base cache with TTL and invalidation.
+    -   AI transparency indicator ("AI Active" badge with pulsing green dot) and opt-out toggle on chat and assessment pages.
+    -   Human counselor fallback panel showing contact cards when AI is opted out.
+    -   Contacts system (contacts table) for managing human counselor contact information.
 
 ## External Dependencies
 -   **PostgreSQL**: Primary database.

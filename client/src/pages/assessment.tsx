@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AIActiveBadge, AssessmentAIOptOutFallback, useAIOptOut } from "@/components/ai-active-badge";
 import {
   ArrowLeft, ArrowRight, Globe, MessageCircle,
   Stethoscope, GraduationCap, CheckCircle2,
@@ -71,6 +72,7 @@ export default function AssessmentPage() {
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [result, setResult] = useState<AssessmentResult | null>(null);
   const [loadingResult, setLoadingResult] = useState(false);
+  const [aiOptedOut, setAiOptedOut] = useAIOptOut();
 
   const { data: dbQuestions, isLoading: questionsLoading } = useQuery<DBQuestion[]>({
     queryKey: ["/api/assessment/questions", `?track=${track}`],
@@ -128,6 +130,10 @@ export default function AssessmentPage() {
   };
 
   const submitAssessment = async () => {
+    if (aiOptedOut) {
+      setResult({ careers: [], aiInsight: "", nextSteps: [] });
+      return;
+    }
     setLoadingResult(true);
     try {
       const res = await apiRequest("POST", "/api/assessment/results", { track, answers, language });
@@ -164,6 +170,11 @@ export default function AssessmentPage() {
           </div>
         </div>
         <div className="flex items-center gap-1">
+          <AIActiveBadge
+            aiOptedOut={aiOptedOut}
+            onOptOutChange={setAiOptedOut}
+            language={language}
+          />
           <Button
             variant="outline"
             size="sm"
@@ -355,7 +366,7 @@ export default function AssessmentPage() {
             </div>
           )}
 
-          {loadingResult && (
+          {loadingResult && !aiOptedOut && (
             <div className="flex flex-col items-center justify-center gap-4 py-16 animate-in fade-in duration-300">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
                 <Sparkles className="w-6 h-6 text-primary" />
@@ -366,7 +377,11 @@ export default function AssessmentPage() {
             </div>
           )}
 
-          {result && (
+          {aiOptedOut && result && (
+            <AssessmentAIOptOutFallback language={language} />
+          )}
+
+          {result && !aiOptedOut && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="text-center space-y-2">
                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">

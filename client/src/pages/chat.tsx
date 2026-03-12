@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AIActiveBadge, ChatAIOptOutFallback, useAIOptOut } from "@/components/ai-active-badge";
 import {
   Send, Sparkles, ArrowLeft,
   MapPin, User, Loader2, Bot, ChevronLeft, ChevronDown, ChevronUp,
@@ -124,6 +125,7 @@ export default function ChatPage() {
   const [studyLocation, setStudyLocation] = useState<string | null>(null);
   const [selectedSupports, setSelectedSupports] = useState<string[]>([]);
 
+  const [aiOptedOut, setAiOptedOut] = useAIOptOut();
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -480,6 +482,11 @@ export default function ChatPage() {
           </div>
         </div>
         <div className="flex items-center gap-1">
+          <AIActiveBadge
+            aiOptedOut={aiOptedOut}
+            onOptOutChange={setAiOptedOut}
+            language={language}
+          />
           <Button
             variant="outline"
             size="sm"
@@ -516,7 +523,11 @@ export default function ChatPage() {
 
       <div className="flex-1 overflow-hidden">
         <div ref={scrollRef} className="h-full overflow-y-auto">
-          {showOnboarding ? (
+          {aiOptedOut ? (
+            <div className="flex items-center justify-center min-h-full">
+              <ChatAIOptOutFallback language={language} />
+            </div>
+          ) : showOnboarding ? (
             <div className="flex flex-col items-center justify-center min-h-full px-4 py-8">
               <div className="max-w-2xl w-full">
                 <div className="flex items-center justify-center gap-2 mb-6">
