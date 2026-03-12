@@ -11,6 +11,15 @@ import {
   Globe, MessageCircle, School, Building2, Wifi, X, Filter, Trees
 } from "lucide-react";
 
+function getInitials(name: string): string {
+  const words = name.split(/\s+/);
+  const firstWord = words[0];
+  if (firstWord === firstWord.toUpperCase() && firstWord.length >= 2 && firstWord.length <= 4) {
+    return firstWord.slice(0, 3);
+  }
+  return words.filter(w => w[0] === w[0].toUpperCase()).map(w => w[0]).join("").slice(0, 2);
+}
+
 const markerIcons: Record<string, typeof School> = {
   college: School,
   university: GraduationCap,
@@ -174,10 +183,10 @@ export default function ExplorePage() {
                       </div>
                     ) : (
                       <div
-                        className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 transition-colors"
-                        style={{ backgroundColor: isActive ? color : `${color}20`, color: isActive ? "white" : color }}
+                        className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 transition-colors border"
+                        style={{ backgroundColor: `${color}15`, borderColor: `${color}40`, color }}
                       >
-                        <Icon className="w-4 h-4" />
+                        <span className="text-[10px] font-extrabold leading-none">{getInitials(inst.name)}</span>
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
@@ -477,7 +486,7 @@ export default function ExplorePage() {
                             </>
                           )}
                           {!hasLogo && (() => {
-                            const initials = inst.name.split(/\s+/).filter(w => w[0] === w[0].toUpperCase()).map(w => w[0]).join("").slice(0, 2);
+                            const initials = getInitials(inst.name);
                             const badgeX = tooltipX + 10;
                             const badgeY = tooltipY + (tooltipH - logoSize) / 2;
                             return (
