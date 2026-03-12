@@ -41,6 +41,10 @@ interface ApiInstitution {
   county: string | null;
   website: string | null;
   description: string | null;
+  logoUrl: string | null;
+  address: string | null;
+  mapX: number | null;
+  mapY: number | null;
   programs: {
     id: number;
     name: string;
@@ -64,7 +68,45 @@ export default function ExplorePage() {
     queryKey: ["/api/map/institutions"],
   });
 
-  const allMapInstitutions = useMemo(() => [...mapInstitutions, ...offMapInstitutions], []);
+  const mergedMapInstitutions = useMemo(() => {
+    const baseMap = mapInstitutions.map(inst => {
+      const api = apiInstitutions.find(a => a.name === inst.name);
+      return {
+        ...inst,
+        x: api?.mapX ?? inst.x,
+        y: api?.mapY ?? inst.y,
+        logo: api?.logoUrl ?? inst.logo,
+      };
+    });
+    const extraFromDb = apiInstitutions
+      .filter(api => api.mapX != null && api.mapY != null && !mapInstitutions.some(m => m.name === api.name))
+      .map(api => ({
+        name: api.name,
+        type: api.type,
+        county: api.county,
+        x: api.mapX!,
+        y: api.mapY!,
+        marker: "college" as const,
+        logo: api.logoUrl ?? undefined,
+      }));
+    return [...baseMap, ...extraFromDb];
+  }, [apiInstitutions]);
+
+  const mergedOffMapInstitutions = useMemo(() => {
+    return [...offMapInstitutions, ...apiInstitutions
+      .filter(api => (api.mapX == null || api.mapY == null) && !offMapInstitutions.some(m => m.name === api.name) && !mapInstitutions.some(m => m.name === api.name))
+      .map(api => ({
+        name: api.name,
+        type: api.type,
+        county: api.county,
+        x: 0,
+        y: 0,
+        marker: "college" as const,
+        logo: api.logoUrl ?? undefined,
+      }))];
+  }, [apiInstitutions]);
+
+  const allMapInstitutions = useMemo(() => [...mergedMapInstitutions, ...mergedOffMapInstitutions], [mergedMapInstitutions, mergedOffMapInstitutions]);
 
   const filteredInstitutions = useMemo(() => {
     return allMapInstitutions.filter(inst => {
@@ -76,8 +118,8 @@ export default function ExplorePage() {
   }, [activeFilter, apiInstitutions, allMapInstitutions]);
 
   const onMapInstitutions = useMemo(() => {
-    return filteredInstitutions.filter(inst => mapInstitutions.some(m => m.name === inst.name));
-  }, [filteredInstitutions]);
+    return filteredInstitutions.filter(inst => mergedMapInstitutions.some(m => m.name === inst.name));
+  }, [filteredInstitutions, mergedMapInstitutions]);
 
   const getApiData = useCallback((name: string) => apiInstitutions.find(a => a.name === name), [apiInstitutions]);
 

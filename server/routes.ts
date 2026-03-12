@@ -344,6 +344,10 @@ export async function registerRoutes(
           county: inst.county,
           website: inst.website,
           description: inst.description,
+          logoUrl: inst.logoUrl,
+          address: inst.address,
+          mapX: inst.mapX,
+          mapY: inst.mapY,
           programs: instPrograms,
         };
       });
@@ -880,10 +884,34 @@ Write 2-3 short paragraphs summarizing what students are seeking, which regions 
     }
   });
 
-  // Institutions
+  // Institutions CRUD
   app.get("/api/admin/institutions", requireAdmin, async (_req, res) => {
     try { res.json(await storage.getInstitutions()); }
     catch (error) { res.status(500).json({ error: "Failed to fetch institutions" }); }
+  });
+
+  app.post("/api/admin/institutions", requireAdmin, async (req, res) => {
+    try {
+      const { insertInstitutionSchema } = await import("@shared/schema");
+      const data = insertInstitutionSchema.parse(req.body);
+      const inst = await storage.createInstitution(data);
+      res.json(inst);
+    } catch (error) { res.status(500).json({ error: "Failed to create institution" }); }
+  });
+
+  app.patch("/api/admin/institutions/:id", requireAdmin, async (req, res) => {
+    try {
+      const inst = await storage.updateInstitution(parseInt(req.params.id), req.body);
+      if (!inst) return res.status(404).json({ error: "Institution not found" });
+      res.json(inst);
+    } catch (error) { res.status(500).json({ error: "Failed to update institution" }); }
+  });
+
+  app.delete("/api/admin/institutions/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteInstitution(parseInt(req.params.id));
+      res.status(204).send();
+    } catch (error) { res.status(500).json({ error: "Failed to delete institution" }); }
   });
 
   // Resources CRUD
@@ -1115,6 +1143,10 @@ For each real program discovered online:
 For each real resource (scholarship, financial aid, support service) found online:
 - **[Resource Name]** ([Type]) — [Description] — Eligibility: [who qualifies] — [URL]
 
+## Institutions Found
+For each new institution (college, university, training center) discovered:
+- **[Institution Name]** ([Type]) — [County, CA] — [Brief description] — [Website URL]
+
 ---ACTIONS---
 Output a JSON array of items to add to the knowledge base. Only include items you found with real information:
 \`\`\`json
@@ -1136,6 +1168,14 @@ Output a JSON array of items to add to the knowledge base. Only include items yo
     "eligibility": "Who qualifies",
     "url": "https://actual-url",
     "counties": ["County1", "County2"]
+  },
+  {
+    "type": "institution",
+    "name": "Institution Name",
+    "institutionType": "Community College|University (CSU)|University (UC)|University (Private)|County Office of Education|Vocational/Trade School",
+    "county": "County Name",
+    "description": "Brief description",
+    "website": "https://institution-website.edu"
   }
 ]
 \`\`\`
@@ -1144,7 +1184,8 @@ RULES:
 - SEARCH THE WEB. Do not make up programs or suggest what might exist.
 - Every item must have a real URL or clearly state the source.
 - Be concise and factual. No suggestions, no follow-up questions.
-- Skip items already in our database.`,
+- Skip items already in our database.
+- Only include institution actions for NEW institutions not already in the knowledge base.`,
           },
           {
             role: "user",

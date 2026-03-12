@@ -16,6 +16,10 @@ export const institutions = pgTable("institutions", {
   county: text("county"),
   website: text("website"),
   description: text("description"),
+  logoUrl: text("logo_url"),
+  address: text("address"),
+  mapX: integer("map_x"),
+  mapY: integer("map_y"),
 });
 
 export const pathways = pgTable("pathways", {

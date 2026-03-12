@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Send, Sparkles, ArrowLeft,
-  MapPin, User, Loader2, Bot, ChevronLeft,
+  MapPin, User, Loader2, Bot, ChevronLeft, ChevronDown, ChevronUp,
   Stethoscope, School, Volume2, VolumeX,
   Home, Plane, HandHeart, DollarSign, Briefcase, Check, ArrowRight,
   ExternalLink, BookOpen, GraduationCap, Heart, Globe
@@ -112,6 +112,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
   const [sessionId, setSessionId] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -866,9 +867,10 @@ export default function ChatPage() {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1">
                                   <p className="text-xs font-semibold truncate">{resource.name}</p>
-                                  <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0 invisible group-hover:visible" />
+                                  <ExternalLink className="w-3 h-3 text-primary shrink-0" />
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-0.5">{resource.type}</p>
+                                <p className="text-xs text-primary mt-0.5 font-medium">Visit site →</p>
                               </div>
                             </div>
                           </a>
@@ -959,6 +961,74 @@ export default function ChatPage() {
                     ))}
                   </div>
                 </div>
+
+                {resources.length > 0 && (
+                  <div className="lg:hidden border-t bg-background/70 backdrop-blur-md">
+                    <button
+                      className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium"
+                      onClick={() => setMobileResourcesOpen(o => !o)}
+                      data-testid="button-mobile-resources-toggle"
+                    >
+                      <span className="flex items-center gap-2">
+                        <BookOpen className="w-4 h-4 text-primary" />
+                        {t("chat.resources")}
+                        <Badge variant="secondary" className="text-xs ml-1">{resources.length}</Badge>
+                      </span>
+                      {mobileResourcesOpen ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronUp className="w-4 h-4 text-muted-foreground" />}
+                    </button>
+                    {mobileResourcesOpen && (
+                      <div className="max-h-52 overflow-y-auto px-3 pb-3 space-y-2">
+                        {resources.map(resource => (
+                          <div key={resource.id} data-testid={`mobile-resource-item-${resource.id}`}>
+                            {resource.url ? (
+                              <a
+                                href={resource.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block p-2.5 rounded-md border bg-card/70 hover-elevate transition-colors"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div className="shrink-0">
+                                    {resource.type === "Scholarship" || resource.type === "Financial Aid" ? (
+                                      <DollarSign className="w-3.5 h-3.5 text-primary" />
+                                    ) : resource.type === "Program" ? (
+                                      <GraduationCap className="w-3.5 h-3.5 text-primary" />
+                                    ) : (
+                                      <Heart className="w-3.5 h-3.5 text-primary" />
+                                    )}
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1">
+                                      <p className="text-xs font-semibold truncate">{resource.name}</p>
+                                      <ExternalLink className="w-3 h-3 text-primary shrink-0" />
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">{resource.type}</p>
+                                  </div>
+                                </div>
+                              </a>
+                            ) : (
+                              <div className="p-2.5 rounded-md border bg-card/70">
+                                <div className="flex items-center gap-2">
+                                  <div className="shrink-0">
+                                    {resource.type === "Scholarship" || resource.type === "Financial Aid" ? (
+                                      <DollarSign className="w-3.5 h-3.5 text-primary" />
+                                    ) : (
+                                      <Heart className="w-3.5 h-3.5 text-primary" />
+                                    )}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-semibold truncate">{resource.name}</p>
+                                    <p className="text-xs text-muted-foreground">{resource.type}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="border-t bg-background/60 backdrop-blur-md px-4 py-3">
                   <div className="max-w-2xl mx-auto">

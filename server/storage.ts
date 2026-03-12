@@ -20,6 +20,8 @@ export interface IStorage {
 
   getInstitutions(): Promise<Institution[]>;
   createInstitution(data: InsertInstitution): Promise<Institution>;
+  updateInstitution(id: number, data: Partial<InsertInstitution>): Promise<Institution | undefined>;
+  deleteInstitution(id: number): Promise<void>;
 
   getPathways(): Promise<Pathway[]>;
   getPathway(id: number): Promise<Pathway | undefined>;
@@ -115,6 +117,13 @@ export class DatabaseStorage implements IStorage {
   async createInstitution(data: InsertInstitution) {
     const [inst] = await db.insert(institutions).values(data).returning();
     return inst;
+  }
+  async updateInstitution(id: number, data: Partial<InsertInstitution>) {
+    const [inst] = await db.update(institutions).set(data).where(eq(institutions.id, id)).returning();
+    return inst;
+  }
+  async deleteInstitution(id: number) {
+    await db.delete(institutions).where(eq(institutions.id, id));
   }
 
   async getPathways() {

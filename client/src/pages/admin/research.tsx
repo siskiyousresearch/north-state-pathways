@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   Plus, FlaskConical, Check, X, Loader2, Play, PlusCircle, Trash2, Pencil, RotateCw,
-  GraduationCap, BookOpen, MapPin, ExternalLink
+  GraduationCap, BookOpen, MapPin, ExternalLink, Building2
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { ResearchTask, Pathway } from "@shared/schema";
@@ -36,7 +36,7 @@ const statusColors: Record<string, string> = {
 };
 
 interface RecommendedAction {
-  type: "program" | "resource";
+  type: "program" | "resource" | "institution";
   name: string;
   institution?: string;
   county?: string;
@@ -46,6 +46,8 @@ interface RecommendedAction {
   resourceType?: string;
   eligibility?: string;
   counties?: string[];
+  institutionType?: string;
+  website?: string;
 }
 
 function parseActions(aiResponse: string): { displayText: string; actions: RecommendedAction[] } {
@@ -220,6 +222,25 @@ export default function ResearchPage() {
     },
     onError: () => {
       toast({ title: "Failed to add resource", variant: "destructive" });
+    },
+  });
+
+  const addInstitution = useMutation({
+    mutationFn: (action: RecommendedAction) =>
+      apiRequest("POST", "/api/admin/institutions", {
+        name: action.name,
+        type: action.institutionType || "Other",
+        county: action.county || null,
+        description: action.description || null,
+        website: action.website || action.url || null,
+      }),
+    onSuccess: (_, action) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/institutions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/map/institutions"] });
+      toast({ title: `Institution "${action.name}" added` });
+    },
+    onError: () => {
+      toast({ title: "Failed to add institution", variant: "destructive" });
     },
   });
 
@@ -491,8 +512,8 @@ export default function ResearchPage() {
                         <Card key={idx} className="p-3 border-dashed" data-testid={`card-action-${idx}`}>
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex items-start gap-2.5 min-w-0">
-                              <div className={`flex items-center justify-center w-7 h-7 rounded-md shrink-0 ${action.type === "program" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}`}>
-                                {action.type === "program" ? <GraduationCap className="w-3.5 h-3.5" /> : <BookOpen className="w-3.5 h-3.5" />}
+                              <div className={`flex items-center justify-center w-7 h-7 rounded-md shrink-0 ${action.type === "program" ? "bg-blue-100 text-blue-700" : action.type === "institution" ? "bg-purple-100 text-purple-700" : "bg-green-100 text-green-700"}`}>
+                                {action.type === "program" ? <GraduationCap className="w-3.5 h-3.5" /> : action.type === "institution" ? <Building2 className="w-3.5 h-3.5" /> : <BookOpen className="w-3.5 h-3.5" />}
                               </div>
                               <div className="min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
@@ -501,6 +522,9 @@ export default function ResearchPage() {
                                 </div>
                                 {action.institution && (
                                   <p className="text-xs text-muted-foreground mt-0.5">at {action.institution}</p>
+                                )}
+                                {action.institutionType && (
+                                  <p className="text-xs text-muted-foreground mt-0.5">{action.institutionType}</p>
                                 )}
                                 {action.description && (
                                   <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{action.description}</p>
@@ -511,9 +535,9 @@ export default function ResearchPage() {
                                       <MapPin className="w-3 h-3" /> {action.county}
                                     </span>
                                   )}
-                                  {action.url && (
+                                  {(action.url || action.website) && (
                                     <a
-                                      href={action.url}
+                                      href={action.url || action.website}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="text-xs text-primary hover:underline flex items-center gap-0.5"
@@ -529,17 +553,15 @@ export default function ResearchPage() {
                               size="sm"
                               variant="outline"
                               onClick={() => {
-                                if (action.type === "program") {
-                                  addProgram.mutate(action);
-                                } else {
-                                  addResource.mutate(action);
-                                }
+                                if (action.type === "program") addProgram.mutate(action);
+                                else if (action.type === "institution") addInstitution.mutate(action);
+                                else addResource.mutate(action);
                               }}
-                              disabled={addProgram.isPending || addResource.isPending}
+                              disabled={addProgram.isPending || addResource.isPending || addInstitution.isPending}
                               data-testid={`button-add-action-${idx}`}
                             >
                               <Plus className="w-3.5 h-3.5 mr-1" />
-                              Add {action.type === "program" ? "Program" : "Resource"}
+                              Add {action.type === "program" ? "Program" : action.type === "institution" ? "Institution" : "Resource"}
                             </Button>
                           </div>
                         </Card>

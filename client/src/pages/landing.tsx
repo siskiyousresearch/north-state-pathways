@@ -152,9 +152,30 @@ export default function LandingPage() {
               <rect x="100" y="2" width="6" height="6" rx="1" fill="none" stroke="hsl(152,45%,32%)" strokeWidth="0.5"/>
             </pattern>
           </defs>
-          <rect width="100%" height="100%" fill="url(#circuit-bg)" opacity="0.07"/>
+          <rect width="100%" height="100%" fill="url(#circuit-bg)" opacity="0.12"/>
         </svg>
-        <div className="absolute inset-0 pointer-events-none" style={{background: "radial-gradient(ellipse 70% 60% at 50% 50%, transparent 20%, hsl(var(--muted) / 0.55) 100%)"}} aria-hidden="true"/>
+        <div className="absolute inset-0 pointer-events-none" style={{background: "radial-gradient(ellipse 85% 75% at 50% 50%, transparent 5%, hsl(var(--muted) / 0.40) 100%)"}} aria-hidden="true"/>
+        <svg className="absolute bottom-0 left-0 pointer-events-none" width="210" height="250" viewBox="0 0 210 250" aria-hidden="true" opacity="0.11">
+          <path d="M 0 250 L 95 158 L 155 198 L 210 250 Z" fill="none" stroke="hsl(152,45%,32%)" strokeWidth="1.8" strokeLinejoin="round"/>
+          <line x1="55" y1="250" x2="55" y2="78" stroke="hsl(152,45%,32%)" strokeWidth="2.5"/>
+          <polyline points="28,100 55,72 82,100" fill="none" stroke="hsl(152,45%,32%)" strokeWidth="2.2" strokeLinejoin="round"/>
+          <polyline points="20,133 55,100 90,133" fill="none" stroke="hsl(152,45%,32%)" strokeWidth="2.2" strokeLinejoin="round"/>
+          <polyline points="10,168 55,130 100,168" fill="none" stroke="hsl(152,45%,32%)" strokeWidth="2.2" strokeLinejoin="round"/>
+          <polyline points="0,205 55,162 110,205" fill="none" stroke="hsl(152,45%,32%)" strokeWidth="2.2" strokeLinejoin="round"/>
+          <line x1="36" y1="250" x2="74" y2="250" stroke="hsl(152,45%,32%)" strokeWidth="2.5"/>
+          <line x1="138" y1="250" x2="138" y2="152" stroke="hsl(152,45%,32%)" strokeWidth="2"/>
+          <polyline points="118,170 138,146 158,170" fill="none" stroke="hsl(152,45%,32%)" strokeWidth="1.8" strokeLinejoin="round"/>
+          <polyline points="112,196 138,167 164,196" fill="none" stroke="hsl(152,45%,32%)" strokeWidth="1.8" strokeLinejoin="round"/>
+          <polyline points="106,222 138,190 170,222" fill="none" stroke="hsl(152,45%,32%)" strokeWidth="1.8" strokeLinejoin="round"/>
+          <line x1="125" y1="250" x2="151" y2="250" stroke="hsl(152,45%,32%)" strokeWidth="2"/>
+        </svg>
+        <svg className="absolute bottom-0 right-0 pointer-events-none" width="350" height="290" viewBox="0 0 350 290" aria-hidden="true" opacity="0.11">
+          <path d="M 48 78 Q 56 55 80 59 Q 83 40 105 38 Q 126 38 132 56 Q 150 50 162 64 Q 174 78 162 88 Q 148 97 132 93 Q 127 103 105 100 Q 82 103 74 91 Q 56 96 48 78 Z" fill="none" stroke="hsl(152,45%,32%)" strokeWidth="1.8"/>
+          <path d="M 192 290 L 272 138 L 350 290 Z" fill="none" stroke="hsl(152,45%,32%)" strokeWidth="1.8" strokeLinejoin="round"/>
+          <path d="M 8 290 L 172 28 L 316 290 Z" fill="none" stroke="hsl(152,45%,32%)" strokeWidth="2.5" strokeLinejoin="round"/>
+          <path d="M 144 72 L 172 28 L 200 62" fill="none" stroke="hsl(152,45%,32%)" strokeWidth="1.8" strokeLinejoin="round"/>
+          <path d="M 138 80 Q 156 70 172 74 Q 188 78 200 67" fill="none" stroke="hsl(152,45%,32%)" strokeWidth="1.5"/>
+        </svg>
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <div className="flex items-center justify-center gap-2 mb-3">
