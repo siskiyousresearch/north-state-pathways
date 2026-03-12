@@ -386,22 +386,13 @@ export default function ExplorePage() {
                 );
               })}
 
+              {/* Pass 1: all marker dots — rendered first so they sit behind the tooltip */}
               {onMapInstitutions.map(inst => {
                 const isActive = activeInst === inst.name;
                 const isHovered = hoveredInstitution === inst.name;
-                const api = getApiData(inst.name);
                 const color = markerColors[inst.marker];
                 const highlighted = isActive || isHovered;
-
-                const hasLogo = !!inst.logo;
-                const tooltipW = 280;
-                const logoSize = 52;
-                const tooltipH = api && api.programs.length > 0 ? 100 : 82;
-                let tooltipX = inst.x - tooltipW / 2;
-                let tooltipY = inst.y - tooltipH - 18;
-                if (tooltipX < 5) tooltipX = 5;
-                if (tooltipX + tooltipW > SVG_WIDTH - 5) tooltipX = SVG_WIDTH - tooltipW - 5;
-                if (tooltipY < 5) tooltipY = inst.y + 18;
+                const api = getApiData(inst.name);
 
                 return (
                   <g
@@ -419,14 +410,11 @@ export default function ExplorePage() {
                     data-testid={`marker-${inst.name.toLowerCase().replace(/\s+/g, "-")}`}
                   >
                     {isActive && (
-                      <>
-                        <circle cx={inst.x} cy={inst.y} r="18" fill={color} opacity="0.15">
-                          <animate attributeName="r" values="14;22;14" dur="2s" repeatCount="indefinite" />
-                          <animate attributeName="opacity" values="0.2;0.05;0.2" dur="2s" repeatCount="indefinite" />
-                        </circle>
-                      </>
+                      <circle cx={inst.x} cy={inst.y} r="18" fill={color} opacity="0.15">
+                        <animate attributeName="r" values="14;22;14" dur="2s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.2;0.05;0.2" dur="2s" repeatCount="indefinite" />
+                      </circle>
                     )}
-
                     <circle
                       cx={inst.x}
                       cy={inst.y}
@@ -437,10 +425,38 @@ export default function ExplorePage() {
                       className="transition-all duration-200"
                       filter="url(#markerShadow)"
                     />
+                  </g>
+                );
+              })}
 
-                    {highlighted && (() => {
-                      const textStartX = tooltipX + logoSize + 18;
-                      const textStartY = tooltipY + 12;
+              {/* Pass 2: active tooltip — rendered last so it always paints on top of all dots */}
+              {onMapInstitutions.map(inst => {
+                const isActive = activeInst === inst.name;
+                const isHovered = hoveredInstitution === inst.name;
+                const highlighted = isActive || isHovered;
+                if (!highlighted) return null;
+
+                const api = getApiData(inst.name);
+                const color = markerColors[inst.marker];
+                const hasLogo = !!inst.logo;
+                const tooltipW = 280;
+                const logoSize = 52;
+                const tooltipH = api && api.programs.length > 0 ? 100 : 82;
+                let tooltipX = inst.x - tooltipW / 2;
+                let tooltipY = inst.y - tooltipH - 18;
+                if (tooltipX < 5) tooltipX = 5;
+                if (tooltipX + tooltipW > SVG_WIDTH - 5) tooltipX = SVG_WIDTH - tooltipW - 5;
+                if (tooltipY < 5) tooltipY = inst.y + 18;
+
+                const textStartX = tooltipX + logoSize + 18;
+                const textStartY = tooltipY + 12;
+
+                return (
+                  <g
+                    key={`tooltip-${inst.name}`}
+                    className="pointer-events-none"
+                  >
+                    {(() => {
                       return (
                         <g className="animate-in fade-in zoom-in-95 duration-150">
                           <rect
