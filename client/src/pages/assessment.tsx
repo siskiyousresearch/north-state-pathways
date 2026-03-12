@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useLanguage } from "@/lib/i18n";
@@ -94,6 +94,55 @@ export default function AssessmentPage() {
   const [loadingResult, setLoadingResult] = useState(false);
   const [aiOptedOut, setAiOptedOut] = useAIOptOut();
 
+  const prevLanguageRef = useRef<string>(language);
+  const submittedAnswersRef = useRef<Record<string, string | string[]>>({});
+  const resultRef = useRef<AssessmentResult | null>(null);
+
+  useEffect(() => { resultRef.current = result; }, [result]);
+
+  useEffect(() => {
+    if (prevLanguageRef.current === language) return;
+    prevLanguageRef.current = language;
+
+    const currentResult = resultRef.current;
+    if (!currentResult || !track) return;
+
+    if (questions.length > 0) {
+      setQaSummary(buildQASummary(questions, submittedAnswersRef.current));
+    }
+
+    if (currentResult.isAlgorithmic) {
+      if (!dbCareers || dbCareers.length === 0) return;
+      const careerIds = dbCareers.map(c => c.id);
+      const scored = computeScores(submittedAnswersRef.current, questions, careerIds, track);
+      const top = scored.slice(0, 6);
+      const careerMatches: CareerMatch[] = top.map(s => {
+        const career = dbCareers.find(c => c.id === s.id)!;
+        return {
+          id: String(career.id),
+          title: language === "es" && career.nameEs ? career.nameEs : career.name,
+          description: language === "es" && career.descriptionEs ? career.descriptionEs : (career.descriptionEn ?? ""),
+          salary: language === "es" && career.salaryEs ? career.salaryEs : (career.salaryEn ?? ""),
+          education: language === "es" && career.educationEs ? career.educationEs : (career.educationEn ?? ""),
+          outlook: language === "es" && career.outlookEs ? career.outlookEs : (career.outlookEn ?? ""),
+          matchPercent: s.matchPercent,
+        };
+      });
+      setResult(prev => prev ? { ...prev, careers: careerMatches } : null);
+    } else {
+      setLoadingResult(true);
+      apiRequest("POST", "/api/assessment/results", {
+        track,
+        answers: submittedAnswersRef.current,
+        language,
+      })
+        .then(res => res.json())
+        .then(data => setResult(data))
+        .catch(e => console.error("Language reprocess error:", e))
+        .finally(() => setLoadingResult(false));
+    }
+  }, [language]);
+
   const { data: dbQuestions, isLoading: questionsLoading } = useQuery<DBQuestion[]>({
     queryKey: ["/api/assessment/questions", `?track=${track}`],
     enabled: !!track,
@@ -175,6 +224,7 @@ export default function AssessmentPage() {
   const submitAssessment = async () => {
     const snapshot = buildQASummary(questions, answers);
     setQaSummary(snapshot);
+    submittedAnswersRef.current = answers;
 
     if (aiOptedOut) {
       if (!dbCareers || dbCareers.length === 0) {
@@ -626,7 +676,7 @@ export default function AssessmentPage() {
             </div>
           )}
 
-          {result && !result.isAlgorithmic && (
+          {result && !result.isAlgorithmic && !loadingResult && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="text-center space-y-2">
                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
