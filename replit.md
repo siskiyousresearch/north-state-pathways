@@ -29,6 +29,7 @@ The platform is built with a modern web stack:
     -   Interactive Explore Map displaying institutions with programs.
     -   Database-driven, AI-scored career self-assessment quiz providing personalized career matches and insights.
     -   Algorithmic (non-AI) career scoring fallback: when AI is opted out, `computeScores()` in `client/src/lib/assessment-scoring.ts` runs client-side using a weighted matrix for all 56 careers (healthcare IDs 1–30, education IDs 31–56). Public endpoint `GET /api/assessment/careers?track=` added.
+    -   "Where to Study in the Region" section on every assessment career result card (both AI and algorithmic paths): fetched from `GET /api/assessment/career-programs?track=`, shows institution logos, names, and direct program links. Powered by `CAREER_PROGRAM_MAP` in `server/routes.ts` mapping all 56 careers to programs in the DB.
     -   Q&A summary panel on all assessment results (AI and non-AI): collapsible card showing every question + selected answer(s), with a Print Summary button that opens a print-friendly window. Available to share with counselors.
     -   HUMANS Principles section on the landing page, aligning with human-centered AI frameworks.
     -   Zod schema validation for API endpoints.

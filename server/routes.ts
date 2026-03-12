@@ -1,6 +1,9 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { db } from "./db";
+import { programs, institutions } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import OpenAI from "openai";
 import { randomUUID } from "crypto";
 import { z } from "zod";
@@ -380,6 +383,109 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Fetch assessment careers error:", error);
       res.status(500).json({ error: "Failed to fetch careers" });
+    }
+  });
+
+  // Maps assessment career IDs to program IDs in the region
+  const CAREER_PROGRAM_MAP: Record<number, number[]> = {
+    // Healthcare
+    1:  [3, 4, 11, 12, 13],   // RN: ADN Shasta, RN-BSN CSU Chico, Siskiyous, Simpson, WGU
+    2:  [2, 9, 11],            // LVN: Shasta LVN, Butte CNA/LVN, Siskiyous
+    3:  [1, 9],                // CNA: Shasta CNA, Butte
+    4:  [6, 7],                // EMT/Paramedic: Shasta EMT, Shasta Paramedic
+    5:  [5, 10],               // Medical Assistant: Shasta, Butte Allied Health
+    6:  [10],                  // Phlebotomist: Butte Allied Health
+    7:  [10],                  // Pharmacy Tech: Butte Allied Health
+    8:  [10],                  // Dental Assistant: Butte Allied Health
+    9:  [1, 9],                // Home Health Aide: Shasta CNA, Butte
+    10: [8],                   // Medical Biller: CSU Chico Health Info Mgmt
+    11: [8],                   // Health Info Tech: CSU Chico Health Info Mgmt
+    12: [10],                  // Dental Hygienist: Butte Allied Health
+    13: [10],                  // Respiratory Therapist: Butte Allied Health
+    14: [10],                  // Radiologic Tech: Butte Allied Health
+    15: [10],                  // Surgical Tech: Butte Allied Health
+    16: [10],                  // PTA: Butte Allied Health
+    17: [10],                  // Diagnostic Tech: Butte Allied Health
+    18: [10],                  // Patient Rep: Butte Allied Health
+    19: [10],                  // Community Health Worker: Butte Allied Health
+    20: [10],                  // Health Ed Specialist: Butte Allied Health
+    21: [10],                  // Substance Abuse Counselor: Butte Allied Health
+    22: [8],                   // Healthcare Admin: CSU Chico Health Info Mgmt
+    23: [10],                  // Clinical Research: Butte Allied Health
+    24: [10],                  // Nutritionist: Butte Allied Health
+    25: [10],                  // Speech-Language: Butte Allied Health
+    26: [10],                  // OT: Butte Allied Health
+    27: [3, 11],               // PA: Shasta ADN, Siskiyous
+    28: [4, 13],               // NP: CSU Chico RN-BSN, WGU
+    29: [10],                  // Pharmacist: Butte Allied Health
+    30: [10],                  // PT: Butte Allied Health
+    // Education
+    31: [19, 20],              // Paraprofessional: Shasta, REACH
+    32: [17, 18],              // Child Dev Assistant: Shasta ECE, Butte ECE
+    33: [14],                  // Bilingual: CSU Chico Elementary Ed
+    35: [19],                  // Instructional Assistant: Shasta Paraprofessional
+    36: [14, 19],              // Special Ed Assistant: CSU Chico, Shasta
+    37: [17, 18],              // Afterschool Manager: Shasta ECE, Butte ECE
+    38: [14],                  // Library Tech: CSU Chico
+    39: [17, 18],              // Child Dev Teacher: Shasta ECE, Butte ECE
+    40: [14, 15],              // CTE Instructor: CSU Chico Elementary/Secondary
+    41: [16, 20],              // Substitute: CSU Chico Liberal Studies, REACH
+    42: [17, 18],              // Child Dev Site Supervisor: Shasta ECE, Butte ECE
+    43: [14, 16, 20],          // Elementary Teacher: CSU Chico, Liberal Studies, REACH
+    44: [15, 20, 21],          // Middle/High Teacher: CSU Chico Secondary, REACH, SOU MAT
+    45: [14],                  // Special Ed Teacher: CSU Chico
+    46: [14],                  // Reading Teacher: CSU Chico
+    47: [14, 17],              // PK-3 Teacher: CSU Chico, Shasta ECE
+    48: [14, 15],              // School Counselor: CSU Chico Elementary/Secondary
+    49: [14],                  // School Social Worker: CSU Chico
+    50: [15],                  // Instructional Coordinator: CSU Chico Secondary
+    51: [14],                  // School Psychologist: CSU Chico
+    52: [14, 15],              // Principal: CSU Chico Elementary/Secondary
+    53: [16],                  // Community College Faculty: Liberal Studies CSU Chico
+    54: [16],                  // Librarian: Liberal Studies CSU Chico
+    55: [17, 18],              // EC Program Director: Shasta ECE, Butte ECE
+    56: [15],                  // Superintendent: CSU Chico Secondary
+  };
+
+  app.get("/api/assessment/career-programs", async (req, res) => {
+    try {
+      const track = req.query.track as string | undefined;
+      const allPrograms = await db
+        .select({
+          id: programs.id,
+          name: programs.name,
+          url: programs.url,
+          website: institutions.website,
+          institutionName: institutions.name,
+          logoUrl: institutions.logoUrl,
+        })
+        .from(programs)
+        .innerJoin(institutions, eq(programs.institutionId, institutions.id));
+
+      const careerIds = track
+        ? Object.keys(CAREER_PROGRAM_MAP)
+            .map(Number)
+            .filter(id => (track === "healthcare" ? id <= 30 : id > 30))
+        : Object.keys(CAREER_PROGRAM_MAP).map(Number);
+
+      const result: Record<number, { id: number; name: string; institutionName: string; url: string; logoUrl: string | null }[]> = {};
+      for (const careerId of careerIds) {
+        const programIds = CAREER_PROGRAM_MAP[careerId] || [];
+        result[careerId] = programIds
+          .map(pid => allPrograms.find(p => p.id === pid))
+          .filter(Boolean)
+          .map(p => ({
+            id: p!.id,
+            name: p!.name,
+            institutionName: p!.institutionName,
+            url: p!.url || p!.website || "",
+            logoUrl: p!.logoUrl || null,
+          }));
+      }
+      res.json(result);
+    } catch (error) {
+      console.error("Fetch career programs error:", error);
+      res.status(500).json({ error: "Failed to fetch career programs" });
     }
   });
 

@@ -15,7 +15,7 @@ import {
   Stethoscope, GraduationCap, CheckCircle2,
   RotateCcw, Sparkles, Heart, BookOpen,
   DollarSign, Clock, TrendingUp, Trophy, Award, Medal,
-  Printer, ClipboardList, ChevronDown, ChevronUp
+  Printer, ClipboardList, ChevronDown, ChevronUp, ExternalLink, MapPin
 } from "lucide-react";
 import type { AssessmentQuestion, AssessmentOption, AssessmentCareer } from "@shared/schema";
 
@@ -68,6 +68,16 @@ interface QASummaryItem {
   answers: string[];
 }
 
+interface CareerProgramInfo {
+  id: number;
+  name: string;
+  institutionName: string;
+  url: string;
+  logoUrl: string | null;
+}
+
+type CareerPrograms = Record<string, CareerProgramInfo[]>;
+
 type Track = "healthcare" | "education";
 
 export default function AssessmentPage() {
@@ -91,6 +101,11 @@ export default function AssessmentPage() {
 
   const { data: dbCareers } = useQuery<AssessmentCareer[]>({
     queryKey: ["/api/assessment/careers", `?track=${track}`],
+    enabled: !!track,
+  });
+
+  const { data: careerPrograms = {} } = useQuery<CareerPrograms>({
+    queryKey: ["/api/assessment/career-programs", `?track=${track}`],
     enabled: !!track,
   });
 
@@ -516,6 +531,27 @@ export default function AssessmentPage() {
                               <span>{career.outlook}</span>
                             </div>
                           </div>
+                          {(careerPrograms[career.id] || []).length > 0 && (
+                            <div className="border-t pt-3">
+                              <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-2">
+                                <MapPin className="w-3.5 h-3.5 shrink-0 text-primary" />
+                                {language === "en" ? "Where to Study in the Region" : "Dónde Estudiar en la Región"}
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {(careerPrograms[career.id] || []).map(prog => (
+                                  <a key={prog.id} href={prog.url} target="_blank" rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 text-xs bg-primary/5 hover:bg-primary/10 text-primary border border-primary/20 rounded-md px-2.5 py-1.5 transition-colors"
+                                    data-testid={`link-algo-program-${career.id}-${prog.id}`}>
+                                    {prog.logoUrl && (
+                                      <img src={prog.logoUrl} alt={prog.institutionName} className="w-4 h-4 object-contain" />
+                                    )}
+                                    <span>{prog.institutionName}</span>
+                                    <ExternalLink className="w-3 h-3 shrink-0 opacity-50" />
+                                  </a>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </Card>
                     );
@@ -658,6 +694,27 @@ export default function AssessmentPage() {
                               <span>{career.outlook}</span>
                             </div>
                           </div>
+                          {(careerPrograms[String(career.id)] || []).length > 0 && (
+                            <div className="border-t pt-3">
+                              <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-2">
+                                <MapPin className="w-3.5 h-3.5 shrink-0 text-primary" />
+                                {language === "en" ? "Where to Study in the Region" : "Dónde Estudiar en la Región"}
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {(careerPrograms[String(career.id)] || []).map(prog => (
+                                  <a key={prog.id} href={prog.url} target="_blank" rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 text-xs bg-primary/5 hover:bg-primary/10 text-primary border border-primary/20 rounded-md px-2.5 py-1.5 transition-colors"
+                                    data-testid={`link-program-${career.id}-${prog.id}`}>
+                                    {prog.logoUrl && (
+                                      <img src={prog.logoUrl} alt={prog.institutionName} className="w-4 h-4 object-contain" />
+                                    )}
+                                    <span>{prog.institutionName}</span>
+                                    <ExternalLink className="w-3 h-3 shrink-0 opacity-50" />
+                                  </a>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </Card>
                     );
