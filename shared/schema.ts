@@ -137,6 +137,15 @@ export const tokenUsage = pgTable("token_usage", {
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+export const contacts = pgTable("contacts", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  title: text("title").notNull(),
+  phone: text("phone").notNull(),
+  email: text("email").notNull(),
+  institutionId: integer("institution_id").references(() => institutions.id),
+});
+
 export const assessmentQuestions = pgTable("assessment_questions", {
   id: serial("id").primaryKey(),
   track: text("track").notNull(),
@@ -181,6 +190,7 @@ export const insertAssessmentQuestionSchema = createInsertSchema(assessmentQuest
 export const insertAssessmentOptionSchema = createInsertSchema(assessmentOptions).omit({ id: true });
 export const insertAssessmentCareerSchema = createInsertSchema(assessmentCareers).omit({ id: true, createdAt: true, updatedAt: true });
 
+export const insertContactSchema = createInsertSchema(contacts).omit({ id: true });
 export const insertOnboardingScriptSchema = createInsertSchema(onboardingScripts).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertTokenUsageSchema = createInsertSchema(tokenUsage).omit({ id: true, createdAt: true });
 
@@ -210,6 +220,8 @@ export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type ResearchTask = typeof researchTasks.$inferSelect;
 export type InsertResearchTask = z.infer<typeof insertResearchTaskSchema>;
 
+export type Contact = typeof contacts.$inferSelect;
+export type InsertContact = z.infer<typeof insertContactSchema>;
 export type OnboardingScript = typeof onboardingScripts.$inferSelect;
 export type InsertOnboardingScript = z.infer<typeof insertOnboardingScriptSchema>;
 export type Conversation = typeof conversations.$inferSelect;

@@ -22,7 +22,7 @@ The platform is built with a modern web stack:
     -   Automated student profiling to personalize recommendations.
     -   Support for 10 North State counties, with seeded data for pathways, institutions, and resources.
     -   Guided onboarding flow with AI voice narration (OpenAI gpt-audio) and pre-generated audio.
-    -   Comprehensive admin dashboard for CRUD operations on pathways, programs, resources, institutions, assessment questions, and onboarding scripts.
+    -   Comprehensive admin dashboard for CRUD operations on pathways, programs, resources, institutions, contacts, assessment questions, and onboarding scripts.
     -   AI Research Agent utilizing web-connected Perplexity models via OpenRouter to identify new programs/resources/institutions, with human-in-the-loop approval for JSON action recommendations.
     -   Token usage tracking, cost estimation, and configurable budgets for AI interactions.
     -   Full Spanish/English language support across the platform, including AI responses and admin content management.

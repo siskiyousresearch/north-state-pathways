@@ -6,7 +6,7 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 import {
   insertPathwaySchema, insertProgramSchema, insertResourceSchema,
-  insertResearchTaskSchema, insertOnboardingScriptSchema
+  insertResearchTaskSchema, insertOnboardingScriptSchema, insertContactSchema
 } from "@shared/schema";
 import { writeFile, mkdir, unlink } from "fs/promises";
 import path from "path";
@@ -952,6 +952,40 @@ Write 2-3 short paragraphs summarizing what students are seeking, which regions 
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: "Failed to delete resource" });
+    }
+  });
+
+  // ========== CONTACTS API ==========
+  app.get("/api/contacts", async (_req, res) => {
+    try { res.json(await storage.getContacts()); }
+    catch (error) { res.status(500).json({ error: "Failed to fetch contacts" }); }
+  });
+
+  app.get("/api/admin/contacts", requireAdmin, async (_req, res) => {
+    try { res.json(await storage.getContacts()); }
+    catch (error) { res.status(500).json({ error: "Failed to fetch contacts" }); }
+  });
+
+  app.post("/api/admin/contacts", requireAdmin, async (req, res) => {
+    try {
+      const parsed = insertContactSchema.parse(req.body);
+      const contact = await storage.createContact(parsed);
+      res.status(201).json(contact);
+    } catch (error) {
+      if (error instanceof z.ZodError) return res.status(400).json({ error: error.errors });
+      res.status(500).json({ error: "Failed to create contact" });
+    }
+  });
+
+  app.patch("/api/admin/contacts/:id", requireAdmin, async (req, res) => {
+    try {
+      const parsed = insertContactSchema.partial().parse(req.body);
+      const contact = await storage.updateContact(parseInt(req.params.id as string), parsed);
+      if (!contact) return res.status(404).json({ error: "Contact not found" });
+      res.json(contact);
+    } catch (error) {
+      if (error instanceof z.ZodError) return res.status(400).json({ error: error.errors });
+      res.status(500).json({ error: "Failed to update contact" });
     }
   });
 

@@ -3,15 +3,17 @@ import { eq, desc, sql, and, count, gte, sum } from "drizzle-orm";
 import {
   counties, institutions, pathways, programs, resources,
   chatSessions, chatMessages, researchTasks, conversations, messages, appSettings, tokenUsage,
-  onboardingScripts, assessmentQuestions, assessmentOptions, assessmentCareers,
+  onboardingScripts, assessmentQuestions, assessmentOptions, assessmentCareers, contacts,
   type InsertCounty, type InsertInstitution, type InsertPathway,
   type InsertProgram, type InsertResource, type InsertChatSession,
   type InsertChatMessage, type InsertResearchTask, type InsertTokenUsage,
   type InsertOnboardingScript, type InsertAssessmentQuestion, type InsertAssessmentOption, type InsertAssessmentCareer,
+  type InsertContact,
   type County, type Institution, type Pathway, type Program,
   type Resource, type ChatSession, type ChatMessage, type ResearchTask,
   type AppSetting, type TokenUsage, type OnboardingScript,
-  type AssessmentQuestion, type AssessmentOption, type AssessmentCareer
+  type AssessmentQuestion, type AssessmentOption, type AssessmentCareer,
+  type Contact
 } from "@shared/schema";
 
 export interface IStorage {
@@ -90,6 +92,10 @@ export interface IStorage {
   createAssessmentCareer(data: InsertAssessmentCareer): Promise<AssessmentCareer>;
   updateAssessmentCareer(id: number, data: Partial<InsertAssessmentCareer>): Promise<AssessmentCareer | undefined>;
   deleteAssessmentCareer(id: number): Promise<void>;
+
+  getContacts(): Promise<Contact[]>;
+  createContact(data: InsertContact): Promise<Contact>;
+  updateContact(id: number, data: Partial<InsertContact>): Promise<Contact | undefined>;
 
   recordTokenUsage(data: InsertTokenUsage): Promise<TokenUsage>;
   getTokenUsageStats(period: "day" | "month"): Promise<{
@@ -435,6 +441,18 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAssessmentCareer(id: number): Promise<void> {
     await db.delete(assessmentCareers).where(eq(assessmentCareers.id, id));
+  }
+
+  async getContacts(): Promise<Contact[]> {
+    return db.select().from(contacts);
+  }
+  async createContact(data: InsertContact): Promise<Contact> {
+    const [c] = await db.insert(contacts).values(data).returning();
+    return c;
+  }
+  async updateContact(id: number, data: Partial<InsertContact>): Promise<Contact | undefined> {
+    const [c] = await db.update(contacts).set(data).where(eq(contacts.id, id)).returning();
+    return c;
   }
 
   async recordTokenUsage(data: InsertTokenUsage): Promise<TokenUsage> {

@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/collapsible";
 import {
   LayoutDashboard, MessageSquare, Route, BookOpen,
-  FlaskConical, Sparkles, ArrowLeft, Settings, Mic, Map, ChevronRight, Construction, ClipboardCheck, Building2
+  FlaskConical, Sparkles, ArrowLeft, Settings, Mic, Map, ChevronRight, Construction, ClipboardCheck, Building2, Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -31,6 +31,7 @@ const navItems = [
   { title: "Pathways & Programs", url: "/admin/pathways", icon: Route },
   { title: "Institutions", url: "/admin/institutions", icon: Building2 },
   { title: "Resources", url: "/admin/resources", icon: BookOpen },
+  { title: "Contacts", url: "/admin/contacts", icon: Users },
   { title: "Research Tasks", url: "/admin/research", icon: FlaskConical },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
