@@ -8,14 +8,16 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AIActiveBadge, AssessmentAIOptOutFallback, useAIOptOut } from "@/components/ai-active-badge";
+import { AIActiveBadge, HumanCounselorPanel, useAIOptOut } from "@/components/ai-active-badge";
+import { computeScores } from "@/lib/assessment-scoring";
 import {
   ArrowLeft, ArrowRight, Globe, MessageCircle,
   Stethoscope, GraduationCap, CheckCircle2,
   RotateCcw, Sparkles, Heart, BookOpen,
-  DollarSign, Clock, TrendingUp, Trophy, Award, Medal
+  DollarSign, Clock, TrendingUp, Trophy, Award, Medal,
+  Printer, ClipboardList, ChevronDown, ChevronUp
 } from "lucide-react";
-import type { AssessmentQuestion, AssessmentOption } from "@shared/schema";
+import type { AssessmentQuestion, AssessmentOption, AssessmentCareer } from "@shared/schema";
 
 interface QuizQuestion {
   id: string;
@@ -58,12 +60,18 @@ interface AssessmentResult {
   careers: CareerMatch[];
   aiInsight: string;
   nextSteps: string[];
+  isAlgorithmic?: boolean;
+}
+
+interface QASummaryItem {
+  question: string;
+  answers: string[];
 }
 
 type Track = "healthcare" | "education";
 
 export default function AssessmentPage() {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const [track, setTrack] = useState<Track | null>(() => {
     const param = new URLSearchParams(window.location.search).get("track");
     return param === "healthcare" || param === "education" ? param : null;
@@ -71,11 +79,18 @@ export default function AssessmentPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [result, setResult] = useState<AssessmentResult | null>(null);
+  const [qaSummary, setQaSummary] = useState<QASummaryItem[]>([]);
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const [loadingResult, setLoadingResult] = useState(false);
   const [aiOptedOut, setAiOptedOut] = useAIOptOut();
 
   const { data: dbQuestions, isLoading: questionsLoading } = useQuery<DBQuestion[]>({
     queryKey: ["/api/assessment/questions", `?track=${track}`],
+    enabled: !!track,
+  });
+
+  const { data: dbCareers } = useQuery<AssessmentCareer[]>({
+    queryKey: ["/api/assessment/careers", `?track=${track}`],
     enabled: !!track,
   });
 
@@ -127,13 +142,49 @@ export default function AssessmentPage() {
     setCurrentStep(0);
     setAnswers({});
     setResult(null);
+    setQaSummary([]);
+    setSummaryOpen(false);
   };
 
+  const buildQASummary = (qs: QuizQuestion[], ans: Record<string, string | string[]>): QASummaryItem[] =>
+    qs.map(q => {
+      const selected = ans[q.id];
+      const selectedArr = selected ? (Array.isArray(selected) ? selected : [selected]) : [];
+      const answerLabels = selectedArr.map(v => {
+        const opt = q.options.find(o => o.value === v);
+        return opt ? opt.label[language] : v;
+      });
+      return { question: q.question[language], answers: answerLabels };
+    }).filter(item => item.answers.length > 0);
+
   const submitAssessment = async () => {
+    const snapshot = buildQASummary(questions, answers);
+    setQaSummary(snapshot);
+
     if (aiOptedOut) {
-      setResult({ careers: [], aiInsight: "", nextSteps: [] });
+      if (!dbCareers || dbCareers.length === 0) {
+        setResult({ careers: [], aiInsight: "", nextSteps: [], isAlgorithmic: true });
+        return;
+      }
+      const careerIds = dbCareers.map(c => c.id);
+      const scored = computeScores(answers, questions, careerIds, track!);
+      const top = scored.slice(0, 6);
+      const careerMatches: CareerMatch[] = top.map(s => {
+        const career = dbCareers.find(c => c.id === s.id)!;
+        return {
+          id: String(career.id),
+          title: language === "es" && career.nameEs ? career.nameEs : career.name,
+          description: language === "es" && career.descriptionEs ? career.descriptionEs : (career.descriptionEn ?? ""),
+          salary: language === "es" && career.salaryEs ? career.salaryEs : (career.salaryEn ?? ""),
+          education: language === "es" && career.educationEs ? career.educationEs : (career.educationEn ?? ""),
+          outlook: language === "es" && career.outlookEs ? career.outlookEs : (career.outlookEn ?? ""),
+          matchPercent: s.matchPercent,
+        };
+      });
+      setResult({ careers: careerMatches, aiInsight: "", nextSteps: [], isAlgorithmic: true });
       return;
     }
+
     setLoadingResult(true);
     try {
       const res = await apiRequest("POST", "/api/assessment/results", { track, answers, language });
@@ -143,6 +194,29 @@ export default function AssessmentPage() {
       console.error("Assessment error:", e);
     } finally {
       setLoadingResult(false);
+    }
+  };
+
+  const handlePrint = () => {
+    const trackLabel = track === "healthcare"
+      ? (language === "en" ? "Healthcare" : "Salud")
+      : (language === "en" ? "Education" : "Educación");
+    const title = language === "en"
+      ? `Career Self-Assessment Summary — ${trackLabel} Track`
+      : `Resumen de Autoevaluación de Carrera — Área de ${trackLabel}`;
+    const lines = qaSummary.map((item, i) =>
+      `${i + 1}. ${item.question}\n   → ${item.answers.join(", ")}`
+    ).join("\n\n");
+    const careersSection = result && result.careers.length > 0
+      ? "\n\n" + (language === "en" ? "TOP CAREER MATCHES:" : "MEJORES COINCIDENCIAS DE CARRERA:") + "\n" +
+        result.careers.slice(0, 5).map((c, i) => `${i + 1}. ${c.title} (${c.matchPercent}% match)`).join("\n")
+      : "";
+    const content = `${title}\n${"=".repeat(title.length)}\n\n${lines}${careersSection}\n\n---\nNorth State Pathways | northstatepathways.org`;
+    const win = window.open("", "_blank");
+    if (win) {
+      win.document.write(`<pre style="font-family:Arial,sans-serif;font-size:14px;padding:24px;max-width:700px;margin:0 auto;line-height:1.6">${content}</pre>`);
+      win.document.close();
+      win.print();
     }
   };
 
@@ -377,11 +451,146 @@ export default function AssessmentPage() {
             </div>
           )}
 
-          {aiOptedOut && result && (
-            <AssessmentAIOptOutFallback language={language} />
+          {result && result.isAlgorithmic && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500" data-testid="assessment-algo-results">
+              <div className="text-center space-y-2">
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  {track === "healthcare" ? <Stethoscope className="w-7 h-7 text-primary" /> : <GraduationCap className="w-7 h-7 text-primary" />}
+                </div>
+                <h2 className="text-2xl font-bold" data-testid="text-algo-result-title">
+                  {language === "en" ? "Your Career Matches" : "Tus Carreras Compatibles"}
+                </h2>
+                <p className="text-muted-foreground max-w-lg mx-auto text-sm">
+                  {language === "en"
+                    ? "Based on your answers, here are the careers that best match your interests and goals. These results were calculated without AI."
+                    : "Según tus respuestas, estas son las carreras que mejor se alinean contigo. Estos resultados se calcularon sin IA."}
+                </p>
+              </div>
+
+              <Card className="p-4 border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800" data-testid="card-algo-notice">
+                <div className="flex items-start gap-3">
+                  <ClipboardList className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <p className="text-sm text-amber-800 dark:text-amber-300">
+                    {language === "en"
+                      ? "AI is turned off — these matches are based on a scoring algorithm. For deeper personalized guidance, speak with one of our counselors below."
+                      : "La IA está desactivada — estos resultados se basan en un algoritmo de puntuación. Para orientación personalizada, habla con uno de nuestros consejeros a continuación."}
+                  </p>
+                </div>
+              </Card>
+
+              {result.careers.length > 0 && (
+                <div className="space-y-3">
+                  {result.careers.map((career, i) => {
+                    const RankIcon = i === 0 ? Trophy : i === 1 ? Award : Medal;
+                    const rankColor = i === 0 ? "text-amber-500" : i === 1 ? "text-slate-400" : "text-amber-700";
+                    return (
+                      <Card key={career.id} className={`p-5 ${i === 0 ? "border-primary/30 shadow-sm" : ""}`} data-testid={`card-algo-career-${i}`}>
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3 min-w-0">
+                              {i < 3 ? (
+                                <RankIcon className={`w-5 h-5 shrink-0 mt-0.5 ${rankColor}`} />
+                              ) : (
+                                <span className="w-5 h-5 shrink-0 mt-0.5 flex items-center justify-center text-xs font-bold text-muted-foreground">{i + 1}</span>
+                              )}
+                              <div className="min-w-0">
+                                <h3 className="font-bold text-base" data-testid={`text-algo-career-title-${i}`}>{career.title}</h3>
+                                <p className="text-sm text-muted-foreground mt-0.5">{career.description}</p>
+                              </div>
+                            </div>
+                            <Badge variant={i === 0 ? "default" : "secondary"} className="shrink-0 text-xs" data-testid={`badge-algo-match-${i}`}>
+                              {career.matchPercent}%
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+                              <DollarSign className="w-3.5 h-3.5 text-green-600 shrink-0" />
+                              <span>{career.salary}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+                              <Clock className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                              <span>{career.education}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+                              <TrendingUp className="w-3.5 h-3.5 text-primary shrink-0" />
+                              <span>{career.outlook}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+
+              {qaSummary.length > 0 && (
+                <Card className="overflow-hidden" data-testid="card-qa-summary">
+                  <button
+                    className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/30 transition-colors"
+                    onClick={() => setSummaryOpen(v => !v)}
+                    data-testid="button-toggle-qa-summary"
+                  >
+                    <div className="flex items-center gap-2">
+                      <ClipboardList className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-semibold">
+                        {language === "en" ? "Your Assessment Answers" : "Tus Respuestas de Evaluación"}
+                      </span>
+                      <Badge variant="outline" className="text-xs">{qaSummary.length}</Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground hidden sm:inline">
+                        {language === "en" ? "Share with your counselor" : "Comparte con tu consejero"}
+                      </span>
+                      {summaryOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                    </div>
+                  </button>
+
+                  {summaryOpen && (
+                    <div className="px-4 pb-4 space-y-3 border-t pt-4">
+                      {qaSummary.map((item, i) => (
+                        <div key={i} className="space-y-1" data-testid={`qa-item-${i}`}>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                            {language === "en" ? `Question ${i + 1}` : `Pregunta ${i + 1}`}
+                          </p>
+                          <p className="text-sm font-medium">{item.question}</p>
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {item.answers.map((ans, j) => (
+                              <Badge key={j} variant="secondary" className="text-xs" data-testid={`qa-answer-${i}-${j}`}>
+                                {ans}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                      <div className="pt-2 border-t">
+                        <Button size="sm" variant="outline" onClick={handlePrint} className="gap-1.5" data-testid="button-print-summary">
+                          <Printer className="w-3.5 h-3.5" />
+                          {language === "en" ? "Print Summary" : "Imprimir Resumen"}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </Card>
+              )}
+
+              <HumanCounselorPanel language={language} />
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                <Button variant="outline" onClick={resetQuiz} data-testid="button-algo-retake">
+                  <RotateCcw className="w-4 h-4 mr-1.5" />
+                  {language === "en" ? "Take Again" : "Volver a Tomar"}
+                </Button>
+                <Link href="/chat">
+                  <Button data-testid="button-algo-chat">
+                    <MessageCircle className="w-4 h-4 mr-1.5" />
+                    {language === "en" ? "Chat with Our AI Assistant" : "Chatea con Nuestro Asistente de IA"}
+                  </Button>
+                </Link>
+              </div>
+            </div>
           )}
 
-          {result && !aiOptedOut && (
+          {result && !result.isAlgorithmic && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="text-center space-y-2">
                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
@@ -469,6 +678,53 @@ export default function AssessmentPage() {
                       </div>
                     ))}
                   </div>
+                </Card>
+              )}
+
+              {qaSummary.length > 0 && (
+                <Card className="overflow-hidden" data-testid="card-qa-summary-ai">
+                  <button
+                    className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/30 transition-colors"
+                    onClick={() => setSummaryOpen(v => !v)}
+                    data-testid="button-toggle-qa-summary-ai"
+                  >
+                    <div className="flex items-center gap-2">
+                      <ClipboardList className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-semibold">
+                        {language === "en" ? "Your Assessment Answers" : "Tus Respuestas de Evaluación"}
+                      </span>
+                      <Badge variant="outline" className="text-xs">{qaSummary.length}</Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground hidden sm:inline">
+                        {language === "en" ? "Share with your counselor" : "Comparte con tu consejero"}
+                      </span>
+                      {summaryOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                    </div>
+                  </button>
+                  {summaryOpen && (
+                    <div className="px-4 pb-4 space-y-3 border-t pt-4">
+                      {qaSummary.map((item, i) => (
+                        <div key={i} className="space-y-1">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                            {language === "en" ? `Question ${i + 1}` : `Pregunta ${i + 1}`}
+                          </p>
+                          <p className="text-sm font-medium">{item.question}</p>
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {item.answers.map((ans, j) => (
+                              <Badge key={j} variant="secondary" className="text-xs">{ans}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                      <div className="pt-2 border-t">
+                        <Button size="sm" variant="outline" onClick={handlePrint} className="gap-1.5" data-testid="button-print-summary-ai">
+                          <Printer className="w-3.5 h-3.5" />
+                          {language === "en" ? "Print Summary" : "Imprimir Resumen"}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </Card>
               )}
 

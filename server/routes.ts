@@ -372,6 +372,17 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/assessment/careers", async (req, res) => {
+    try {
+      const track = req.query.track as string | undefined;
+      const careers = await storage.getAssessmentCareers(track);
+      res.json(careers);
+    } catch (error) {
+      console.error("Fetch assessment careers error:", error);
+      res.status(500).json({ error: "Failed to fetch careers" });
+    }
+  });
+
   app.post("/api/assessment/results", async (req, res) => {
     try {
       const { track, answers, language } = req.body;

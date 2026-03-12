@@ -28,6 +28,8 @@ The platform is built with a modern web stack:
     -   Full Spanish/English language support across the platform, including AI responses and admin content management.
     -   Interactive Explore Map displaying institutions with programs.
     -   Database-driven, AI-scored career self-assessment quiz providing personalized career matches and insights.
+    -   Algorithmic (non-AI) career scoring fallback: when AI is opted out, `computeScores()` in `client/src/lib/assessment-scoring.ts` runs client-side using a weighted matrix for all 56 careers (healthcare IDs 1–30, education IDs 31–56). Public endpoint `GET /api/assessment/careers?track=` added.
+    -   Q&A summary panel on all assessment results (AI and non-AI): collapsible card showing every question + selected answer(s), with a Print Summary button that opens a print-friendly window. Available to share with counselors.
     -   HUMANS Principles section on the landing page, aligning with human-centered AI frameworks.
     -   Zod schema validation for API endpoints.
     -   In-memory knowledge base cache with TTL and invalidation.
