@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" width="200" height="80">
+  <rect width="200" height="80" fill="#003087" rx="6"/>
+  <text x="100" y="30" font-family="Georgia, serif" font-size="13" fill="#C8A951" text-anchor="middle" font-weight="bold">SHASTA</text>
+  <text x="100" y="48" font-family="Georgia, serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="bold">COLLEGE</text>
+  <line x1="30" y1="54" x2="170" y2="54" stroke="#C8A951" stroke-width="1.5"/>
+  <text x="100" y="68" font-family="Georgia, serif" font-size="9" fill="#C8A951" text-anchor="middle" letter-spacing="1">REDDING, CALIFORNIA</text>
+</svg>
