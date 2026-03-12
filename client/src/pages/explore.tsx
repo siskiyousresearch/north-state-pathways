@@ -168,12 +168,18 @@ export default function ExplorePage() {
                   data-testid={`card-institution-${inst.name.toLowerCase().replace(/\s+/g, "-")}`}
                 >
                   <div className="flex items-start gap-2.5">
-                    <div
-                      className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 transition-colors"
-                      style={{ backgroundColor: isActive ? color : `${color}20`, color: isActive ? "white" : color }}
-                    >
-                      <Icon className="w-4 h-4" />
-                    </div>
+                    {inst.logo ? (
+                      <div className="w-8 h-8 rounded-lg shrink-0 overflow-hidden border bg-muted/30 flex items-center justify-center">
+                        <img src={inst.logo} alt={inst.name} className="w-6 h-6 object-contain" />
+                      </div>
+                    ) : (
+                      <div
+                        className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 transition-colors"
+                        style={{ backgroundColor: isActive ? color : `${color}20`, color: isActive ? "white" : color }}
+                      >
+                        <Icon className="w-4 h-4" />
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate">{inst.name}</p>
                       <div className="flex items-center gap-1.5 mt-0.5">
@@ -381,7 +387,7 @@ export default function ExplorePage() {
                 const hasLogo = !!inst.logo;
                 const tooltipW = 280;
                 const logoSize = 52;
-                const tooltipH = api && api.programs.length > 0 ? (hasLogo ? 100 : 80) : (hasLogo ? 82 : 58);
+                const tooltipH = api && api.programs.length > 0 ? 100 : 82;
                 let tooltipX = inst.x - tooltipW / 2;
                 let tooltipY = inst.y - tooltipH - 18;
                 if (tooltipX < 5) tooltipX = 5;
@@ -424,7 +430,7 @@ export default function ExplorePage() {
                     />
 
                     {highlighted && (() => {
-                      const textStartX = hasLogo ? tooltipX + logoSize + 18 : tooltipX + 16;
+                      const textStartX = tooltipX + logoSize + 18;
                       const textStartY = tooltipY + 12;
                       return (
                         <g className="animate-in fade-in zoom-in-95 duration-150">
@@ -470,12 +476,37 @@ export default function ExplorePage() {
                               />
                             </>
                           )}
-                          {!hasLogo && (
-                            <>
-                              <circle cx={tooltipX + 22} cy={tooltipY + 24} r="10" fill={`${color}20`} />
-                              <circle cx={tooltipX + 22} cy={tooltipY + 24} r="5" fill={color} />
-                            </>
-                          )}
+                          {!hasLogo && (() => {
+                            const initials = inst.name.split(/\s+/).filter(w => w[0] === w[0].toUpperCase()).map(w => w[0]).join("").slice(0, 2);
+                            const badgeX = tooltipX + 10;
+                            const badgeY = tooltipY + (tooltipH - logoSize) / 2;
+                            return (
+                              <>
+                                <rect
+                                  x={badgeX}
+                                  y={badgeY}
+                                  width={logoSize}
+                                  height={logoSize}
+                                  rx="8"
+                                  fill={`${color}15`}
+                                  stroke={`${color}40`}
+                                  strokeWidth="0.8"
+                                />
+                                <text
+                                  x={badgeX + logoSize / 2}
+                                  y={badgeY + logoSize / 2}
+                                  textAnchor="middle"
+                                  dominantBaseline="central"
+                                  fill={color}
+                                  fontSize="18"
+                                  fontWeight="800"
+                                  letterSpacing="1"
+                                >
+                                  {initials}
+                                </text>
+                              </>
+                            );
+                          })()}
                           <text
                             x={textStartX}
                             y={textStartY}
@@ -507,7 +538,7 @@ export default function ExplorePage() {
                           {api && api.programs.length > 0 && (
                             <text
                               x={textStartX}
-                              y={textStartY + (hasLogo ? 54 : 48)}
+                              y={textStartY + 54}
                               dominantBaseline="hanging"
                               fill={color}
                               fontSize="11"
