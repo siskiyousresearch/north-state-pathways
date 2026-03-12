@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
 } from "@/components/ui/dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
@@ -22,7 +22,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   Plus, Trash2, Pencil, Sparkles, GripVertical,
   ClipboardCheck, Stethoscope, GraduationCap, Eye, EyeOff,
-  ArrowUp, ArrowDown, Image, Loader2
+  ArrowUp, ArrowDown, Image, Loader2, ExternalLink, Copy, PlayCircle
 } from "lucide-react";
 import type { AssessmentQuestion, AssessmentOption, AssessmentCareer } from "@shared/schema";
 
@@ -82,6 +82,16 @@ export default function SelfAssessmentAdmin() {
   const [careerForm, setCareerForm] = useState<CareerForm>(emptyCareerForm);
 
   const [aiLoading, setAiLoading] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewTrack, setPreviewTrack] = useState("healthcare");
+  const [previewKey, setPreviewKey] = useState(0);
+
+  const assessmentUrl = `${window.location.origin}/assessment`;
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(assessmentUrl);
+    toast({ title: "Link copied!", description: assessmentUrl });
+  };
 
   const { data: questions, isLoading: questionsLoading } = useQuery<QuestionWithOptions[]>({
     queryKey: ["/api/admin/assessment/questions"],
@@ -325,8 +335,8 @@ export default function SelfAssessmentAdmin() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10" data-testid="icon-self-assessment">
+      <div className="flex items-start gap-3 flex-wrap">
+        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 shrink-0 mt-0.5" data-testid="icon-self-assessment">
           <ClipboardCheck className="w-5 h-5 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
@@ -334,8 +344,85 @@ export default function SelfAssessmentAdmin() {
           <p className="text-sm text-muted-foreground" data-testid="text-self-assessment-subtitle">
             Manage quiz questions, options, and career profiles
           </p>
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted rounded-md px-2.5 py-1 border">
+              <ExternalLink className="w-3 h-3 shrink-0" />
+              <span className="font-mono truncate max-w-[260px]" data-testid="text-assessment-url">{assessmentUrl}</span>
+            </div>
+            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1" onClick={copyLink} data-testid="button-copy-link">
+              <Copy className="w-3 h-3" />
+              Copy link
+            </Button>
+            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => window.open(assessmentUrl, "_blank")} data-testid="button-open-link">
+              <ExternalLink className="w-3 h-3" />
+              Open
+            </Button>
+          </div>
         </div>
+        <Button
+          onClick={() => { setPreviewKey(k => k + 1); setShowPreview(true); }}
+          variant="outline"
+          className="gap-2 shrink-0"
+          data-testid="button-preview-quiz"
+        >
+          <PlayCircle className="w-4 h-4" />
+          Preview Quiz
+        </Button>
       </div>
+
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-4xl w-full h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-4 py-3 border-b flex-row items-center justify-between shrink-0">
+            <div>
+              <DialogTitle className="text-base">Quiz Preview</DialogTitle>
+              <DialogDescription className="sr-only">Preview the self-assessment quiz as students see it</DialogDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 border rounded-md p-0.5">
+                <Button
+                  variant={previewTrack === "healthcare" ? "default" : "ghost"}
+                  size="sm"
+                  className="h-7 text-xs px-3"
+                  onClick={() => { setPreviewTrack("healthcare"); setPreviewKey(k => k + 1); }}
+                  data-testid="button-preview-healthcare"
+                >
+                  <Stethoscope className="w-3.5 h-3.5 mr-1" />
+                  Healthcare
+                </Button>
+                <Button
+                  variant={previewTrack === "education" ? "default" : "ghost"}
+                  size="sm"
+                  className="h-7 text-xs px-3"
+                  onClick={() => { setPreviewTrack("education"); setPreviewKey(k => k + 1); }}
+                  data-testid="button-preview-education"
+                >
+                  <GraduationCap className="w-3.5 h-3.5 mr-1" />
+                  Education
+                </Button>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs gap-1"
+                onClick={() => window.open(`${assessmentUrl}?track=${previewTrack}`, "_blank")}
+                data-testid="button-preview-new-tab"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                New tab
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden">
+            <iframe
+              key={`${previewKey}-${previewTrack}`}
+              src={`${assessmentUrl}?track=${previewTrack}`}
+              className="w-full h-full border-0"
+              title="Assessment Preview"
+              data-testid="iframe-quiz-preview"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="flex items-center gap-3 flex-wrap">

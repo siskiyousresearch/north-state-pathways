@@ -63,7 +63,10 @@ type Track = "healthcare" | "education";
 
 export default function AssessmentPage() {
   const { language, setLanguage, t } = useLanguage();
-  const [track, setTrack] = useState<Track | null>(null);
+  const [track, setTrack] = useState<Track | null>(() => {
+    const param = new URLSearchParams(window.location.search).get("track");
+    return param === "healthcare" || param === "education" ? param : null;
+  });
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [result, setResult] = useState<AssessmentResult | null>(null);
