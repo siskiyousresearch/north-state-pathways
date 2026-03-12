@@ -2,9 +2,19 @@ import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, User, UserX, Map } from "lucide-react";
+import { Phone, Mail, User, UserX, Map, ExternalLink, BookOpen } from "lucide-react";
 import type { Contact } from "@shared/schema";
+
+type Resource = {
+  id: number;
+  name: string;
+  type: string;
+  description: string | null;
+  url: string | null;
+  eligibility: string | null;
+};
 
 const AI_OPTOUT_KEY = "nsp-ai-opted-out";
 
@@ -150,6 +160,10 @@ interface ChatAIOptOutFallbackProps {
 }
 
 export function ChatAIOptOutFallback({ language }: ChatAIOptOutFallbackProps) {
+  const { data: resourcesList = [], isLoading: resourcesLoading } = useQuery<Resource[]>({
+    queryKey: ["/api/resources"],
+  });
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6" data-testid="chat-ai-optout-fallback">
       <Card className="p-6 text-center space-y-4">
@@ -173,6 +187,72 @@ export function ChatAIOptOutFallback({ language }: ChatAIOptOutFallbackProps) {
           </Button>
         </a>
       </Card>
+
+      {/* Resources */}
+      <div className="space-y-3" data-testid="optout-resources-section">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <BookOpen className="w-4 h-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold">
+              {language === "en" ? "Available Resources" : "Recursos Disponibles"}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {language === "en"
+                ? "Programs and services you can access directly."
+                : "Programas y servicios a los que puedes acceder directamente."}
+            </p>
+          </div>
+        </div>
+
+        {resourcesLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-16 rounded-lg bg-muted/50 animate-pulse" />
+            ))}
+          </div>
+        ) : resourcesList.length === 0 ? (
+          <Card className="p-4" data-testid="card-no-resources">
+            <p className="text-sm text-muted-foreground text-center">
+              {language === "en" ? "No resources available at this time." : "No hay recursos disponibles en este momento."}
+            </p>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {resourcesList.map(resource => (
+              <Card key={resource.id} className="p-4" data-testid={`card-resource-${resource.id}`}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-semibold" data-testid={`text-resource-name-${resource.id}`}>{resource.name}</p>
+                      <Badge variant="secondary" className="text-xs shrink-0">{resource.type}</Badge>
+                    </div>
+                    {resource.description && (
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{resource.description}</p>
+                    )}
+                    {resource.eligibility && (
+                      <p className="text-xs text-muted-foreground mt-0.5 italic">{resource.eligibility}</p>
+                    )}
+                  </div>
+                  {resource.url && (
+                    <a
+                      href={resource.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                      data-testid={`link-resource-url-${resource.id}`}
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      {language === "en" ? "Visit" : "Visitar"}
+                    </a>
+                  )}
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
 
       <HumanCounselorPanel language={language} />
     </div>
