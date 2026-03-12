@@ -126,6 +126,8 @@ export default function ChatPage() {
   const [selectedSupports, setSelectedSupports] = useState<string[]>([]);
 
   const [aiOptedOut, setAiOptedOut] = useAIOptOut();
+  const streamAbortRef = useRef<AbortController | null>(null);
+
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -188,6 +190,15 @@ export default function ChatPage() {
     }
     setIsSpeaking(false);
   }, []);
+
+  const handleOptOutChange = useCallback((v: boolean) => {
+    setAiOptedOut(v);
+    if (v) {
+      streamAbortRef.current?.abort();
+      stopCurrentAudio();
+      setIsLoading(false);
+    }
+  }, [setAiOptedOut, stopCurrentAudio]);
 
   const playStaticAudio = useCallback((src: string) => {
     if (!voiceEnabled) return;
@@ -284,11 +295,15 @@ export default function ChatPage() {
     };
     setMessages((prev) => [...prev, assistantMsg]);
 
+    const abortController = new AbortController();
+    streamAbortRef.current = abortController;
+
     try {
       const res = await fetch(`/api/chat/sessions/${sid}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: content.trim(), language }),
+        signal: abortController.signal,
       });
 
       const reader = res.body?.getReader();
@@ -325,7 +340,12 @@ export default function ChatPage() {
           } catch {}
         }
       }
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.name === "AbortError") {
+        // User opted out mid-stream — remove the incomplete assistant message
+        setMessages((prev) => prev.filter((m, i) => !(i === prev.length - 1 && m.role === "assistant" && m.content === "")));
+        return;
+      }
       setMessages((prev) => {
         const updated = [...prev];
         const last = updated[updated.length - 1];
@@ -339,6 +359,7 @@ export default function ChatPage() {
       });
     } finally {
       setIsLoading(false);
+      streamAbortRef.current = null;
     }
   };
 
@@ -484,7 +505,7 @@ export default function ChatPage() {
         <div className="flex items-center gap-1">
           <AIActiveBadge
             aiOptedOut={aiOptedOut}
-            onOptOutChange={setAiOptedOut}
+            onOptOutChange={handleOptOutChange}
             language={language}
           />
           <Button
