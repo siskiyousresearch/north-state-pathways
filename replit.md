@@ -171,6 +171,9 @@ shared/
 63. Admin CRUD routes: `GET/POST/PATCH/DELETE /api/admin/assessment/questions` and `/api/admin/assessment/careers`
 64. 16 questions (8 healthcare + 8 education) with 58 options and 56 careers (30 HC + 26 ED) seeded from `server/seed-assessment.ts`
 65. Career match cards with rank icons (Trophy/Award/Medal), salary/education/outlook info blocks, and percentage badges
+66. HUMANS Principles section on landing page: showcases CCC Chancellor's Office human-centered AI framework (H-U-M-A-N-S) with 6 principle cards, EN/ES translations, and link to ai.cccco.edu/guidance-and-policy/
+67. Token-based admin auth: in-memory UUID tokens via Authorization Bearer header (replaced session cookies for Replit preview compatibility)
+68. Self-assessment admin preview: "Preview Quiz" button opens embedded iframe preview with track selector, plus live URL display with copy link
 
 ## Running
 - `npm run dev` starts both frontend (Vite) and backend (Express) on port 5000

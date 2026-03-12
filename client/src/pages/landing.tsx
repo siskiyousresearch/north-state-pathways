@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, GraduationCap, Heart, MapPin, ArrowRight, Sparkles, Users, BookOpen, Globe } from "lucide-react";
+import { MessageCircle, GraduationCap, Heart, MapPin, ArrowRight, Sparkles, Users, BookOpen, Globe, Shield, UserCheck, Lock, Scale, Bell, ShieldCheck, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 const heroImg = "/images/hero-landscape.png";
 
@@ -17,6 +17,15 @@ const featureKeys = [
   { title: "landing.feat2Title", desc: "landing.feat2Desc" },
   { title: "landing.feat3Title", desc: "landing.feat3Desc" },
   { title: "landing.feat4Title", desc: "landing.feat4Desc" },
+];
+
+const humansPrinciples = [
+  { letter: "H", icon: UserCheck, title: "landing.humansH", desc: "landing.humansHDesc" },
+  { letter: "U", icon: Users, title: "landing.humansU", desc: "landing.humansUDesc" },
+  { letter: "M", icon: Lock, title: "landing.humansM", desc: "landing.humansMDesc" },
+  { letter: "A", icon: Scale, title: "landing.humansA", desc: "landing.humansADesc" },
+  { letter: "N", icon: Bell, title: "landing.humansN", desc: "landing.humansNDesc" },
+  { letter: "S", icon: ShieldCheck, title: "landing.humansS", desc: "landing.humansSDesc" },
 ];
 
 export default function LandingPage() {
@@ -115,6 +124,56 @@ export default function LandingPage() {
                 </Card>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 px-6 bg-muted/50" data-testid="section-humans-principles">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <Shield className="w-6 h-6 text-primary" />
+              <Badge variant="secondary" className="text-xs font-medium">HUMANS</Badge>
+            </div>
+            <h3 className="text-2xl md:text-3xl font-bold mb-3" data-testid="text-humans-heading">{t("landing.humansTitle")}</h3>
+            <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed" data-testid="text-humans-desc">
+              {t("landing.humansDesc")}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {humansPrinciples.map((p) => {
+              const Icon = p.icon;
+              return (
+                <Card key={p.letter} className="p-5 hover-elevate" data-testid={`card-humans-${p.letter.toLowerCase()}`}>
+                  <div className="flex items-start gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 shrink-0">
+                      <span className="text-sm font-bold text-primary">{p.letter}</span>
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Icon className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <h4 className="font-semibold text-sm">{t(p.title)}</h4>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{t(p.desc)}</p>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+          <div className="text-center mt-8">
+            <p className="text-xs text-muted-foreground mb-2" data-testid="text-humans-attribution">{t("landing.humansAttribution")}</p>
+            <a
+              href="https://ai.cccco.edu/guidance-and-policy/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm text-primary hover:underline font-medium"
+              data-testid="link-humans-learn-more"
+              aria-label={`${t("landing.humansLearnMore")} — HUMANS framework (opens in new tab)`}
+            >
+              {t("landing.humansLearnMore")}
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
           </div>
         </div>
       </section>
