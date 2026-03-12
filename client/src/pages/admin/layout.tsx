@@ -6,7 +6,7 @@ import { AdminSidebar } from "@/components/admin-sidebar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LogOut } from "lucide-react";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient, clearAdminToken } from "@/lib/queryClient";
 import AdminDashboard from "./dashboard";
 import ConversationsPage from "./conversations";
 import PathwaysPage from "./pathways";
@@ -29,6 +29,7 @@ export default function AdminLayout() {
     setLogoutLoading(true);
     try {
       await apiRequest("POST", "/api/auth/logout");
+      clearAdminToken();
       queryClient.invalidateQueries({ queryKey: ["/api/auth/check"] });
     } finally {
       setLogoutLoading(false);

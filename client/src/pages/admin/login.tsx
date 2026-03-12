@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, setAdminToken } from "@/lib/queryClient";
 import { Lock, Loader2, Eye, EyeOff } from "lucide-react";
 
 interface AdminLoginProps {
@@ -22,10 +22,12 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
     e.preventDefault();
     setLoading(true);
     try {
-      await apiRequest("POST", "/api/auth/login", {
+      const res = await apiRequest("POST", "/api/auth/login", {
         username: username.trim(),
         password,
       });
+      const data = await res.json();
+      if (data.token) setAdminToken(data.token);
       onLogin();
     } catch {
       toast({ title: "Login failed", description: "Invalid username or password.", variant: "destructive" });

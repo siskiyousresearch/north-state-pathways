@@ -249,8 +249,12 @@ Educación: Credenciales de enseñanza, paraprofesional, títulos en educación
 
 Eres una guía informativa. Siempre recomienda verificar los detalles directamente con las instituciones.`;
 
+const adminTokens = new Set<string>();
+
 function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  if (req.session && req.session.isAdmin) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  if (token && adminTokens.has(token)) {
     return next();
   }
   res.status(401).json({ error: "Unauthorized" });
@@ -270,28 +274,26 @@ export async function registerRoutes(
     const inputPass = (password || "").trim();
 
     if (inputUser === adminUser && inputPass === adminPass) {
-      req.session.isAdmin = true;
-      req.session.save((err) => {
-        if (err) {
-          res.status(500).json({ error: "Session save failed" });
-        } else {
-          res.json({ success: true });
-        }
-      });
+      const token = randomUUID();
+      adminTokens.add(token);
+      res.json({ success: true, token });
     } else {
       res.status(401).json({ error: "Invalid credentials" });
     }
   });
 
   app.post("/api/auth/logout", (req, res) => {
-    req.session.destroy(() => {
-      res.json({ success: true });
-    });
+    const authHeader = req.headers["authorization"];
+    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    if (token) adminTokens.delete(token);
+    res.json({ success: true });
   });
 
   app.get("/api/auth/check", (req, res) => {
     res.set("Cache-Control", "no-store, no-cache, must-revalidate");
-    res.json({ authenticated: !!req.session?.isAdmin });
+    const authHeader = req.headers["authorization"];
+    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    res.json({ authenticated: !!(token && adminTokens.has(token)) });
   });
 
   // ========== PUBLIC RESOURCES API ==========
