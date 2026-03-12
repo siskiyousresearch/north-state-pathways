@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" width="200" height="80">
+  <rect width="200" height="80" fill="#CC0000" rx="6"/>
+  <text x="100" y="28" font-family="Georgia, serif" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="bold">CALIFORNIA STATE</text>
+  <text x="100" y="46" font-family="Georgia, serif" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="bold">UNIVERSITY</text>
+  <line x1="30" y1="52" x2="170" y2="52" stroke="#FFD700" stroke-width="1.5"/>
+  <text x="100" y="67" font-family="Georgia, serif" font-size="13" fill="#FFD700" text-anchor="middle" font-weight="bold">CHICO</text>
+</svg>
