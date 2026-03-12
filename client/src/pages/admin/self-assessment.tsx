@@ -789,26 +789,36 @@ export default function SelfAssessmentAdmin() {
               </div>
               {questionForm.options.map((opt, idx) => (
                 <div key={idx} className="flex gap-2 items-start">
-                  <div className="flex-1 space-y-1">
-                    <Input
-                      value={opt.value}
-                      onChange={e => updateOption(idx, "value", e.target.value)}
-                      placeholder="Slug (e.g., helping_others)"
-                      data-testid={`input-option-value-${idx}`}
-                    />
+                  <div className="flex-1 space-y-2">
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">Answer ID</label>
+                      <Input
+                        value={opt.value}
+                        onChange={e => updateOption(idx, "value", e.target.value)}
+                        placeholder="e.g. money, work_life_balance"
+                        data-testid={`input-option-value-${idx}`}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Short unique word, no spaces — used internally to identify this answer</p>
+                    </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <Input
-                        value={opt.labelEn}
-                        onChange={e => updateOption(idx, "labelEn", e.target.value)}
-                        placeholder="English label"
-                        data-testid={`input-option-label-en-${idx}`}
-                      />
-                      <Input
-                        value={opt.labelEs}
-                        onChange={e => updateOption(idx, "labelEs", e.target.value)}
-                        placeholder="Spanish label"
-                        data-testid={`input-option-label-es-${idx}`}
-                      />
+                      <div>
+                        <label className="text-xs font-medium text-muted-foreground mb-1 block">English</label>
+                        <Input
+                          value={opt.labelEn}
+                          onChange={e => updateOption(idx, "labelEn", e.target.value)}
+                          placeholder="English label"
+                          data-testid={`input-option-label-en-${idx}`}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-muted-foreground mb-1 block">Spanish</label>
+                        <Input
+                          value={opt.labelEs}
+                          onChange={e => updateOption(idx, "labelEs", e.target.value)}
+                          placeholder="Spanish label"
+                          data-testid={`input-option-label-es-${idx}`}
+                        />
+                      </div>
                     </div>
                   </div>
                   {questionForm.options.length > 1 && (
@@ -816,6 +826,7 @@ export default function SelfAssessmentAdmin() {
                       size="icon"
                       variant="ghost"
                       onClick={() => removeOption(idx)}
+                      className="mt-5"
                       data-testid={`button-remove-option-${idx}`}
                     >
                       <Trash2 className="w-4 h-4" />
