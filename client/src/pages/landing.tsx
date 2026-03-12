@@ -128,7 +128,33 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="py-16 px-6 bg-muted/50" data-testid="section-humans-principles">
+      <section className="relative py-16 px-6 bg-muted/50 overflow-hidden" data-testid="section-humans-principles">
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="circuit-bg" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="60" x2="45" y2="60" stroke="hsl(152,45%,32%)" strokeWidth="0.8"/>
+              <line x1="75" y1="60" x2="120" y2="60" stroke="hsl(152,45%,32%)" strokeWidth="0.8"/>
+              <line x1="60" y1="0" x2="60" y2="45" stroke="hsl(152,45%,32%)" strokeWidth="0.8"/>
+              <line x1="60" y1="75" x2="60" y2="120" stroke="hsl(152,45%,32%)" strokeWidth="0.8"/>
+              <rect x="45" y="52" width="30" height="16" rx="3" fill="none" stroke="hsl(152,45%,32%)" strokeWidth="0.7"/>
+              <circle cx="60" cy="60" r="3" fill="hsl(152,45%,32%)"/>
+              <line x1="0" y1="20" x2="20" y2="20" stroke="hsl(152,45%,32%)" strokeWidth="0.6"/>
+              <line x1="20" y1="20" x2="20" y2="40" stroke="hsl(152,45%,32%)" strokeWidth="0.6"/>
+              <circle cx="20" cy="20" r="1.8" fill="hsl(152,45%,32%)"/>
+              <circle cx="20" cy="40" r="1.8" fill="hsl(152,45%,32%)"/>
+              <line x1="100" y1="80" x2="120" y2="80" stroke="hsl(152,45%,32%)" strokeWidth="0.6"/>
+              <line x1="100" y1="80" x2="100" y2="100" stroke="hsl(152,45%,32%)" strokeWidth="0.6"/>
+              <circle cx="100" cy="80" r="1.8" fill="hsl(152,45%,32%)"/>
+              <circle cx="100" cy="100" r="1.8" fill="hsl(152,45%,32%)"/>
+              <line x1="0" y1="95" x2="15" y2="95" stroke="hsl(152,45%,32%)" strokeWidth="0.5"/>
+              <line x1="105" y1="5" x2="120" y2="5" stroke="hsl(152,45%,32%)" strokeWidth="0.5"/>
+              <rect x="14" y="92" width="6" height="6" rx="1" fill="none" stroke="hsl(152,45%,32%)" strokeWidth="0.5"/>
+              <rect x="100" y="2" width="6" height="6" rx="1" fill="none" stroke="hsl(152,45%,32%)" strokeWidth="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#circuit-bg)" opacity="0.07"/>
+        </svg>
+        <div className="absolute inset-0 pointer-events-none" style={{background: "radial-gradient(ellipse 70% 60% at 50% 50%, transparent 20%, hsl(var(--muted) / 0.55) 100%)"}} aria-hidden="true"/>
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <div className="flex items-center justify-center gap-2 mb-3">
@@ -240,9 +266,15 @@ export default function LandingPage() {
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-semibold">{t("nav.title")}</span>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {t("landing.footer")}
-          </p>
+          <div className="flex flex-col md:flex-row items-center gap-3">
+            <p className="text-xs text-muted-foreground">
+              {t("landing.footer")}
+            </p>
+            <span className="hidden md:inline text-muted-foreground/40">·</span>
+            <Link href="/disclaimer">
+              <span className="text-xs text-primary hover:underline cursor-pointer" data-testid="link-footer-disclaimer">{t("disclaimer.footerLink")}</span>
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

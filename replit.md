@@ -32,6 +32,7 @@ client/src/
       explore-map.tsx - Explore Map admin page (In Development)
       self-assessment.tsx - Self-Assessment admin page (In Development)
     assessment.tsx      - Career self-assessment quiz (Healthcare/Education tracks)
+    disclaimer.tsx      - AI information disclaimer page (EN/ES, linked from all footers + chat)
   components/
     admin-sidebar.tsx - Admin navigation sidebar (collapsible "In Development" section)
     ui/              - shadcn/ui components
@@ -174,6 +175,9 @@ shared/
 66. HUMANS Principles section on landing page: showcases CCC Chancellor's Office human-centered AI framework (H-U-M-A-N-S) with 6 principle cards, EN/ES translations, and link to ai.cccco.edu/guidance-and-policy/
 67. Token-based admin auth: in-memory UUID tokens via Authorization Bearer header (replaced session cookies for Replit preview compatibility)
 68. Self-assessment admin preview: "Preview Quiz" button opens embedded iframe preview with track selector, plus live URL display with copy link
+69. Onboarding step renamed from 'welcome' to 'pathway' in DB, seed, chat.tsx, and admin page — all 5 onboarding steps: pathway, county, student-type, study-location, support-needs
+70. AI Disclaimer page at `/disclaimer` — full EN/ES bilingual, linked from all footers (landing, about) and chat input area, accessible via header back-button
+71. Circuit board SVG tiled background (7% opacity, forest green) with radial fade overlay on the HUMANS Principles section of the landing page
 
 ## Running
 - `npm run dev` starts both frontend (Vite) and backend (Express) on port 5000

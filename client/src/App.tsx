@@ -12,6 +12,7 @@ import AboutPage from "@/pages/about";
 import AdminLayout from "@/pages/admin/layout";
 import ExplorePage from "@/pages/explore";
 import AssessmentPage from "@/pages/assessment";
+import DisclaimerPage from "@/pages/disclaimer";
 
 function Router() {
   return (
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/about" component={AboutPage} />
       <Route path="/explore" component={ExplorePage} />
       <Route path="/assessment" component={AssessmentPage} />
+      <Route path="/disclaimer" component={DisclaimerPage} />
       <Route path="/admin" component={AdminLayout} />
       <Route path="/admin/:rest*" component={AdminLayout} />
       <Route component={NotFound} />

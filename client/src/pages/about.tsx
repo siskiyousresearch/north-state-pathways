@@ -282,9 +282,15 @@ export default function AboutPage() {
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-semibold">{t("nav.title")}</span>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {t("landing.footer")}
-          </p>
+          <div className="flex flex-col md:flex-row items-center gap-3">
+            <p className="text-xs text-muted-foreground">
+              {t("landing.footer")}
+            </p>
+            <span className="hidden md:inline text-muted-foreground/40">·</span>
+            <Link href="/disclaimer">
+              <span className="text-xs text-primary hover:underline cursor-pointer" data-testid="link-footer-disclaimer">{t("disclaimer.footerLink")}</span>
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

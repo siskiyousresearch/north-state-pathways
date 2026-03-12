@@ -988,7 +988,10 @@ export default function ChatPage() {
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2 text-center">
-                      {t("chat.disclaimer")}
+                      {t("chat.disclaimer")}{" "}
+                      <Link href="/disclaimer" className="text-primary hover:underline" data-testid="link-chat-disclaimer">
+                        {t("chat.disclaimerLink")}
+                      </Link>
                     </p>
                   </div>
                 </div>

@@ -143,7 +143,8 @@ const translations: Record<string, Record<Language, string>> = {
   "chat.visitWebsite": { en: "Visit northstatepathways.org", es: "Visita northstatepathways.org" },
   "chat.placeholder": { en: "Ask about education pathways, healthcare careers, scholarships...", es: "Pregunta sobre rutas educativas, carreras en salud, becas..." },
   "chat.thinking": { en: "Thinking...", es: "Pensando..." },
-  "chat.disclaimer": { en: "Powered by AI. Information is for guidance only — verify with institutions directly.", es: "Impulsado por IA. La información es solo orientativa — verifica directamente con las instituciones." },
+  "chat.disclaimer": { en: "Powered by AI — information is for guidance only.", es: "Impulsado por IA — la información es solo orientativa." },
+  "chat.disclaimerLink": { en: "Read our AI disclaimer", es: "Lee nuestro aviso de IA" },
   "chat.errorMsg": { en: "I'm sorry, I encountered an error. Please try again.", es: "Lo siento, encontré un error. Por favor intenta de nuevo." },
 
   "studentType.highSchool": { en: "High School Student", es: "Estudiante de Preparatoria" },
@@ -183,6 +184,23 @@ const translations: Record<string, Record<Language, string>> = {
   "explore.countyOffice": { en: "County Office of Education", es: "Oficina de Educación del Condado" },
   "explore.onlineUniversity": { en: "Online University", es: "Universidad en Línea" },
   "explore.noPrograms": { en: "No programs match the current filter", es: "Ningún programa coincide con el filtro actual" },
+
+  "disclaimer.badge": { en: "AI Disclaimer", es: "Aviso sobre IA" },
+  "disclaimer.title": { en: "AI Information Disclaimer", es: "Aviso sobre Información de IA" },
+  "disclaimer.subtitle": { en: "Important information about the AI-powered guidance on this platform.", es: "Información importante sobre la orientación basada en IA de esta plataforma." },
+  "disclaimer.limitsTitle": { en: "AI Can Make Mistakes", es: "La IA Puede Cometer Errores" },
+  "disclaimer.limitsBody": { en: "The AI assistant on this platform is a helpful starting point — not a definitive authority. AI-generated responses may contain inaccuracies, reflect outdated program details, or misunderstand your specific situation. Program availability, tuition costs, admission requirements, and deadlines change frequently. Always treat AI guidance as a first step to explore your options, not as a final answer.", es: "El asistente de IA de esta plataforma es un punto de partida útil, no una autoridad definitiva. Las respuestas generadas por IA pueden contener imprecisiones, reflejar detalles desactualizados de programas o malinterpretar tu situación específica. La disponibilidad de programas, costos de matrícula, requisitos de admisión y fechas límite cambian con frecuencia. Siempre trata la orientación de IA como un primer paso para explorar tus opciones, no como una respuesta final." },
+  "disclaimer.verifyTitle": { en: "Verify Before You Decide", es: "Verifica Antes de Decidir" },
+  "disclaimer.verifyBody": { en: "Before making any important education or career decision — enrolling in a program, applying for financial aid, or changing your academic path — confirm the details directly with the institution. Contact admissions offices, academic counselors, or financial aid advisors at the college or university to get authoritative, up-to-date information tailored to your situation.", es: "Antes de tomar cualquier decisión importante sobre educación o carrera — inscribirte en un programa, solicitar ayuda financiera o cambiar tu camino académico — confirma los detalles directamente con la institución. Comunícate con las oficinas de admisiones, consejeros académicos o asesores de ayuda financiera del colegio o universidad para obtener información autorizada y actualizada adaptada a tu situación." },
+  "disclaimer.humanHelpTitle": { en: "Get Help from a Real Person", es: "Obtén Ayuda de una Persona Real" },
+  "disclaimer.humanHelpBody": { en: "You always have the right to speak with a qualified human advisor. If you have questions, concerns, or need personalized guidance that AI cannot provide, reach out through one of these channels:", es: "Siempre tienes derecho a hablar con un asesor humano calificado. Si tienes preguntas, inquietudes o necesitas orientación personalizada que la IA no puede proporcionar, comunícate a través de uno de estos canales:" },
+  "disclaimer.scaileContact": { en: "SCAILE (North State Pathways team) — visit northstatepathways.org for contact information and regional support resources.", es: "SCAILE (equipo de North State Pathways) — visita northstatepathways.org para obtener información de contacto y recursos de apoyo regional." },
+  "disclaimer.instContact": { en: "Institution counselors and admissions offices — each college and university listed on this platform has dedicated staff ready to answer your questions.", es: "Consejeros e oficinas de admisiones de las instituciones — cada colegio y universidad listado en esta plataforma tiene personal dedicado listo para responder tus preguntas." },
+  "disclaimer.dataTitle": { en: "Your Conversations Are Private", es: "Tus Conversaciones Son Privadas" },
+  "disclaimer.dataBody": { en: "Chat sessions on this platform are used only to improve the guidance experience. We do not sell your data or share personally identifying information with third parties. See the HUMANS Principles for more on our privacy commitments.", es: "Las sesiones de chat en esta plataforma se usan únicamente para mejorar la experiencia de orientación. No vendemos tus datos ni compartimos información de identificación personal con terceros. Consulta los Principios HUMANS para más información sobre nuestros compromisos de privacidad." },
+  "disclaimer.backHome": { en: "Back to Home", es: "Volver al Inicio" },
+  "disclaimer.startChat": { en: "Start Chatting", es: "Comenzar Chat" },
+  "disclaimer.footerLink": { en: "AI Disclaimer", es: "Aviso de IA" },
 };
 
 export function getTranslation(key: string, language: Language): string {
