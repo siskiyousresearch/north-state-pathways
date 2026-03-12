@@ -28,8 +28,8 @@ import { Button } from "@/components/ui/button";
 const navItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
   { title: "Conversations", url: "/admin/conversations", icon: MessageSquare },
-  { title: "Pathways & Programs", url: "/admin/pathways", icon: Route },
   { title: "Institutions", url: "/admin/institutions", icon: Building2 },
+  { title: "Pathways & Programs", url: "/admin/pathways", icon: Route },
   { title: "Resources", url: "/admin/resources", icon: BookOpen },
   { title: "Contacts", url: "/admin/contacts", icon: Users },
   { title: "Research Tasks", url: "/admin/research", icon: FlaskConical },
