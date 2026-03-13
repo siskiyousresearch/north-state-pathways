@@ -110,9 +110,6 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (process.env.NODE_ENV === "production") {
-    const path = await import("path");
-    const publicDir = path.resolve(__dirname, "..", "public");
-    app.use(express.static(publicDir));
     serveStatic(app);
   } else {
     const path = await import("path");

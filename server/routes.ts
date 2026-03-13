@@ -5,7 +5,7 @@ import { db } from "./db";
 import { programs, institutions } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
-import { randomUUID } from "crypto";
+import { randomUUID, createHmac } from "crypto";
 import { z } from "zod";
 import {
   insertPathwaySchema, insertProgramSchema, insertResourceSchema,
@@ -252,12 +252,18 @@ Educación: Credenciales de enseñanza, paraprofesional, títulos en educación
 
 Eres una guía informativa. Siempre recomienda verificar los detalles directamente con las instituciones.`;
 
-const adminTokens = new Set<string>();
+// HMAC-based admin token that survives autoscale cold starts (no in-memory state)
+function generateAdminToken(): string {
+  const adminUser = (process.env.ADMIN_USERNAME || "SCAILE").trim();
+  const adminPass = (process.env.ADMIN_PASSWORD || "").trim();
+  const secret = process.env.SESSION_SECRET || "fallback-secret-key";
+  return createHmac("sha256", secret).update(`${adminUser}:${adminPass}`).digest("hex");
+}
 
 function requireAdmin(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers["authorization"];
   const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-  if (token && adminTokens.has(token)) {
+  if (token && token === generateAdminToken()) {
     return next();
   }
   res.status(401).json({ error: "Unauthorized" });
@@ -277,18 +283,14 @@ export async function registerRoutes(
     const inputPass = (password || "").trim();
 
     if (inputUser === adminUser && inputPass === adminPass) {
-      const token = randomUUID();
-      adminTokens.add(token);
-      res.json({ success: true, token });
+      res.json({ success: true, token: generateAdminToken() });
     } else {
       res.status(401).json({ error: "Invalid credentials" });
     }
   });
 
-  app.post("/api/auth/logout", (req, res) => {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-    if (token) adminTokens.delete(token);
+  app.post("/api/auth/logout", (_req, res) => {
+    // Client clears the token from localStorage; no server-side state to clean up
     res.json({ success: true });
   });
 
@@ -296,7 +298,7 @@ export async function registerRoutes(
     res.set("Cache-Control", "no-store, no-cache, must-revalidate");
     const authHeader = req.headers["authorization"];
     const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-    res.json({ authenticated: !!(token && adminTokens.has(token)) });
+    res.json({ authenticated: !!(token && token === generateAdminToken()) });
   });
 
   // ========== PUBLIC RESOURCES API ==========
