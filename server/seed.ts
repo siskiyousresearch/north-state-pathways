@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { eq, isNull, and } from "drizzle-orm";
 import { counties, institutions, pathways, programs, resources, onboardingScripts } from "@shared/schema";
 import { seedAssessmentData } from "./seed-assessment";
 
@@ -285,12 +286,109 @@ async function seedSpanishOnboardingScripts() {
   console.log(`Seeded ${scripts.length} Spanish onboarding scripts.`);
 }
 
+// Backfill missing logoUrls, program URLs, and resource URLs on existing records
+async function backfillMissingData() {
+  const INSTITUTION_LOGOS: Record<string, string> = {
+    "Shasta College": "/images/logos/shasta-college.svg",
+    "Butte College": "/images/logos/butte-college.png",
+    "College of the Siskiyous": "/images/logos/siskiyous.png",
+    "Lassen Community College": "/images/logos/lassen.png",
+    "CSU Chico": "/images/logos/csu-chico.svg",
+    "Simpson University": "/images/logos/simpson.png",
+    "UC Davis": "/images/logos/uc-davis.png",
+    "Southern Oregon University": "/images/logos/sou.png",
+    "Western Governors University": "/images/logos/wgu.png",
+    "REACH University": "/images/logos/reach.png",
+    "Shasta County Office of Education": "/images/logos/shasta-coe.png",
+    "Butte County Office of Education": "/images/logos/butte-coe.png",
+    "Siskiyou County Office of Education": "/images/logos/siskiyou-coe.png",
+    "Tehama County Department of Education": "/images/logos/tehama-coe.png",
+  };
+
+  const PROGRAM_URLS: Record<string, string> = {
+    "Certified Nursing Assistant (CNA)": "https://www.shastacollege.edu/academics/programs/nursing/",
+    "Licensed Vocational Nurse (LVN)": "https://www.shastacollege.edu/academics/divisions-departments/health-sciences-hsup/health-sciences-programs/vocational-nursing-vn-program/",
+    "Associate Degree in Nursing (ADN/RN)": "https://www.shastacollege.edu/academics/programs/health-sciences/nursing-associate-degree-nursing-as-degree/",
+    "RN-to-BSN Program": "https://www.csuchico.edu/nurs/programs/rn-bsn/index.shtml",
+    "Medical Assisting": "https://www.shastacollege.edu/academics/divisions-departments/health-sciences-hsup/health-sciences-programs/medical-assisting-ma-program/",
+    "Emergency Medical Technician (EMT)": "https://www.shastacollege.edu/academics/programs/fire-technology/ems-program/",
+    "Paramedic Program": "https://www.shastacollege.edu/academics/programs/emergency-services/",
+    "Health Information Management": "https://www.csuchico.edu/phha/degrees-minors/health-admin.shtml",
+    "Nursing (CNA/LVN)": "https://www.butte.edu/nursing/",
+    "Allied Health Programs": "https://www.butte.edu/departments/careertech/healthoccupations/",
+    "Nursing Programs": "https://www.siskiyous.edu/cte/nurs/",
+    "BSN Nursing": "https://simpsonu.edu/academics/undergraduate-majors/nursing/",
+    "Online BSN/MSN Programs": "https://www.wgu.edu/online-nursing-health-degrees/rn-prelicensure-nursing-bachelors-program.html",
+    "Elementary Education (Teaching Credential)": "https://www.csuchico.edu/academics/college/communication-education/departments/school-education/credential/index.shtml",
+    "Secondary Education (Teaching Credential)": "https://www.csuchico.edu/academics/college/communication-education/departments/school-education/credential/index.shtml",
+    "Liberal Studies (Pre-Teaching)": "https://www.csuchico.edu/academics/college/communication-education/departments/liberal-studies/index.shtml",
+    "Early Childhood Education": "https://www.shastacollege.edu/academics/programs/early-childhood-education/",
+    "Paraprofessional/Instructional Aide": "https://www.shastacollege.edu/academics/programs/early-childhood-education/",
+    "Teacher Education (Online BA)": "https://reach.edu/programs",
+    "Education (MAT)": "https://sou.edu/academics/education/programs/master-arts-teaching-mat/",
+  };
+
+  const RESOURCE_URLS: Record<string, string> = {
+    "Federal Pell Grant": "https://studentaid.gov/understand-aid/types/grants/pell",
+    "Shasta College Foundation Scholarships": "https://www.shastacollege.edu/foundation",
+    "North State AHEC Health Careers Scholarship": "https://cal-ahec.org/scholars-program-application/",
+    "CalWORKs Program": "https://www.cccco.edu/About-Us/Chancellors-Office/Divisions/Educational-Services-and-Support/Student-Service/What-we-do/CalWORKs",
+    "EOPS (Extended Opportunity Programs and Services)": "https://www.cccco.edu/About-Us/Chancellors-Office/Divisions/Educational-Services-and-Support/Student-Service/What-we-do/Extended-Opportunity-Programs-and-Services",
+    "Career Navigator Services": "https://northstatecareers.org/",
+    "FAFSA Application Assistance": "https://studentaid.gov/h/apply-for-aid/fafsa",
+    "California Promise Grant (BOG Waiver)": "https://www.csac.ca.gov",
+    "Nursing Scholarship Program (BRN)": "https://hcai.ca.gov/workforce/financial-assistance/scholarships/bsnsp/",
+    "Rural Health Workforce Initiative": "https://hcai.ca.gov/workforce/health-workforce/california-state-office-of-rural-health/",
+    "Grow Your Own Teacher Programs": "https://www.cde.ca.gov/ci/pl/divteachrecruit.asp",
+    "Classified School Employee Teacher Credential Program": "https://www.ctc.ca.gov/educator-prep/grant-funded-programs/Classified-Sch-Empl-Teacher-Cred-Prog",
+    "North State Health Careers": "https://northstatecareers.org/industry/health/",
+    "North State Education & Human Development Careers": "https://northstatecareers.org/industry/education-and-human-development/",
+  };
+
+  let updated = 0;
+
+  // Backfill institution logos
+  const allInstitutions = await db.select().from(institutions);
+  for (const inst of allInstitutions) {
+    const expectedLogo = INSTITUTION_LOGOS[inst.name];
+    if (expectedLogo && !inst.logoUrl) {
+      await db.update(institutions).set({ logoUrl: expectedLogo }).where(eq(institutions.id, inst.id));
+      updated++;
+    }
+  }
+
+  // Backfill program URLs
+  const allPrograms = await db.select().from(programs);
+  for (const prog of allPrograms) {
+    const expectedUrl = PROGRAM_URLS[prog.name];
+    if (expectedUrl && !prog.url) {
+      await db.update(programs).set({ url: expectedUrl }).where(eq(programs.id, prog.id));
+      updated++;
+    }
+  }
+
+  // Backfill resource URLs
+  const allResources = await db.select().from(resources);
+  for (const res of allResources) {
+    const expectedUrl = RESOURCE_URLS[res.name];
+    if (expectedUrl && !res.url) {
+      await db.update(resources).set({ url: expectedUrl }).where(eq(resources.id, res.id));
+      updated++;
+    }
+  }
+
+  if (updated > 0) {
+    console.log(`Backfilled ${updated} missing fields (logos, URLs).`);
+  }
+}
+
 export async function seedDatabase() {
   console.log("Checking if database needs seeding...");
 
   const existingPathways = await db.select().from(pathways);
   if (existingPathways.length > 0) {
     console.log("Database already seeded, skipping main seed.");
+    await backfillMissingData();
     await seedOnboardingScripts();
     await seedSpanishOnboardingScripts();
     await seedAssessmentData();
@@ -313,20 +411,20 @@ export async function seedDatabase() {
   ]);
 
   const [shastaCollege] = await db.insert(institutions).values([
-    { name: "Shasta College", type: "Community College", county: "Shasta", website: "https://www.shastacollege.edu" },
-    { name: "Butte College", type: "Community College", county: "Butte", website: "https://www.butte.edu" },
-    { name: "College of the Siskiyous", type: "Community College", county: "Siskiyou", website: "https://www.siskiyous.edu" },
-    { name: "Lassen Community College", type: "Community College", county: "Lassen", website: "https://www.lassencollege.edu" },
-    { name: "CSU Chico", type: "University (CSU)", county: "Butte", website: "https://www.csuchico.edu" },
-    { name: "Simpson University", type: "Private University", county: "Shasta", website: "https://www.simpsonu.edu" },
-    { name: "UC Davis", type: "University (UC)", county: null, website: "https://www.ucdavis.edu" },
-    { name: "Southern Oregon University", type: "University (Out-of-State)", county: null, website: "https://www.sou.edu" },
-    { name: "Western Governors University", type: "Online University", county: null, website: "https://www.wgu.edu" },
-    { name: "REACH University", type: "Online University", county: null, website: "https://www.reach.edu" },
-    { name: "Shasta County Office of Education", type: "County Office", county: "Shasta", website: null },
-    { name: "Butte County Office of Education", type: "County Office", county: "Butte", website: null },
-    { name: "Siskiyou County Office of Education", type: "County Office", county: "Siskiyou", website: null },
-    { name: "Tehama County Department of Education", type: "County Office", county: "Tehama", website: null },
+    { name: "Shasta College", type: "Community College", county: "Shasta", website: "https://www.shastacollege.edu", logoUrl: "/images/logos/shasta-college.svg" },
+    { name: "Butte College", type: "Community College", county: "Butte", website: "https://www.butte.edu", logoUrl: "/images/logos/butte-college.png" },
+    { name: "College of the Siskiyous", type: "Community College", county: "Siskiyou", website: "https://www.siskiyous.edu", logoUrl: "/images/logos/siskiyous.png" },
+    { name: "Lassen Community College", type: "Community College", county: "Lassen", website: "https://www.lassencollege.edu", logoUrl: "/images/logos/lassen.png" },
+    { name: "CSU Chico", type: "University (CSU)", county: "Butte", website: "https://www.csuchico.edu", logoUrl: "/images/logos/csu-chico.svg" },
+    { name: "Simpson University", type: "Private University", county: "Shasta", website: "https://www.simpsonu.edu", logoUrl: "/images/logos/simpson.png" },
+    { name: "UC Davis", type: "University (UC)", county: null, website: "https://www.ucdavis.edu", logoUrl: "/images/logos/uc-davis.png" },
+    { name: "Southern Oregon University", type: "University (Out-of-State)", county: null, website: "https://www.sou.edu", logoUrl: "/images/logos/sou.png" },
+    { name: "Western Governors University", type: "Online University", county: null, website: "https://www.wgu.edu", logoUrl: "/images/logos/wgu.png" },
+    { name: "REACH University", type: "Online University", county: null, website: "https://www.reach.edu", logoUrl: "/images/logos/reach.png" },
+    { name: "Shasta County Office of Education", type: "County Office", county: "Shasta", website: null, logoUrl: "/images/logos/shasta-coe.png" },
+    { name: "Butte County Office of Education", type: "County Office", county: "Butte", website: null, logoUrl: "/images/logos/butte-coe.png" },
+    { name: "Siskiyou County Office of Education", type: "County Office", county: "Siskiyou", website: null, logoUrl: "/images/logos/siskiyou-coe.png" },
+    { name: "Tehama County Department of Education", type: "County Office", county: "Tehama", website: null, logoUrl: "/images/logos/tehama-coe.png" },
   ]).returning();
 
   const allInstitutions = await db.select().from(institutions);
