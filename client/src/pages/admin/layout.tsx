@@ -74,7 +74,7 @@ export default function AdminLayout() {
               Logout
             </Button>
           </header>
-          <main className="flex-1 overflow-y-auto">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden">
             <Switch>
               <Route path="/admin" component={AdminDashboard} />
               <Route path="/admin/conversations" component={ConversationsPage} />

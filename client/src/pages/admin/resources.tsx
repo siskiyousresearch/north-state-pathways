@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger
@@ -235,7 +234,7 @@ export default function ResourcesPage() {
   );
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6 overflow-hidden">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold" data-testid="text-resources-title">Resources</h1>
@@ -250,7 +249,7 @@ export default function ResourcesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search resources..."
-            className="pl-8 w-64"
+            className="pl-8 w-full max-w-64"
             data-testid="input-search-resources"
           />
         </div>
@@ -299,56 +298,56 @@ export default function ResourcesPage() {
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
         </div>
       ) : (
-        <ScrollArea className="h-[600px]">
-          <div className="space-y-2">
+        <div className="space-y-2">
             {filtered?.map((resource) => (
-              <Card key={resource.id} className="p-3.5" data-testid={`card-resource-${resource.id}`}>
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary/10 shrink-0">
-                      <BookOpen className="w-4 h-4 text-primary" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-medium truncate">{resource.name}</p>
-                        <Badge variant="secondary" className="text-xs">{resource.type}</Badge>
+              <Card key={resource.id} className="p-3 sm:p-3.5" data-testid={`card-resource-${resource.id}`}>
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary/10 shrink-0">
+                    <BookOpen className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-1">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-medium">{resource.name}</p>
+                          <Badge variant="secondary" className="text-xs shrink-0">{resource.type}</Badge>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                        {getPathwayNames(resource).map((name) => (
-                          <Badge key={name} variant="outline" className="text-xs">{name}</Badge>
-                        ))}
-                        {getCountyDisplay(resource).length > 0 && (
-                          <span className="text-xs text-muted-foreground flex items-center gap-0.5">
-                            <MapPin className="w-3 h-3" />
-                            {getCountyDisplay(resource).join(", ")}
-                          </span>
+                      <div className="flex items-center shrink-0">
+                        {resource.url && (
+                          <a href={resource.url} target="_blank" rel="noopener noreferrer">
+                            <Button size="icon" variant="ghost" className="h-7 w-7" data-testid={`button-open-resource-${resource.id}`}>
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </Button>
+                          </a>
                         )}
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(resource)} data-testid={`button-edit-resource-${resource.id}`}>
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => deleteResource.mutate(resource.id)} data-testid={`button-delete-resource-${resource.id}`}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
                       </div>
-                      {resource.url && (
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate">{resource.url}</p>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      {getPathwayNames(resource).map((name) => (
+                        <Badge key={name} variant="outline" className="text-xs">{name}</Badge>
+                      ))}
+                      {getCountyDisplay(resource).length > 0 && (
+                        <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                          <MapPin className="w-3 h-3" />
+                          {getCountyDisplay(resource).join(", ")}
+                        </span>
                       )}
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
                     {resource.url && (
-                      <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                        <Button size="icon" variant="ghost" data-testid={`button-open-resource-${resource.id}`}>
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </Button>
-                      </a>
+                      <p className="text-xs text-muted-foreground mt-0.5 truncate">{resource.url}</p>
                     )}
-                    <Button size="icon" variant="ghost" onClick={() => openEdit(resource)} data-testid={`button-edit-resource-${resource.id}`}>
-                      <Pencil className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button size="icon" variant="ghost" onClick={() => deleteResource.mutate(resource.id)} data-testid={`button-delete-resource-${resource.id}`}>
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
                   </div>
                 </div>
               </Card>
             ))}
           </div>
-        </ScrollArea>
       )}
     </div>
   );
