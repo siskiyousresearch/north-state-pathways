@@ -21,6 +21,16 @@ export function serveStatic(app: Express) {
   console.log(`[static] Serving static files from ${distPath}`);
   app.use(express.static(distPath));
 
+  // Also serve the root public/ directory for assets (audio, images, videos)
+  // that aren't part of the Vite client build (e.g. onboarding audio files).
+  // In dev mode, express.static on root public/ handles this; in production
+  // Vite only copies client/public/ to dist/public/, missing root public/.
+  const rootPublic = path.resolve(__dirname, "..", "public");
+  if (fs.existsSync(rootPublic) && rootPublic !== distPath) {
+    console.log(`[static] Also serving assets from ${rootPublic}`);
+    app.use(express.static(rootPublic));
+  }
+
   // fall through to index.html if the file doesn't exist (SPA routing)
   const indexPath = path.resolve(distPath, "index.html");
   app.use("/{*path}", (_req, res) => {
