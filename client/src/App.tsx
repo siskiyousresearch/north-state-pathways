@@ -13,6 +13,7 @@ import AdminLayout from "@/pages/admin/layout";
 import ExplorePage from "@/pages/explore";
 import AssessmentPage from "@/pages/assessment";
 import DisclaimerPage from "@/pages/disclaimer";
+import ScholarshipsPage from "@/pages/scholarships";
 import InstitutionsPage from "@/pages/admin/institutions";
 
 function Router() {
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/about" component={AboutPage} />
       <Route path="/explore" component={ExplorePage} />
       <Route path="/assessment" component={AssessmentPage} />
+      <Route path="/scholarships" component={ScholarshipsPage} />
       <Route path="/disclaimer" component={DisclaimerPage} />
       <Route path="/admin" component={AdminLayout} />
       <Route path="/admin/institutions" component={InstitutionsPage} />

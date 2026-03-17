@@ -9,7 +9,8 @@ import { randomUUID, createHmac } from "crypto";
 import { z } from "zod";
 import {
   insertPathwaySchema, insertProgramSchema, insertResourceSchema,
-  insertResearchTaskSchema, insertOnboardingScriptSchema, insertContactSchema
+  insertResearchTaskSchema, insertOnboardingScriptSchema, insertContactSchema,
+  type EligibilityRule
 } from "@shared/schema";
 import { writeFile, mkdir, unlink } from "fs/promises";
 import path from "path";
@@ -212,7 +213,10 @@ Counties: Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Sierra, Siskiyou, Tehama,
 Healthcare: Nursing (CNA/LVN/RN/BSN), Medical Assisting, EMS, Allied Health
 Education: Teaching credentials, paraprofessional, education degrees
 
-You are an informational guide. Always recommend verifying details with institutions directly.`;
+You are an informational guide. Always recommend verifying details with institutions directly.
+
+SCHOLARSHIP MATCHING:
+If a student asks about scholarships, financial aid, or funding, share what you know from the knowledge base. Then suggest the dedicated Scholarship Finder: "For a personalized scholarship match based on your specific situation, try our **[Scholarship Finder](/scholarships)** tool!"`;
 
 const SYSTEM_PROMPT_SPANISH = `Eres el Asistente de IA de North State Pathways — un asesor de carreras cálido y conocedor para estudiantes en el norte de California. DEBES responder SIEMPRE en español.
 
@@ -250,7 +254,10 @@ Condados: Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Sierra, Siskiyou, Tehama,
 Salud: Enfermería (CNA/LVN/RN/BSN), Asistencia Médica, Servicios de Emergencia, Salud Afín
 Educación: Credenciales de enseñanza, paraprofesional, títulos en educación
 
-Eres una guía informativa. Siempre recomienda verificar los detalles directamente con las instituciones.`;
+Eres una guía informativa. Siempre recomienda verificar los detalles directamente con las instituciones.
+
+BÚSQUEDA DE BECAS:
+Si un estudiante pregunta sobre becas, ayuda financiera o financiamiento, comparte lo que sepas de la base de conocimiento. Luego sugiere el Buscador de Becas dedicado: "Para una búsqueda personalizada de becas basada en tu situación específica, prueba nuestro **[Buscador de Becas](/scholarships)**!"`;
 
 // HMAC-based admin token that survives autoscale cold starts (no in-memory state)
 function generateAdminToken(): string {
@@ -267,6 +274,39 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
     return next();
   }
   res.status(401).json({ error: "Unauthorized" });
+}
+
+function matchRule(rule: EligibilityRule, userVal: string | string[] | number | boolean): boolean {
+  switch (rule.type) {
+    case "select": {
+      if (!Array.isArray(rule.values)) return false;
+      const uv = String(userVal).toLowerCase();
+      return rule.values.some(v => v.toLowerCase() === uv);
+    }
+    case "multiselect": {
+      if (!Array.isArray(rule.values)) return false;
+      const userArr = Array.isArray(userVal) ? userVal : [String(userVal)];
+      return userArr.some(u => rule.values && Array.isArray(rule.values) && rule.values.some(v => v.toLowerCase() === u.toLowerCase()));
+    }
+    case "range": {
+      const num = Number(userVal);
+      if (isNaN(num)) return false;
+      const range = rule.values as { min?: number; max?: number } | undefined;
+      if (!range) return true;
+      if (range.min !== undefined && num < range.min) return false;
+      if (range.max !== undefined && num > range.max) return false;
+      return true;
+    }
+    case "boolean":
+      return !!userVal;
+    case "text": {
+      if (!Array.isArray(rule.values) || rule.values.length === 0) return true;
+      const text = String(userVal).toLowerCase();
+      return rule.values.some(v => text.includes(v.toLowerCase()) || v.toLowerCase().includes(text));
+    }
+    default:
+      return false;
+  }
 }
 
 export async function registerRoutes(
@@ -1088,6 +1128,129 @@ Write 2-3 short paragraphs summarizing what students are seeking, which regions 
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: "Failed to delete resource" });
+    }
+  });
+
+  // ========== SCHOLARSHIP MATCHING API ==========
+  app.get("/api/scholarships/criteria", async (_req, res) => {
+    try {
+      const allResources = await storage.getResources();
+      const withRules = allResources.filter(r => r.eligibilityRules && Array.isArray(r.eligibilityRules) && (r.eligibilityRules as any[]).length > 0);
+
+      const criteriaMap = new Map<string, { criterion: string; type: string; allValues: any; scholarshipCount: number }>();
+
+      for (const resource of withRules) {
+        const rules = resource.eligibilityRules as EligibilityRule[];
+        for (const rule of rules) {
+          const existing = criteriaMap.get(rule.criterion);
+          if (existing) {
+            existing.scholarshipCount++;
+            // Merge values
+            if (rule.type === "range") {
+              if (typeof existing.allValues === "object" && !Array.isArray(existing.allValues)) {
+                const ruleVals = rule.values as { min?: number; max?: number } | undefined;
+                if (ruleVals?.min !== undefined && (existing.allValues.min === undefined || ruleVals.min < existing.allValues.min)) {
+                  existing.allValues.min = ruleVals.min;
+                }
+                if (ruleVals?.max !== undefined && (existing.allValues.max === undefined || ruleVals.max > existing.allValues.max)) {
+                  existing.allValues.max = ruleVals.max;
+                }
+              }
+              existing.type = "range"; // range takes precedence
+            } else if (Array.isArray(rule.values)) {
+              if (Array.isArray(existing.allValues)) {
+                for (const v of rule.values) {
+                  if (!existing.allValues.includes(v)) existing.allValues.push(v);
+                }
+              }
+              if (rule.type === "multiselect") existing.type = "multiselect"; // multiselect over select
+            }
+          } else {
+            let allValues: any = [];
+            if (rule.type === "range") {
+              allValues = rule.values || {};
+            } else if (Array.isArray(rule.values)) {
+              allValues = [...rule.values];
+            }
+            criteriaMap.set(rule.criterion, {
+              criterion: rule.criterion,
+              type: rule.type,
+              allValues,
+              scholarshipCount: 1,
+            });
+          }
+        }
+      }
+
+      const criteria = Array.from(criteriaMap.values()).sort((a, b) => b.scholarshipCount - a.scholarshipCount);
+      res.json({ criteria });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch scholarship criteria" });
+    }
+  });
+
+  app.post("/api/scholarships/match", async (req, res) => {
+    try {
+      const { criteria } = req.body as { criteria: Record<string, string | string[] | number | boolean> };
+      if (!criteria || typeof criteria !== "object") {
+        return res.status(400).json({ error: "criteria object required" });
+      }
+
+      const allResources = await storage.getResources();
+      const withRules = allResources.filter(r => r.eligibilityRules && Array.isArray(r.eligibilityRules) && (r.eligibilityRules as any[]).length > 0);
+
+      const results: any[] = [];
+
+      for (const resource of withRules) {
+        const rules = resource.eligibilityRules as EligibilityRule[];
+        const requiredRules = rules.filter(r => r.required);
+        const optionalRules = rules.filter(r => !r.required);
+
+        let requiredMatched = 0;
+        let optionalMatched = 0;
+        const matchedRules: string[] = [];
+        const unmatchedRequired: string[] = [];
+        let eligible = true;
+
+        for (const rule of requiredRules) {
+          const userVal = criteria[rule.criterion];
+          if (userVal === undefined || userVal === null || userVal === "") {
+            // Unanswered required = still eligible (not disqualifying)
+            continue;
+          }
+          if (matchRule(rule, userVal)) {
+            requiredMatched++;
+            matchedRules.push(rule.criterion);
+          } else {
+            unmatchedRequired.push(rule.criterion);
+            eligible = false;
+          }
+        }
+
+        for (const rule of optionalRules) {
+          const userVal = criteria[rule.criterion];
+          if (userVal === undefined || userVal === null || userVal === "") continue;
+          if (matchRule(rule, userVal)) {
+            optionalMatched++;
+            matchedRules.push(rule.criterion);
+          }
+        }
+
+        const requiredTotal = requiredRules.length || 1;
+        const optionalTotal = optionalRules.length || 1;
+        const score = (requiredMatched / requiredTotal) * 70 + (optionalMatched / optionalTotal) * 30;
+
+        results.push({ resource, score: Math.round(score), matchedRules, unmatchedRequired, eligible });
+      }
+
+      results.sort((a, b) => {
+        if (a.eligible !== b.eligible) return a.eligible ? -1 : 1;
+        return b.score - a.score;
+      });
+
+      res.json(results);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to match scholarships" });
     }
   });
 

@@ -54,6 +54,7 @@ export const resources = pgTable("resources", {
   county: text("county"),
   counties: text("counties").array(),
   pathwayIds: integer("pathway_ids").array(),
+  eligibilityRules: jsonb("eligibility_rules"),
 });
 
 export const chatSessions = pgTable("chat_sessions", {
@@ -188,6 +189,17 @@ export const assessmentCareers = pgTable("assessment_careers", {
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
+
+export const eligibilityRuleSchema = z.object({
+  criterion: z.string(),
+  type: z.enum(["select", "multiselect", "range", "boolean", "text"]),
+  values: z.union([
+    z.array(z.string()),
+    z.object({ min: z.number().optional(), max: z.number().optional() }),
+  ]).optional(),
+  required: z.boolean(),
+});
+export type EligibilityRule = z.infer<typeof eligibilityRuleSchema>;
 
 export const insertAssessmentQuestionSchema = createInsertSchema(assessmentQuestions).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertAssessmentOptionSchema = createInsertSchema(assessmentOptions).omit({ id: true });

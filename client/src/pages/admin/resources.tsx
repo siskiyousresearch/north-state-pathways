@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Plus, BookOpen, ExternalLink, Trash2, Search, Pencil, MapPin } from "lucide-react";
-import type { Resource, Pathway } from "@shared/schema";
+import { Switch } from "@/components/ui/switch";
+import { Plus, BookOpen, ExternalLink, Trash2, Search, Pencil, MapPin, ChevronDown, X } from "lucide-react";
+import type { Resource, Pathway, EligibilityRule } from "@shared/schema";
 
 const resourceTypes = [
   "Scholarship", "Grant", "Financial Aid", "Fellowship",
@@ -37,11 +38,12 @@ interface ResourceForm {
   eligibility: string;
   selectedPathwayIds: number[];
   selectedCounties: string[];
+  eligibilityRules: EligibilityRule[];
 }
 
 const emptyForm: ResourceForm = {
   name: "", type: "", description: "", url: "", eligibility: "",
-  selectedPathwayIds: [], selectedCounties: [],
+  selectedPathwayIds: [], selectedCounties: [], eligibilityRules: [],
 };
 
 export default function ResourcesPage() {
@@ -50,6 +52,8 @@ export default function ResourcesPage() {
   const [showDialog, setShowDialog] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [form, setForm] = useState<ResourceForm>(emptyForm);
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const [valueInputs, setValueInputs] = useState<Record<number, string>>({});
 
   const { data: resources, isLoading } = useQuery<Resource[]>({ queryKey: ["/api/admin/resources"] });
   const { data: pathways } = useQuery<Pathway[]>({ queryKey: ["/api/admin/pathways"] });
@@ -64,6 +68,7 @@ export default function ResourcesPage() {
     pathwayIds: f.selectedPathwayIds.length > 0 ? f.selectedPathwayIds : null,
     county: f.selectedCounties.length > 0 ? f.selectedCounties[0] : null,
     counties: f.selectedCounties.length > 0 ? f.selectedCounties : null,
+    eligibilityRules: f.eligibilityRules.length > 0 ? f.eligibilityRules : null,
   });
 
   const createResource = useMutation({
@@ -106,6 +111,7 @@ export default function ResourcesPage() {
       eligibility: resource.eligibility || "",
       selectedPathwayIds: existingPathwayIds,
       selectedCounties: existingCounties,
+      eligibilityRules: (resource.eligibilityRules as EligibilityRule[] | null) || [],
     });
     setEditingResource(resource);
   };
@@ -229,6 +235,211 @@ export default function ResourcesPage() {
       <div>
         <Label>Eligibility</Label>
         <Input value={form.eligibility} onChange={(e) => setForm({ ...form, eligibility: e.target.value })} data-testid="input-resource-eligibility" />
+      </div>
+
+      {/* Eligibility Rules */}
+      <div className="border rounded-md">
+        <button
+          type="button"
+          className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium hover:bg-accent/50 rounded-md"
+          onClick={() => setRulesOpen(!rulesOpen)}
+        >
+          <span>Eligibility Rules</span>
+          <ChevronDown className={`w-4 h-4 transition-transform ${rulesOpen ? "rotate-180" : ""}`} />
+        </button>
+
+        {rulesOpen && (
+          <div className="px-3 pb-3 space-y-3">
+            {form.eligibilityRules.map((rule, idx) => (
+              <div key={idx} className="border rounded-md p-2.5 space-y-2 bg-muted/30">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <Label className="text-xs">Criterion</Label>
+                    <Input
+                      list="criterion-suggestions"
+                      value={rule.criterion}
+                      onChange={(e) => {
+                        const updated = [...form.eligibilityRules];
+                        updated[idx] = { ...rule, criterion: e.target.value };
+                        setForm({ ...form, eligibilityRules: updated });
+                      }}
+                      placeholder="e.g. County of Residence"
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div className="w-32">
+                    <Label className="text-xs">Type</Label>
+                    <Select
+                      value={rule.type}
+                      onValueChange={(v) => {
+                        const updated = [...form.eligibilityRules];
+                        const newType = v as EligibilityRule["type"];
+                        updated[idx] = {
+                          ...rule,
+                          type: newType,
+                          values: newType === "range" ? { min: undefined, max: undefined } :
+                                  (newType === "select" || newType === "multiselect") ? [] : undefined,
+                        };
+                        setForm({ ...form, eligibilityRules: updated });
+                      }}
+                    >
+                      <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="select">Select</SelectItem>
+                        <SelectItem value="multiselect">Multiselect</SelectItem>
+                        <SelectItem value="range">Range</SelectItem>
+                        <SelectItem value="boolean">Boolean</SelectItem>
+                        <SelectItem value="text">Text</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-end gap-1.5 pb-0.5">
+                    <div className="flex flex-col items-center gap-0.5">
+                      <Label className="text-xs">Req</Label>
+                      <Switch
+                        checked={rule.required}
+                        onCheckedChange={(checked) => {
+                          const updated = [...form.eligibilityRules];
+                          updated[idx] = { ...rule, required: checked };
+                          setForm({ ...form, eligibilityRules: updated });
+                        }}
+                      />
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7 text-destructive"
+                      onClick={() => {
+                        const updated = form.eligibilityRules.filter((_, i) => i !== idx);
+                        setForm({ ...form, eligibilityRules: updated });
+                        const newInputs = { ...valueInputs };
+                        delete newInputs[idx];
+                        setValueInputs(newInputs);
+                      }}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Values UI based on type */}
+                {(rule.type === "select" || rule.type === "multiselect") && (
+                  <div>
+                    <Label className="text-xs">Values</Label>
+                    <div className="flex flex-wrap gap-1 mb-1.5">
+                      {Array.isArray(rule.values) && (rule.values as string[]).map((val, vi) => (
+                        <Badge key={vi} variant="secondary" className="text-xs gap-0.5">
+                          {val}
+                          <button
+                            type="button"
+                            className="ml-0.5 hover:text-destructive"
+                            onClick={() => {
+                              const updated = [...form.eligibilityRules];
+                              const newValues = [...(rule.values as string[])];
+                              newValues.splice(vi, 1);
+                              updated[idx] = { ...rule, values: newValues };
+                              setForm({ ...form, eligibilityRules: updated });
+                            }}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                    <Input
+                      value={valueInputs[idx] || ""}
+                      onChange={(e) => setValueInputs({ ...valueInputs, [idx]: e.target.value })}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const val = (valueInputs[idx] || "").trim();
+                          if (!val) return;
+                          const updated = [...form.eligibilityRules];
+                          const currentValues = Array.isArray(rule.values) ? (rule.values as string[]) : [];
+                          updated[idx] = { ...rule, values: [...currentValues, val] };
+                          setForm({ ...form, eligibilityRules: updated });
+                          setValueInputs({ ...valueInputs, [idx]: "" });
+                        }
+                      }}
+                      placeholder="Type a value and press Enter"
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                )}
+
+                {rule.type === "range" && (
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <Label className="text-xs">Min</Label>
+                      <Input
+                        type="number"
+                        value={(rule.values as { min?: number; max?: number })?.min ?? ""}
+                        onChange={(e) => {
+                          const updated = [...form.eligibilityRules];
+                          const rangeVal = (rule.values as { min?: number; max?: number }) || {};
+                          updated[idx] = {
+                            ...rule,
+                            values: { ...rangeVal, min: e.target.value ? Number(e.target.value) : undefined },
+                          };
+                          setForm({ ...form, eligibilityRules: updated });
+                        }}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <Label className="text-xs">Max</Label>
+                      <Input
+                        type="number"
+                        value={(rule.values as { min?: number; max?: number })?.max ?? ""}
+                        onChange={(e) => {
+                          const updated = [...form.eligibilityRules];
+                          const rangeVal = (rule.values as { min?: number; max?: number }) || {};
+                          updated[idx] = {
+                            ...rule,
+                            values: { ...rangeVal, max: e.target.value ? Number(e.target.value) : undefined },
+                          };
+                          setForm({ ...form, eligibilityRules: updated });
+                        }}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            <datalist id="criterion-suggestions">
+              <option value="County of Residence" />
+              <option value="City" />
+              <option value="Enrollment Status" />
+              <option value="GPA" />
+              <option value="Major/Pathway" />
+              <option value="Citizenship" />
+              <option value="Financial Need" />
+              <option value="Age" />
+              <option value="High School" />
+              <option value="Institution" />
+            </datalist>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => {
+                setForm({
+                  ...form,
+                  eligibilityRules: [
+                    ...form.eligibilityRules,
+                    { criterion: "", type: "select", values: [], required: false },
+                  ],
+                });
+              }}
+            >
+              <Plus className="w-3.5 h-3.5 mr-1.5" /> Add Rule
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

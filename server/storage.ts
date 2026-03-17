@@ -13,7 +13,7 @@ import {
   type Resource, type ChatSession, type ChatMessage, type ResearchTask,
   type AppSetting, type TokenUsage, type OnboardingScript,
   type AssessmentQuestion, type AssessmentOption, type AssessmentCareer,
-  type Contact
+  type Contact, type EligibilityRule
 } from "@shared/schema";
 
 export interface IStorage {
@@ -344,6 +344,11 @@ export class DatabaseStorage implements IStorage {
       knowledge += `- ${r.name} (${r.type})`;
       if (r.description) knowledge += `: ${r.description}`;
       if (r.eligibility) knowledge += ` | Eligibility: ${r.eligibility}`;
+      if (r.eligibilityRules) {
+        const rules = r.eligibilityRules as EligibilityRule[];
+        const reqRules = rules.filter(rule => rule.required).map(rule => `${rule.criterion}: ${Array.isArray(rule.values) ? rule.values.join(', ') : JSON.stringify(rule.values)}`);
+        if (reqRules.length) knowledge += ` | Requirements: ${reqRules.join('; ')}`;
+      }
       if (r.url) knowledge += ` | URL: ${r.url}`;
       knowledge += "\n";
     }
