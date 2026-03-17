@@ -284,8 +284,8 @@ export default function ScholarshipsPage() {
       {/* Chat area */}
       <div className="flex-1 overflow-hidden">
         <div ref={scrollRef} className="h-full overflow-y-auto">
-          <div className="max-w-3xl mx-auto px-4 py-6">
-            <div className="space-y-4">
+          <div className="max-w-2xl mx-auto px-4 py-6">
+            <div className="space-y-5">
               {bubbles.map((bubble) => (
                 <div
                   key={bubble.id}
@@ -299,10 +299,10 @@ export default function ScholarshipsPage() {
                     </Avatar>
                   )}
                   <div
-                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                    className={`max-w-[85%] rounded-md px-4 py-3 text-sm leading-relaxed ${
                       bubble.role === "user"
-                        ? "bg-primary text-primary-foreground rounded-br-md"
-                        : "bg-muted/60 border rounded-bl-md"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card/80 backdrop-blur-md border"
                     }`}
                   >
                     {bubble.content}
@@ -325,7 +325,7 @@ export default function ScholarshipsPage() {
                       <Bot className="w-4 h-4" />
                     </AvatarFallback>
                   </Avatar>
-                  <div className="bg-muted/60 border rounded-2xl rounded-bl-md px-4 py-3 text-sm">
+                  <div className="bg-card/80 backdrop-blur-md border rounded-md px-4 py-3 text-sm">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       <span className="text-xs">{t("scholarships.answering")}</span>
@@ -342,7 +342,7 @@ export default function ScholarshipsPage() {
                       <Bot className="w-4 h-4" />
                     </AvatarFallback>
                   </Avatar>
-                  <div className="bg-muted/60 border rounded-2xl rounded-bl-md px-4 py-3 text-sm leading-relaxed">
+                  <div className="bg-card/80 backdrop-blur-md border rounded-md px-4 py-3 text-sm leading-relaxed">
                     {t("scholarships.noCriteria")}
                   </div>
                 </div>
@@ -357,7 +357,7 @@ export default function ScholarshipsPage() {
                         <Bot className="w-4 h-4" />
                       </AvatarFallback>
                     </Avatar>
-                    <div className="bg-muted/60 border rounded-2xl rounded-bl-md px-4 py-3 text-sm leading-relaxed">
+                    <div className="bg-card/80 backdrop-blur-md border rounded-md px-4 py-3 text-sm leading-relaxed">
                       {results.length > 0
                         ? language === "es"
                           ? `${t("scholarships.results")}: ${results.length} beca${results.length !== 1 ? "s" : ""} encontrada${results.length !== 1 ? "s" : ""}.`
@@ -459,8 +459,8 @@ export default function ScholarshipsPage() {
 
       {/* County selection phase */}
       {phase === "county" && (
-        <div className="border-t bg-background/95 backdrop-blur-md">
-          <div className="max-w-3xl mx-auto px-4 py-3 space-y-3">
+        <div className="border-t bg-background/60 backdrop-blur-md px-4 py-3">
+          <div className="max-w-2xl mx-auto space-y-3">
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               {NORTH_STATE_COUNTIES.map((county) => (
                 <Button
@@ -484,14 +484,20 @@ export default function ScholarshipsPage() {
               <SkipForward className="w-3.5 h-3.5" />
               {t("scholarships.skip")}
             </Button>
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              {t("chat.disclaimer")}{" "}
+              <Link href="/disclaimer" className="text-primary hover:underline">
+                {t("chat.disclaimerLink")}
+              </Link>
+            </p>
           </div>
         </div>
       )}
 
       {/* Dynamic criteria questions phase */}
       {phase === "questions" && effectiveCriterion && !criteriaLoading && (
-        <div className="border-t bg-background/95 backdrop-blur-md">
-          <div className="max-w-3xl mx-auto px-4 py-3 space-y-3">
+        <div className="border-t bg-background/60 backdrop-blur-md px-4 py-3">
+          <div className="max-w-2xl mx-auto space-y-3">
             {/* Select: button pills */}
             {effectiveCriterion.type === "select" &&
               Array.isArray(effectiveCriterion.allValues) && (
@@ -662,19 +668,15 @@ export default function ScholarshipsPage() {
                 </Button>
               )}
             </div>
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              {t("chat.disclaimer")}{" "}
+              <Link href="/disclaimer" className="text-primary hover:underline">
+                {t("chat.disclaimerLink")}
+              </Link>
+            </p>
           </div>
         </div>
       )}
-
-      {/* Disclaimer footer — matches chat page */}
-      <div className="border-t bg-background/95 backdrop-blur-md px-4 py-2">
-        <p className="text-xs text-muted-foreground text-center max-w-3xl mx-auto">
-          {t("chat.disclaimer")}{" "}
-          <Link href="/disclaimer" className="text-primary hover:underline">
-            {t("chat.disclaimerLink")}
-          </Link>
-        </p>
-      </div>
     </div>
   );
 }

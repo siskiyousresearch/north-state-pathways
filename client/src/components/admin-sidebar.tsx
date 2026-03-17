@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/collapsible";
 import {
   LayoutDashboard, MessageSquare, Route, BookOpen,
-  FlaskConical, Sparkles, ArrowLeft, Settings, Mic, Map, ChevronRight, Construction, ClipboardCheck, Building2, Users, Briefcase
+  FlaskConical, Sparkles, ArrowLeft, Settings, Mic, Map, ChevronRight, Construction, ClipboardCheck, Building2, Users, Briefcase, GraduationCap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -40,6 +40,7 @@ const navItems = [
 const devItems = [
   { title: "Onboarding Scripts", url: "/admin/onboarding-scripts", icon: Mic },
   { title: "Explore Map", url: "/admin/explore-map", icon: Map },
+  { title: "Scholarship Finder", url: "/scholarships", icon: GraduationCap },
 ];
 
 export function AdminSidebar() {
