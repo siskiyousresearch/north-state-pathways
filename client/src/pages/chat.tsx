@@ -253,8 +253,12 @@ export default function ChatPage() {
     audio.onended = () => { setIsSpeaking(false); currentAudioRef.current = null; };
   }, [voiceEnabled, stopCurrentAudio]);
 
+  const fromAssessmentRef = useRef(!!sessionStorage.getItem("nsp-assessment-context"));
   useEffect(() => {
-    playStaticAudio(language === "es" ? "/audio/onboarding/es/welcome.mp3" : "/audio/onboarding/welcome.mp3");
+    // Skip welcome audio if coming from self-assessment
+    if (!fromAssessmentRef.current) {
+      playStaticAudio(language === "es" ? "/audio/onboarding/es/welcome.mp3" : "/audio/onboarding/welcome.mp3");
+    }
     return () => {
       stopCurrentAudio();
     };
