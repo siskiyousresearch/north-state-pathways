@@ -23,6 +23,7 @@ const translations: Record<string, Record<Language, string>> = {
   "nav.aiAssistant": { en: "AI Career Assistant", es: "Asistente de Carreras IA" },
   "nav.about": { en: "About", es: "Acerca de" },
   "nav.startExploring": { en: "Start Exploring", es: "Comenzar a Explorar" },
+  "nav.assessment": { en: "Self-Assessment", es: "Autoevaluación" },
   "nav.admin": { en: "Admin", es: "Admin" },
 
   "landing.badge": { en: "Powered by AI", es: "Impulsado por IA" },

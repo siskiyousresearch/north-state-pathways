@@ -134,6 +134,41 @@ export default function ChatPage() {
   const currentAudioUrlRef = useRef<string | null>(null);
   const audioRequestIdRef = useRef(0);
 
+  const assessmentContextRef = useRef<string | null>(null);
+
+  // Check for assessment context passed from the self-assessment page
+  useEffect(() => {
+    const stored = sessionStorage.getItem("nsp-assessment-context");
+    if (stored) {
+      sessionStorage.removeItem("nsp-assessment-context");
+      assessmentContextRef.current = stored;
+      // Skip onboarding — we'll send the assessment context as the first message
+      setOnboardingStep("done");
+    }
+  }, []);
+
+  // Once onboarding is skipped via assessment, send the context message
+  useEffect(() => {
+    if (assessmentContextRef.current && onboardingStep === "done" && messages.length === 0 && !isLoading) {
+      try {
+        const ctx = JSON.parse(assessmentContextRef.current);
+        assessmentContextRef.current = null;
+        const careersText = ctx.careers
+          .map((c: any, i: number) => `${i + 1}. ${c.title} (${c.matchPercent}% match) — ${c.description}`)
+          .join("\n");
+        const qaText = ctx.qaSummary
+          .map((q: any) => `Q: ${q.question}\nA: ${q.answers.join(", ")}`)
+          .join("\n\n");
+        const msg = language === "es"
+          ? `Acabo de completar la autoevaluación de carreras en ${ctx.track === "healthcare" ? "salud" : "educación"}. Mis principales resultados fueron:\n\n${careersText}\n\nMis respuestas de la evaluación:\n${qaText}\n\n${ctx.aiInsight ? `Perspectiva de la IA: ${ctx.aiInsight}\n\n` : ""}Con base en estos resultados, ¿qué programas y oportunidades específicas hay disponibles para mí en la región del Norte del Estado?`
+          : `I just completed the ${ctx.track} career self-assessment. My top career matches were:\n\n${careersText}\n\nMy assessment answers:\n${qaText}\n\n${ctx.aiInsight ? `AI Insight: ${ctx.aiInsight}\n\n` : ""}Based on these results, what specific programs and opportunities are available for me in the North State region?`;
+        sendMessage(msg);
+      } catch {
+        assessmentContextRef.current = null;
+      }
+    }
+  }, [onboardingStep, messages.length, isLoading, language]);
+
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);

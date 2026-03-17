@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/collapsible";
 import {
   LayoutDashboard, MessageSquare, Route, BookOpen,
-  FlaskConical, Sparkles, ArrowLeft, Settings, Mic, Map, ChevronRight, Construction, ClipboardCheck, Building2, Users
+  FlaskConical, Sparkles, ArrowLeft, Settings, Mic, Map, ChevronRight, Construction, ClipboardCheck, Building2, Users, Briefcase
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -32,6 +32,7 @@ const navItems = [
   { title: "Pathways & Programs", url: "/admin/pathways", icon: Route },
   { title: "Resources", url: "/admin/resources", icon: BookOpen },
   { title: "Contacts", url: "/admin/contacts", icon: Users },
+  { title: "Self-Assessment", url: "/admin/self-assessment", icon: ClipboardCheck },
   { title: "Research Tasks", url: "/admin/research", icon: FlaskConical },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
@@ -39,7 +40,6 @@ const navItems = [
 const devItems = [
   { title: "Onboarding Scripts", url: "/admin/onboarding-scripts", icon: Mic },
   { title: "Explore Map", url: "/admin/explore-map", icon: Map },
-  { title: "Self-Assessment", url: "/admin/self-assessment", icon: ClipboardCheck },
 ];
 
 export function AdminSidebar() {

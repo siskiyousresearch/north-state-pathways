@@ -60,6 +60,9 @@ export default function LandingPage() {
             <Link href="/explore">
               <Button variant="ghost" data-testid="button-explore-link">{t("nav.explore")}</Button>
             </Link>
+            <Link href="/assessment">
+              <Button variant="ghost" data-testid="button-assessment-link">{t("nav.assessment")}</Button>
+            </Link>
             <Link href="/chat">
               <Button data-testid="button-start-chat-header">{t("nav.startExploring")}</Button>
             </Link>

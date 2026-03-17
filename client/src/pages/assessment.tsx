@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useLanguage } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
@@ -82,6 +82,7 @@ type Track = "healthcare" | "education";
 
 export default function AssessmentPage() {
   const { language, setLanguage } = useLanguage();
+  const [, navigate] = useLocation();
   const [track, setTrack] = useState<Track | null>(() => {
     const param = new URLSearchParams(window.location.search).get("track");
     return param === "healthcare" || param === "education" ? param : null;
@@ -99,6 +100,26 @@ export default function AssessmentPage() {
   const resultRef = useRef<AssessmentResult | null>(null);
 
   useEffect(() => { resultRef.current = result; }, [result]);
+
+  const navigateToChat = () => {
+    if (result && track) {
+      const topCareers = result.careers.slice(0, 3).map(c => ({
+        title: c.title,
+        matchPercent: c.matchPercent,
+        description: c.description,
+        salary: c.salary,
+        education: c.education,
+      }));
+      const context = {
+        track,
+        careers: topCareers,
+        aiInsight: result.aiInsight || "",
+        qaSummary: qaSummary.map(q => ({ question: q.question, answers: q.answers })),
+      };
+      sessionStorage.setItem("nsp-assessment-context", JSON.stringify(context));
+    }
+    navigate("/chat");
+  };
 
   useEffect(() => {
     if (prevLanguageRef.current === language) return;
@@ -666,12 +687,10 @@ export default function AssessmentPage() {
                   <RotateCcw className="w-4 h-4 mr-1.5" />
                   {language === "en" ? "Take Again" : "Volver a Tomar"}
                 </Button>
-                <Link href="/chat">
-                  <Button data-testid="button-algo-chat">
-                    <MessageCircle className="w-4 h-4 mr-1.5" />
-                    {language === "en" ? "Chat with Our AI Assistant" : "Chatea con Nuestro Asistente de IA"}
-                  </Button>
-                </Link>
+                <Button onClick={navigateToChat} data-testid="button-algo-chat">
+                  <MessageCircle className="w-4 h-4 mr-1.5" />
+                  {language === "en" ? "Chat with Our AI Assistant" : "Chatea con Nuestro Asistente de IA"}
+                </Button>
               </div>
             </div>
           )}
@@ -840,12 +859,10 @@ export default function AssessmentPage() {
                   <RotateCcw className="w-4 h-4 mr-1.5" />
                   {language === "en" ? "Take Again" : "Volver a Tomar"}
                 </Button>
-                <Link href="/chat">
-                  <Button data-testid="button-chat-after-results">
-                    <MessageCircle className="w-4 h-4 mr-1.5" />
-                    {language === "en" ? "Chat with Our AI Assistant" : "Chatea con Nuestro Asistente de IA"}
-                  </Button>
-                </Link>
+                <Button onClick={navigateToChat} data-testid="button-chat-after-results">
+                  <MessageCircle className="w-4 h-4 mr-1.5" />
+                  {language === "en" ? "Chat with Our AI Assistant" : "Chatea con Nuestro Asistente de IA"}
+                </Button>
               </div>
             </div>
           )}
