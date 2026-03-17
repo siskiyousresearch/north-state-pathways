@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   Plus, FlaskConical, Check, X, Loader2, Play, PlusCircle, Trash2, Pencil, RotateCw,
-  GraduationCap, BookOpen, MapPin, ExternalLink, Building2
+  GraduationCap, BookOpen, MapPin, ExternalLink, Building2, Briefcase
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { ResearchTask, Pathway } from "@shared/schema";
@@ -26,6 +26,23 @@ const NORTH_STATE_COUNTIES = [
   "Butte County", "Glenn County", "Lassen County", "Modoc County", "Plumas County",
   "Shasta County", "Sierra County", "Siskiyou County", "Tehama County", "Trinity County",
 ];
+
+const INSTITUTION_TYPES = [
+  "Community College", "University (CSU)", "University (UC)", "University (Private)",
+  "University (Out-of-State)", "University (Online)", "County Office of Education",
+  "Vocational/Trade School", "Other",
+];
+
+const RESOURCE_TYPES = [
+  "Scholarship", "Grant", "Financial Aid", "Fellowship",
+  "Internship", "Program", "Support Service", "Other",
+];
+
+const PROGRAM_LEVELS = [
+  "Certificate", "Associate", "Bachelor", "Master", "Training",
+];
+
+const CAREER_TRACKS = ["Healthcare", "Education"];
 
 const statusColors: Record<string, string> = {
   pending: "secondary",
@@ -76,6 +93,14 @@ export default function ResearchPage() {
   const [form, setForm] = useState({ title: "", description: "", pathwayId: "", county: "" });
   const [showNewPathway, setShowNewPathway] = useState(false);
   const [newPathway, setNewPathway] = useState({ name: "", description: "" });
+  const [showAddInstitution, setShowAddInstitution] = useState(false);
+  const [showAddProgram, setShowAddProgram] = useState(false);
+  const [showAddResource, setShowAddResource] = useState(false);
+  const [showAddCareer, setShowAddCareer] = useState(false);
+  const [instForm, setInstForm] = useState({ name: "", type: "", county: "", website: "", description: "" });
+  const [progForm, setProgForm] = useState({ name: "", institution: "", county: "", level: "", url: "", description: "" });
+  const [resForm, setResForm] = useState({ name: "", type: "", description: "", eligibility: "", url: "", counties: [] as string[] });
+  const [careerForm, setCareerForm] = useState({ track: "", name: "", nameEs: "", descriptionEn: "", descriptionEs: "", salaryEn: "", educationEn: "" });
 
   const { data: tasks, isLoading } = useQuery<ResearchTask[]>({
     queryKey: ["/api/admin/research"],
@@ -241,6 +266,26 @@ export default function ResearchPage() {
     },
     onError: () => {
       toast({ title: "Failed to add institution", variant: "destructive" });
+    },
+  });
+
+  const addCareer = useMutation({
+    mutationFn: (data: { track: string; name: string; nameEs?: string; descriptionEn?: string; descriptionEs?: string; salaryEn?: string; educationEn?: string }) =>
+      apiRequest("POST", "/api/admin/assessment/careers", {
+        track: data.track,
+        name: data.name,
+        nameEs: data.nameEs || null,
+        descriptionEn: data.descriptionEn || null,
+        descriptionEs: data.descriptionEs || null,
+        salaryEn: data.salaryEn || null,
+        educationEn: data.educationEn || null,
+      }),
+    onSuccess: (_, data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/assessment/careers"] });
+      toast({ title: `Career "${data.name}" added` });
+    },
+    onError: () => {
+      toast({ title: "Failed to add career", variant: "destructive" });
     },
   });
 
@@ -504,7 +549,7 @@ export default function ResearchPage() {
                   </div>
                 )}
 
-                {actions.length > 0 && (
+                {actions.length > 0 ? (
                   <div>
                     <Label className="text-xs text-muted-foreground">Suggested Actions</Label>
                     <div className="mt-1 space-y-2">
@@ -568,7 +613,308 @@ export default function ResearchPage() {
                       ))}
                     </div>
                   </div>
-                )}
+                ) : currentTask.aiResponse ? (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Add to Database</Label>
+                    <Card className="p-4 mt-1 border-dashed">
+                      <p className="text-sm text-muted-foreground mb-3">
+                        No structured suggestions were found in the AI response. You can manually add entries based on the findings above:
+                      </p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Dialog open={showAddInstitution} onOpenChange={(open) => {
+                          setShowAddInstitution(open);
+                          if (!open) setInstForm({ name: "", type: "", county: "", website: "", description: "" });
+                        }}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <Building2 className="w-3.5 h-3.5 mr-1.5" /> Add Institution
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Add Institution</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-3 mt-2">
+                              <div>
+                                <Label className="text-sm">Name *</Label>
+                                <Input value={instForm.name} onChange={(e) => setInstForm({ ...instForm, name: e.target.value })} placeholder="Institution name" />
+                              </div>
+                              <div>
+                                <Label className="text-sm">Type</Label>
+                                <Select value={instForm.type} onValueChange={(v) => setInstForm({ ...instForm, type: v })}>
+                                  <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                                  <SelectContent>
+                                    {INSTITUTION_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label className="text-sm">County</Label>
+                                <Select value={instForm.county} onValueChange={(v) => setInstForm({ ...instForm, county: v })}>
+                                  <SelectTrigger><SelectValue placeholder="Select county" /></SelectTrigger>
+                                  <SelectContent>
+                                    {NORTH_STATE_COUNTIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label className="text-sm">Website</Label>
+                                <Input value={instForm.website} onChange={(e) => setInstForm({ ...instForm, website: e.target.value })} placeholder="https://..." />
+                              </div>
+                              <div>
+                                <Label className="text-sm">Description</Label>
+                                <Textarea value={instForm.description} onChange={(e) => setInstForm({ ...instForm, description: e.target.value })} placeholder="Brief description" rows={2} />
+                              </div>
+                              <Button
+                                className="w-full"
+                                disabled={!instForm.name || addInstitution.isPending}
+                                onClick={() => {
+                                  addInstitution.mutate({
+                                    type: "institution",
+                                    name: instForm.name,
+                                    institutionType: instForm.type || "Other",
+                                    county: instForm.county || undefined,
+                                    website: instForm.website || undefined,
+                                    description: instForm.description || undefined,
+                                  });
+                                  setShowAddInstitution(false);
+                                  setInstForm({ name: "", type: "", county: "", website: "", description: "" });
+                                }}
+                              >
+                                {addInstitution.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
+                                Add Institution
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+
+                        <Dialog open={showAddProgram} onOpenChange={(open) => {
+                          setShowAddProgram(open);
+                          if (!open) setProgForm({ name: "", institution: "", county: "", level: "", url: "", description: "" });
+                        }}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <GraduationCap className="w-3.5 h-3.5 mr-1.5" /> Add Program
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Add Program</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-3 mt-2">
+                              <div>
+                                <Label className="text-sm">Name *</Label>
+                                <Input value={progForm.name} onChange={(e) => setProgForm({ ...progForm, name: e.target.value })} placeholder="Program name" />
+                              </div>
+                              <div>
+                                <Label className="text-sm">Institution</Label>
+                                <Input value={progForm.institution} onChange={(e) => setProgForm({ ...progForm, institution: e.target.value })} placeholder="Institution name" />
+                              </div>
+                              <div>
+                                <Label className="text-sm">County</Label>
+                                <Select value={progForm.county} onValueChange={(v) => setProgForm({ ...progForm, county: v })}>
+                                  <SelectTrigger><SelectValue placeholder="Select county" /></SelectTrigger>
+                                  <SelectContent>
+                                    {NORTH_STATE_COUNTIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label className="text-sm">Level</Label>
+                                <Select value={progForm.level} onValueChange={(v) => setProgForm({ ...progForm, level: v })}>
+                                  <SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger>
+                                  <SelectContent>
+                                    {PROGRAM_LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label className="text-sm">URL</Label>
+                                <Input value={progForm.url} onChange={(e) => setProgForm({ ...progForm, url: e.target.value })} placeholder="https://..." />
+                              </div>
+                              <div>
+                                <Label className="text-sm">Description</Label>
+                                <Textarea value={progForm.description} onChange={(e) => setProgForm({ ...progForm, description: e.target.value })} placeholder="Brief description" rows={2} />
+                              </div>
+                              <Button
+                                className="w-full"
+                                disabled={!progForm.name || addProgram.isPending}
+                                onClick={() => {
+                                  addProgram.mutate({
+                                    type: "program",
+                                    name: progForm.name,
+                                    institution: progForm.institution || undefined,
+                                    county: progForm.county || undefined,
+                                    level: progForm.level || undefined,
+                                    url: progForm.url || undefined,
+                                    description: progForm.description || undefined,
+                                  });
+                                  setShowAddProgram(false);
+                                  setProgForm({ name: "", institution: "", county: "", level: "", url: "", description: "" });
+                                }}
+                              >
+                                {addProgram.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
+                                Add Program
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+
+                        <Dialog open={showAddResource} onOpenChange={(open) => {
+                          setShowAddResource(open);
+                          if (!open) setResForm({ name: "", type: "", description: "", eligibility: "", url: "", counties: [] });
+                        }}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <BookOpen className="w-3.5 h-3.5 mr-1.5" /> Add Resource
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Add Resource</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-3 mt-2">
+                              <div>
+                                <Label className="text-sm">Name *</Label>
+                                <Input value={resForm.name} onChange={(e) => setResForm({ ...resForm, name: e.target.value })} placeholder="Resource name" />
+                              </div>
+                              <div>
+                                <Label className="text-sm">Type</Label>
+                                <Select value={resForm.type} onValueChange={(v) => setResForm({ ...resForm, type: v })}>
+                                  <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                                  <SelectContent>
+                                    {RESOURCE_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label className="text-sm">Description</Label>
+                                <Textarea value={resForm.description} onChange={(e) => setResForm({ ...resForm, description: e.target.value })} placeholder="What it provides" rows={2} />
+                              </div>
+                              <div>
+                                <Label className="text-sm">Eligibility</Label>
+                                <Input value={resForm.eligibility} onChange={(e) => setResForm({ ...resForm, eligibility: e.target.value })} placeholder="Who qualifies" />
+                              </div>
+                              <div>
+                                <Label className="text-sm">URL</Label>
+                                <Input value={resForm.url} onChange={(e) => setResForm({ ...resForm, url: e.target.value })} placeholder="https://..." />
+                              </div>
+                              <div>
+                                <Label className="text-sm">Counties</Label>
+                                <div className="grid grid-cols-2 gap-1.5 mt-1">
+                                  {NORTH_STATE_COUNTIES.map((c) => (
+                                    <label key={c} className="flex items-center gap-1.5 text-xs cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        className="rounded border-gray-300"
+                                        checked={resForm.counties.includes(c)}
+                                        onChange={(e) => {
+                                          setResForm({
+                                            ...resForm,
+                                            counties: e.target.checked
+                                              ? [...resForm.counties, c]
+                                              : resForm.counties.filter((x) => x !== c),
+                                          });
+                                        }}
+                                      />
+                                      {c}
+                                    </label>
+                                  ))}
+                                </div>
+                              </div>
+                              <Button
+                                className="w-full"
+                                disabled={!resForm.name || addResource.isPending}
+                                onClick={() => {
+                                  addResource.mutate({
+                                    type: "resource",
+                                    name: resForm.name,
+                                    resourceType: resForm.type || "Other",
+                                    description: resForm.description || undefined,
+                                    eligibility: resForm.eligibility || undefined,
+                                    url: resForm.url || undefined,
+                                    counties: resForm.counties.length > 0 ? resForm.counties : undefined,
+                                  });
+                                  setShowAddResource(false);
+                                  setResForm({ name: "", type: "", description: "", eligibility: "", url: "", counties: [] });
+                                }}
+                              >
+                                {addResource.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
+                                Add Resource
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+
+                        <Dialog open={showAddCareer} onOpenChange={(open) => {
+                          setShowAddCareer(open);
+                          if (!open) setCareerForm({ track: "", name: "", nameEs: "", descriptionEn: "", descriptionEs: "", salaryEn: "", educationEn: "" });
+                        }}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <Briefcase className="w-3.5 h-3.5 mr-1.5" /> Add Career
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Add Career</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-3 mt-2">
+                              <div>
+                                <Label className="text-sm">Track *</Label>
+                                <Select value={careerForm.track} onValueChange={(v) => setCareerForm({ ...careerForm, track: v })}>
+                                  <SelectTrigger><SelectValue placeholder="Select track" /></SelectTrigger>
+                                  <SelectContent>
+                                    {CAREER_TRACKS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label className="text-sm">Name (English) *</Label>
+                                <Input value={careerForm.name} onChange={(e) => setCareerForm({ ...careerForm, name: e.target.value })} placeholder="Career name" />
+                              </div>
+                              <div>
+                                <Label className="text-sm">Name (Spanish)</Label>
+                                <Input value={careerForm.nameEs} onChange={(e) => setCareerForm({ ...careerForm, nameEs: e.target.value })} placeholder="Nombre de carrera" />
+                              </div>
+                              <div>
+                                <Label className="text-sm">Description (English)</Label>
+                                <Textarea value={careerForm.descriptionEn} onChange={(e) => setCareerForm({ ...careerForm, descriptionEn: e.target.value })} placeholder="What this career involves" rows={2} />
+                              </div>
+                              <div>
+                                <Label className="text-sm">Salary Info</Label>
+                                <Input value={careerForm.salaryEn} onChange={(e) => setCareerForm({ ...careerForm, salaryEn: e.target.value })} placeholder="e.g. $45,000 - $65,000/year" />
+                              </div>
+                              <div>
+                                <Label className="text-sm">Education Requirements</Label>
+                                <Input value={careerForm.educationEn} onChange={(e) => setCareerForm({ ...careerForm, educationEn: e.target.value })} placeholder="e.g. Associate's degree required" />
+                              </div>
+                              <Button
+                                className="w-full"
+                                disabled={!careerForm.name || !careerForm.track || addCareer.isPending}
+                                onClick={() => {
+                                  addCareer.mutate({
+                                    track: careerForm.track,
+                                    name: careerForm.name,
+                                    nameEs: careerForm.nameEs || undefined,
+                                    descriptionEn: careerForm.descriptionEn || undefined,
+                                    salaryEn: careerForm.salaryEn || undefined,
+                                    educationEn: careerForm.educationEn || undefined,
+                                  });
+                                  setShowAddCareer(false);
+                                  setCareerForm({ track: "", name: "", nameEs: "", descriptionEn: "", descriptionEs: "", salaryEn: "", educationEn: "" });
+                                }}
+                              >
+                                {addCareer.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
+                                Add Career
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </Card>
+                  </div>
+                ) : null}
 
                 {currentTask.findings && (
                   <div>

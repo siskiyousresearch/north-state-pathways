@@ -1335,10 +1335,14 @@ Output a JSON array of items to add to the knowledge base. Only include items yo
 
 RULES:
 - SEARCH THE WEB. Do not make up programs or suggest what might exist.
+- NEVER ask follow-up questions. NEVER say "I would need to search for..." or "Would you like me to..." — actually perform the search and report results.
+- NEVER describe what you would do. Actually do it and report what you found.
 - Every item must have a real URL or clearly state the source.
 - Be concise and factual. No suggestions, no follow-up questions.
 - Skip items already in our database.
-- Only include institution actions for NEW institutions not already in the knowledge base.`,
+- Only include institution actions for NEW institutions not already in the knowledge base.
+- You MUST ALWAYS include the ---ACTIONS--- separator followed by a JSON array. If you found nothing new, output ---ACTIONS--- followed by an empty array: \`\`\`json\n[]\n\`\`\`
+- If your search returns limited results, still report what you found and include any partial matches in the ACTIONS array.`,
           },
           {
             role: "user",
