@@ -700,10 +700,27 @@ Where "index" is the zero-based position of the career in the provided list and 
 
       const systemPrompt = language === "es" ? SYSTEM_PROMPT_SPANISH : SYSTEM_PROMPT;
 
+      // Check if session has assessment context from self-assessment flow
+      let assessmentBlock = "";
+      try {
+        const session = await storage.getChatSession(sessionId);
+        const meta = session?.metadata as any;
+        if (meta?.assessmentContext) {
+          const ctx = meta.assessmentContext;
+          const careersText = (ctx.careers || [])
+            .map((c: any, i: number) => `${i + 1}. ${c.title} (${c.matchPercent}% match) — ${c.description}. Salary: ${c.salary}. Education: ${c.education}.`)
+            .join("\n");
+          const qaText = (ctx.qaSummary || [])
+            .map((q: any) => `Q: ${q.question} → A: ${q.answers.join(", ")}`)
+            .join("\n");
+          assessmentBlock = `\n\n--- SELF-ASSESSMENT RESULTS ---\nTrack: ${ctx.track}\nTop Career Matches:\n${careersText}\n${ctx.aiInsight ? `\nAI Insight: ${ctx.aiInsight}` : ""}\n\nAssessment Answers:\n${qaText}\n--- END ASSESSMENT RESULTS ---\n\nIMPORTANT: The user has already completed a career self-assessment. Use these results to give highly personalized recommendations. Reference their specific career matches and assessment answers. Start with a warm, conversational response about their results — do NOT repeat the full assessment data back to them.`;
+        }
+      } catch {}
+
       const chatMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
         {
           role: "system",
-          content: `${systemPrompt}\n\n--- PATHWAY KNOWLEDGE BASE ---\n${knowledge}\n--- END KNOWLEDGE BASE ---`,
+          content: `${systemPrompt}\n\n--- PATHWAY KNOWLEDGE BASE ---\n${knowledge}\n--- END KNOWLEDGE BASE ---${assessmentBlock}`,
         },
         ...history.map((m) => ({
           role: m.role as "user" | "assistant",
