@@ -247,6 +247,13 @@ export default function AssessmentPage() {
     setQaSummary(snapshot);
     submittedAnswersRef.current = answers;
 
+    // Track assessment completion
+    apiRequest("POST", "/api/usage-event", {
+      tool: "self-assessment",
+      event: "completed",
+      metadata: { track, questionsAnswered: Object.keys(answers).length },
+    }).catch(() => {});
+
     if (aiOptedOut) {
       if (!dbCareers || dbCareers.length === 0) {
         setResult({ careers: [], aiInsight: "", nextSteps: [], isAlgorithmic: true });
@@ -372,7 +379,7 @@ export default function AssessmentPage() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <Card
                   className="p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-primary/50 group"
-                  onClick={() => { setTrack("healthcare"); setCurrentStep(0); setAnswers({}); }}
+                  onClick={() => { setTrack("healthcare"); setCurrentStep(0); setAnswers({}); apiRequest("POST", "/api/usage-event", { tool: "self-assessment", event: "started", metadata: { track: "healthcare" } }).catch(() => {}); }}
                   data-testid="card-track-healthcare"
                 >
                   <div className="flex flex-col items-center gap-4">
@@ -392,7 +399,7 @@ export default function AssessmentPage() {
 
                 <Card
                   className="p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-primary/50 group"
-                  onClick={() => { setTrack("education"); setCurrentStep(0); setAnswers({}); }}
+                  onClick={() => { setTrack("education"); setCurrentStep(0); setAnswers({}); apiRequest("POST", "/api/usage-event", { tool: "self-assessment", event: "started", metadata: { track: "education" } }).catch(() => {}); }}
                   data-testid="card-track-education"
                 >
                   <div className="flex flex-col items-center gap-4">

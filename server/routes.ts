@@ -872,7 +872,8 @@ Where "index" is the zero-based position of the career in the provided list and 
   app.get("/api/admin/stats", requireAdmin, async (_req, res) => {
     try {
       const stats = await storage.getStats();
-      res.json(stats);
+      const toolUsage = await storage.getToolUsageStats();
+      res.json({ ...stats, toolUsage });
     } catch (error) {
       console.error("Error fetching stats:", error);
       res.status(500).json({ error: "Failed to fetch stats" });
@@ -1251,6 +1252,20 @@ Write 2-3 short paragraphs summarizing what students are seeking, which regions 
       res.json(results);
     } catch (error) {
       res.status(500).json({ error: "Failed to match scholarships" });
+    }
+  });
+
+  // ========== USAGE TRACKING API ==========
+  app.post("/api/usage-event", async (req, res) => {
+    try {
+      const { tool, event, metadata } = req.body;
+      if (!tool || !event) return res.status(400).json({ error: "tool and event required" });
+      const allowed = ["self-assessment", "scholarship-finder"];
+      if (!allowed.includes(tool)) return res.status(400).json({ error: "Invalid tool" });
+      await storage.recordUsageEvent({ tool, event, metadata: metadata || null });
+      res.status(201).json({ ok: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to record event" });
     }
   });
 

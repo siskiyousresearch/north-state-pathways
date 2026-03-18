@@ -201,6 +201,18 @@ export const eligibilityRuleSchema = z.object({
 });
 export type EligibilityRule = z.infer<typeof eligibilityRuleSchema>;
 
+export const usageEvents = pgTable("usage_events", {
+  id: serial("id").primaryKey(),
+  tool: text("tool").notNull(),
+  event: text("event").notNull(),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertUsageEventSchema = createInsertSchema(usageEvents).omit({ id: true, createdAt: true });
+export type UsageEvent = typeof usageEvents.$inferSelect;
+export type InsertUsageEvent = z.infer<typeof insertUsageEventSchema>;
+
 export const insertAssessmentQuestionSchema = createInsertSchema(assessmentQuestions).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertAssessmentOptionSchema = createInsertSchema(assessmentOptions).omit({ id: true });
 export const insertAssessmentCareerSchema = createInsertSchema(assessmentCareers).omit({ id: true, createdAt: true, updatedAt: true });

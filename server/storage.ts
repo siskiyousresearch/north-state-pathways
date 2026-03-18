@@ -3,17 +3,17 @@ import { eq, desc, sql, and, count, gte, sum } from "drizzle-orm";
 import {
   counties, institutions, pathways, programs, resources,
   chatSessions, chatMessages, researchTasks, conversations, messages, appSettings, tokenUsage,
-  onboardingScripts, assessmentQuestions, assessmentOptions, assessmentCareers, contacts,
+  onboardingScripts, assessmentQuestions, assessmentOptions, assessmentCareers, contacts, usageEvents,
   type InsertCounty, type InsertInstitution, type InsertPathway,
   type InsertProgram, type InsertResource, type InsertChatSession,
   type InsertChatMessage, type InsertResearchTask, type InsertTokenUsage,
   type InsertOnboardingScript, type InsertAssessmentQuestion, type InsertAssessmentOption, type InsertAssessmentCareer,
-  type InsertContact,
+  type InsertContact, type InsertUsageEvent,
   type County, type Institution, type Pathway, type Program,
   type Resource, type ChatSession, type ChatMessage, type ResearchTask,
   type AppSetting, type TokenUsage, type OnboardingScript,
   type AssessmentQuestion, type AssessmentOption, type AssessmentCareer,
-  type Contact, type EligibilityRule
+  type Contact, type EligibilityRule, type UsageEvent
 } from "@shared/schema";
 
 export interface IStorage {
@@ -97,6 +97,9 @@ export interface IStorage {
   createContact(data: InsertContact): Promise<Contact>;
   updateContact(id: number, data: Partial<InsertContact>): Promise<Contact | undefined>;
   deleteContact(id: number): Promise<void>;
+
+  recordUsageEvent(data: InsertUsageEvent): Promise<UsageEvent>;
+  getToolUsageStats(): Promise<{ tool: string; event: string; count: number }[]>;
 
   recordTokenUsage(data: InsertTokenUsage): Promise<TokenUsage>;
   getTokenUsageStats(period: "day" | "month"): Promise<{
@@ -459,6 +462,20 @@ export class DatabaseStorage implements IStorage {
   async updateContact(id: number, data: Partial<InsertContact>): Promise<Contact | undefined> {
     const [c] = await db.update(contacts).set(data).where(eq(contacts.id, id)).returning();
     return c;
+  }
+
+  async recordUsageEvent(data: InsertUsageEvent): Promise<UsageEvent> {
+    const [e] = await db.insert(usageEvents).values(data).returning();
+    return e;
+  }
+
+  async getToolUsageStats(): Promise<{ tool: string; event: string; count: number }[]> {
+    const result = await db
+      .select({ tool: usageEvents.tool, event: usageEvents.event, count: count() })
+      .from(usageEvents)
+      .groupBy(usageEvents.tool, usageEvents.event)
+      .orderBy(desc(count()));
+    return result.map(r => ({ tool: r.tool, event: r.event, count: r.count }));
   }
 
   async recordTokenUsage(data: InsertTokenUsage): Promise<TokenUsage> {

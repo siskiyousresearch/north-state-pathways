@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   MessageSquare, Route, BookOpen, Users,
-  TrendingUp, MapPin, Heart, GraduationCap, Sparkles
+  TrendingUp, MapPin, Heart, GraduationCap, Sparkles, ClipboardCheck, Search
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -24,6 +24,7 @@ export default function AdminDashboard() {
     topCounties: { county: string; count: number }[];
     topInterests: { interest: string; count: number }[];
     recentSessions: { id: number; userType: string; county: string; createdAt: string }[];
+    toolUsage: { tool: string; event: string; count: number }[];
   }>({
     queryKey: ["/api/admin/stats"],
   });
@@ -124,6 +125,94 @@ export default function AdminDashboard() {
           ) : (
             <p className="text-sm text-muted-foreground">No data yet. Interests will be tracked from conversations.</p>
           )}
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <Card className="p-5" data-testid="card-assessment-usage">
+          <div className="flex items-center justify-between gap-1 mb-4">
+            <div>
+              <h3 className="font-semibold">Self-Assessment</h3>
+              <p className="text-xs text-muted-foreground">Career assessment tool usage</p>
+            </div>
+            <ClipboardCheck className="w-4 h-4 text-muted-foreground" />
+          </div>
+          {(() => {
+            const tu = stats?.toolUsage ?? [];
+            const started = tu.find(t => t.tool === "self-assessment" && t.event === "started")?.count ?? 0;
+            const completed = tu.find(t => t.tool === "self-assessment" && t.event === "completed")?.count ?? 0;
+            const rate = started > 0 ? Math.round((completed / started) * 100) : 0;
+            return started > 0 || completed > 0 ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                    <span className="text-sm">Assessments Started</span>
+                  </div>
+                  <Badge variant="secondary">{started}</Badge>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+                    <span className="text-sm">Assessments Completed</span>
+                  </div>
+                  <Badge variant="secondary">{completed}</Badge>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
+                    <span className="text-sm">Completion Rate</span>
+                  </div>
+                  <Badge variant="outline">{rate}%</Badge>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No assessment usage data yet. Stats will appear as students take assessments.</p>
+            );
+          })()}
+        </Card>
+
+        <Card className="p-5" data-testid="card-scholarship-usage">
+          <div className="flex items-center justify-between gap-1 mb-4">
+            <div>
+              <h3 className="font-semibold">Scholarship Finder</h3>
+              <p className="text-xs text-muted-foreground">Scholarship matching tool usage</p>
+            </div>
+            <GraduationCap className="w-4 h-4 text-muted-foreground" />
+          </div>
+          {(() => {
+            const tu = stats?.toolUsage ?? [];
+            const started = tu.find(t => t.tool === "scholarship-finder" && t.event === "started")?.count ?? 0;
+            const completed = tu.find(t => t.tool === "scholarship-finder" && t.event === "completed")?.count ?? 0;
+            const rate = started > 0 ? Math.round((completed / started) * 100) : 0;
+            return started > 0 || completed > 0 ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                    <span className="text-sm">Searches Started</span>
+                  </div>
+                  <Badge variant="secondary">{started}</Badge>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+                    <span className="text-sm">Searches Completed</span>
+                  </div>
+                  <Badge variant="secondary">{completed}</Badge>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
+                    <span className="text-sm">Completion Rate</span>
+                  </div>
+                  <Badge variant="outline">{rate}%</Badge>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No scholarship finder usage data yet. Stats will appear as students use the tool.</p>
+            );
+          })()}
         </Card>
       </div>
 

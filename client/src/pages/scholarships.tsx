@@ -156,11 +156,21 @@ export default function ScholarshipsPage() {
     addBubble("user", `${county} County`);
     setAnswers((prev) => ({ ...prev, "County of Residence": `${county} County` }));
     setPhase("questions");
+    apiRequest("POST", "/api/usage-event", {
+      tool: "scholarship-finder",
+      event: "started",
+      metadata: { county },
+    }).catch(() => {});
   }
 
   function handleCountySkip() {
     addBubble("user", t("scholarships.skip"));
     setPhase("questions");
+    apiRequest("POST", "/api/usage-event", {
+      tool: "scholarship-finder",
+      event: "started",
+      metadata: { county: "skipped" },
+    }).catch(() => {});
   }
 
   function advanceToNext(answerDisplay: string, answerValue: unknown) {
@@ -191,6 +201,11 @@ export default function ScholarshipsPage() {
       const data: MatchResult[] = await res.json();
       setResults(data);
       setPhase("results");
+      apiRequest("POST", "/api/usage-event", {
+        tool: "scholarship-finder",
+        event: "completed",
+        metadata: { resultsCount: data.length, criteriaAnswered: Object.keys(finalAnswers ?? answers).length },
+      }).catch(() => {});
     } catch {
       setResults([]);
       setPhase("results");
@@ -281,11 +296,16 @@ export default function ScholarshipsPage() {
         </div>
       </header>
 
-      {/* Chat area */}
-      <div className="flex-1 overflow-hidden">
-        <div ref={scrollRef} className="h-full overflow-y-auto">
-          <div className="max-w-2xl mx-auto px-4 py-6">
-            <div className="space-y-5">
+      {/* Chat area — background image overlay like chat page */}
+      <div className="flex-1 overflow-hidden relative">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/images/hero-landscape.png')" }}
+        />
+        <div className="absolute inset-0 bg-background/85 dark:bg-background/90" />
+        <div className="relative h-full flex flex-col">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto">
+            <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
               {bubbles.map((bubble) => (
                 <div
                   key={bubble.id}
@@ -454,50 +474,50 @@ export default function ScholarshipsPage() {
               <div ref={bottomRef} />
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* County selection phase */}
-      {phase === "county" && (
-        <div className="border-t bg-background/60 backdrop-blur-md px-4 py-3">
-          <div className="max-w-2xl mx-auto space-y-3">
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-              {NORTH_STATE_COUNTIES.map((county) => (
+          {/* County selection phase */}
+          {phase === "county" && (
+            <div className="border-t bg-background/60 backdrop-blur-md px-4 py-3">
+              <div className="max-w-2xl mx-auto space-y-3">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  {NORTH_STATE_COUNTIES.map((county) => (
+                    <Card
+                      key={county}
+                      className="p-4 cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
+                      onClick={() => handleCountySelect(county)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 shrink-0">
+                          <MapPin className="w-5 h-5 text-primary" />
+                        </div>
+                        <span className="text-sm font-semibold">{county}</span>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
                 <Button
-                  key={county}
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  className="gap-1.5 justify-start"
-                  onClick={() => handleCountySelect(county)}
+                  className="text-muted-foreground gap-1"
+                  onClick={handleCountySkip}
                 >
-                  <MapPin className="w-3.5 h-3.5 shrink-0" />
-                  {county}
+                  <SkipForward className="w-3.5 h-3.5" />
+                  {t("scholarships.skip")}
                 </Button>
-              ))}
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  {t("chat.disclaimer")}{" "}
+                  <Link href="/disclaimer" className="text-primary hover:underline">
+                    {t("chat.disclaimerLink")}
+                  </Link>
+                </p>
+              </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground gap-1"
-              onClick={handleCountySkip}
-            >
-              <SkipForward className="w-3.5 h-3.5" />
-              {t("scholarships.skip")}
-            </Button>
-            <p className="text-xs text-muted-foreground mt-2 text-center">
-              {t("chat.disclaimer")}{" "}
-              <Link href="/disclaimer" className="text-primary hover:underline">
-                {t("chat.disclaimerLink")}
-              </Link>
-            </p>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* Dynamic criteria questions phase */}
-      {phase === "questions" && effectiveCriterion && !criteriaLoading && (
-        <div className="border-t bg-background/60 backdrop-blur-md px-4 py-3">
-          <div className="max-w-2xl mx-auto space-y-3">
+          {/* Dynamic criteria questions phase */}
+          {phase === "questions" && effectiveCriterion && !criteriaLoading && (
+            <div className="border-t bg-background/60 backdrop-blur-md px-4 py-3">
+              <div className="max-w-2xl mx-auto space-y-3">
             {/* Select: button pills */}
             {effectiveCriterion.type === "select" &&
               Array.isArray(effectiveCriterion.allValues) && (
@@ -674,9 +694,11 @@ export default function ScholarshipsPage() {
                 {t("chat.disclaimerLink")}
               </Link>
             </p>
-          </div>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
