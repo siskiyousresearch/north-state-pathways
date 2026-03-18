@@ -278,7 +278,7 @@ export default function ResourcesPage() {
                           ...rule,
                           type: newType,
                           values: newType === "range" ? { min: undefined, max: undefined } :
-                                  (newType === "select" || newType === "multiselect") ? [] : undefined,
+                                  (newType === "select" || newType === "multiselect" || newType === "text") ? [] : undefined,
                         };
                         setForm({ ...form, eligibilityRules: updated });
                       }}
@@ -346,12 +346,32 @@ export default function ResourcesPage() {
                         </Badge>
                       ))}
                     </div>
-                    <Input
-                      value={valueInputs[idx] || ""}
-                      onChange={(e) => setValueInputs({ ...valueInputs, [idx]: e.target.value })}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
+                    <div className="flex gap-1.5">
+                      <Input
+                        value={valueInputs[idx] || ""}
+                        onChange={(e) => setValueInputs({ ...valueInputs, [idx]: e.target.value })}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const val = (valueInputs[idx] || "").trim();
+                            if (!val) return;
+                            const updated = [...form.eligibilityRules];
+                            const currentValues = Array.isArray(rule.values) ? (rule.values as string[]) : [];
+                            updated[idx] = { ...rule, values: [...currentValues, val] };
+                            setForm({ ...form, eligibilityRules: updated });
+                            setValueInputs({ ...valueInputs, [idx]: "" });
+                          }
+                        }}
+                        placeholder="Type a value and press Enter"
+                        className="h-8 text-sm flex-1"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        className="h-8 px-2.5"
+                        disabled={!(valueInputs[idx] || "").trim()}
+                        onClick={() => {
                           const val = (valueInputs[idx] || "").trim();
                           if (!val) return;
                           const updated = [...form.eligibilityRules];
@@ -359,9 +379,25 @@ export default function ResourcesPage() {
                           updated[idx] = { ...rule, values: [...currentValues, val] };
                           setForm({ ...form, eligibilityRules: updated });
                           setValueInputs({ ...valueInputs, [idx]: "" });
-                        }
+                        }}
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {rule.type === "text" && (
+                  <div>
+                    <Label className="text-xs">Value</Label>
+                    <Input
+                      value={Array.isArray(rule.values) ? (rule.values as string[]).join(", ") : (rule.values as string) || ""}
+                      onChange={(e) => {
+                        const updated = [...form.eligibilityRules];
+                        updated[idx] = { ...rule, values: e.target.value ? [e.target.value] : [] };
+                        setForm({ ...form, eligibilityRules: updated });
                       }}
-                      placeholder="Type a value and press Enter"
+                      placeholder="Enter the expected value"
                       className="h-8 text-sm"
                     />
                   </div>
